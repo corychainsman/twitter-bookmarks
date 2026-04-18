@@ -170,6 +170,7 @@ export function BookmarksToolbar({
   onZoomReset,
 }: BookmarksToolbarProps) {
   const toolbarRef = React.useRef<HTMLDivElement | null>(null)
+  const themeStudioHref = `${import.meta.env.BASE_URL.replace(/\/+$/, '')}/themes`
   const sortDirectionLabel = queryState.dir === 'desc' ? 'Newest first' : 'Oldest first'
   const hasSearchQuery = queryState.q.trim().length > 0
   const hasFolderControl = folderOptions.length > 0
@@ -442,7 +443,7 @@ export function BookmarksToolbar({
             <PopoverContent align="end" className="app-panel w-60 p-2.5">
               <div className="flex flex-col gap-2">
                 <Button asChild type="button" variant="outline" className="app-control h-10 w-full justify-start rounded-xl">
-                  <a href="/themes" target="_blank" rel="noreferrer">
+                  <a href={themeStudioHref} target="_blank" rel="noreferrer">
                     <ExternalLinkIcon data-icon="inline-start" />
                     Open Theme Studio
                   </a>
