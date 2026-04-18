@@ -1,0 +1,30 @@
+{
+  "buildId": "2026-04-18T02-12-02.253Z",
+  "builtAt": "2026-04-18T02:12:02.253Z",
+  "tweetCount": 5588,
+  "gridItemCountOne": 5588,
+  "gridItemCountAll": 7998,
+  "chunkSize": 500,
+  "files": {
+    "docs": [
+      "tweets/docs-0001.json",
+      "tweets/docs-0002.json",
+      "tweets/docs-0003.json",
+      "tweets/docs-0004.json",
+      "tweets/docs-0005.json",
+      "tweets/docs-0006.json",
+      "tweets/docs-0007.json",
+      "tweets/docs-0008.json",
+      "tweets/docs-0009.json",
+      "tweets/docs-0010.json",
+      "tweets/docs-0011.json",
+      "tweets/docs-0012.json"
+    ],
+    "gridOne": "grid/one.json",
+    "gridAll": "grid/all.json",
+    "orderBookmarked": "order/bookmarked.json",
+    "orderPosted": "order/posted.json",
+    "searchIndex": "search/index.json",
+    "searchStore": "search/store.json"
+  }
+}

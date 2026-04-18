@@ -6,52 +6,77 @@
 @custom-variant dark (&:is(.dark *));
 
 :root {
-  color-scheme: light;
-  font-family:
-    "Geist",
-    "IBM Plex Sans",
-    "Avenir Next",
-    "Segoe UI",
-    sans-serif;
+  color-scheme: dark;
+  font-family: var(--app-font-sans);
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  background:
-    radial-gradient(circle at top left, rgba(111, 188, 255, 0.2), transparent 35%),
-    linear-gradient(180deg, #eef4ff 0%, #f8fbff 24%, #ffffff 100%);
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
+  --background: rgb(11 13 18);
+  --foreground: rgb(244 244 245);
+  --card: rgb(17 19 25 / 0.92);
+  --card-foreground: rgb(244 244 245);
+  --popover: rgb(17 19 25 / 0.96);
+  --popover-foreground: rgb(244 244 245);
+  --primary: rgb(255 255 255);
+  --primary-foreground: rgb(10 11 16);
+  --secondary: rgb(255 255 255 / 0.08);
+  --secondary-foreground: rgb(244 244 245);
+  --muted: rgb(255 255 255 / 0.06);
+  --muted-foreground: rgb(161 161 170);
+  --accent: rgb(255 255 255 / 0.1);
+  --accent-foreground: rgb(244 244 245);
+  --destructive: rgb(248 113 113);
+  --border: rgb(255 255 255 / 0.1);
+  --input: rgb(255 255 255 / 0.12);
+  --ring: rgb(143 153 166 / 0.9);
+  --chart-1: oklch(0.78 0.07 260);
+  --chart-2: oklch(0.67 0.05 210);
+  --chart-3: oklch(0.55 0.03 175);
+  --chart-4: oklch(0.47 0.02 315);
+  --chart-5: oklch(0.38 0.01 286);
   --radius: 0.625rem;
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.205 0 0);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
+  --sidebar: var(--card);
+  --sidebar-foreground: var(--foreground);
+  --sidebar-primary: var(--primary);
+  --sidebar-primary-foreground: var(--primary-foreground);
+  --sidebar-accent: var(--accent);
+  --sidebar-accent-foreground: var(--accent-foreground);
+  --sidebar-border: var(--border);
+  --sidebar-ring: var(--ring);
+  --app-font-sans: "Geist Variable", "IBM Plex Sans", "Avenir Next", "Segoe UI", sans-serif;
+  --app-font-heading: "Geist Variable", "IBM Plex Sans", "Avenir Next", "Segoe UI", sans-serif;
+  --app-canvas-top: rgb(8 9 13);
+  --app-canvas-mid: rgb(11 13 18);
+  --app-canvas-bottom: rgb(9 11 15);
+  --app-canvas-glow-a: color-mix(in srgb, rgb(112 138 255) 12%, transparent);
+  --app-canvas-glow-b: color-mix(in srgb, rgb(124 58 237) 8%, transparent);
+  --app-toolbar-surface: rgb(9 11 16 / 0.86);
+  --app-toolbar-border: rgb(255 255 255 / 0.08);
+  --app-control-surface: rgb(255 255 255 / 0.035);
+  --app-control-border: rgb(255 255 255 / 0.1);
+  --app-panel-surface: rgb(17 19 25 / 0.96);
+  --app-panel-border: rgb(255 255 255 / 0.1);
+  --app-tile-surface: rgb(255 255 255 / 0.03);
+  --app-tile-border: rgb(255 255 255 / 0.08);
+  --app-tile-hover-border: rgb(255 255 255 / 0.12);
+  --app-media-badge-surface: rgb(0 0 0 / 0.55);
+  --app-media-badge-border: rgb(255 255 255 / 0.1);
+  --app-lightbox-surface: rgb(2 6 23 / 0.88);
+  --app-lightbox-border: rgb(255 255 255 / 0.2);
+  --app-tile-shadow-color: color-mix(in srgb, rgb(255 255 255) 2%, transparent);
+  --app-media-scrim: color-mix(in srgb, rgb(0 0 0) 85%, transparent);
+  --app-control-radius: 999px;
+  --app-panel-radius: 24px;
+  --app-tile-radius: 22px;
+  --app-grid-gap-x: 16px;
+  --app-grid-gap-y: 16px;
+  --app-shell-padding-x: 12px;
+  --app-toolbar-padding-y: 12px;
+  --app-toolbar-blur: 24px;
+  --app-tile-body-size: 13px;
+  --app-tile-meta-size: 10px;
+  --app-lightbox-body-size: 15px;
 }
 
 * {
@@ -66,12 +91,22 @@ body,
 
 body {
   margin: 0;
-  color: #0f172a;
+  color: rgb(244 244 245);
+  background:
+    radial-gradient(circle at top, var(--app-canvas-glow-a), transparent 36%),
+    radial-gradient(circle at 20% 20%, var(--app-canvas-glow-b), transparent 24%),
+    linear-gradient(
+      180deg,
+      var(--app-canvas-top) 0%,
+      var(--app-canvas-mid) 28%,
+      var(--app-canvas-bottom) 100%
+    );
+  background-attachment: fixed;
 }
 
 @theme inline {
-  --font-heading: var(--font-sans);
-  --font-sans: 'Geist Variable', sans-serif;
+  --font-heading: var(--app-font-heading);
+  --font-sans: var(--app-font-sans);
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -113,37 +148,32 @@ body {
 }
 
 .dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.556 0 0);
+  --background: rgb(11 13 18);
+  --foreground: rgb(244 244 245);
+  --card: rgb(17 19 25 / 0.92);
+  --card-foreground: rgb(244 244 245);
+  --popover: rgb(17 19 25 / 0.96);
+  --popover-foreground: rgb(244 244 245);
+  --primary: rgb(255 255 255);
+  --primary-foreground: rgb(10 11 16);
+  --secondary: rgb(255 255 255 / 0.08);
+  --secondary-foreground: rgb(244 244 245);
+  --muted: rgb(255 255 255 / 0.06);
+  --muted-foreground: rgb(161 161 170);
+  --accent: rgb(255 255 255 / 0.1);
+  --accent-foreground: rgb(244 244 245);
+  --destructive: rgb(248 113 113);
+  --border: rgb(255 255 255 / 0.1);
+  --input: rgb(255 255 255 / 0.12);
+  --ring: rgb(143 153 166 / 0.9);
+  --sidebar: var(--card);
+  --sidebar-foreground: var(--foreground);
+  --sidebar-primary: var(--primary);
+  --sidebar-primary-foreground: var(--primary-foreground);
+  --sidebar-accent: var(--accent);
+  --sidebar-accent-foreground: var(--accent-foreground);
+  --sidebar-border: var(--border);
+  --sidebar-ring: var(--ring);
 }
 
 @layer base {
@@ -155,5 +185,132 @@ body {
   }
   html {
     @apply font-sans;
+  }
+}
+
+@layer components {
+  .app-toolbar {
+    border-bottom: 1px solid var(--app-toolbar-border);
+    background: var(--app-toolbar-surface);
+    backdrop-filter: blur(var(--app-toolbar-blur));
+  }
+
+  .app-toolbar-inner {
+    gap: 0.5rem;
+    padding-block: var(--app-toolbar-padding-y);
+    padding-inline: var(--app-shell-padding-x);
+  }
+
+  .app-toolbar-chip {
+    border-color: var(--app-control-border) !important;
+    background: var(--app-control-surface) !important;
+    color: var(--muted-foreground) !important;
+    border-radius: var(--app-control-radius) !important;
+  }
+
+  .app-control {
+    border-color: var(--app-control-border) !important;
+    background: var(--app-control-surface) !important;
+    color: var(--foreground) !important;
+    border-radius: var(--app-control-radius) !important;
+  }
+
+  .app-control:hover {
+    background: color-mix(in srgb, var(--app-control-surface) 88%, var(--foreground) 12%) !important;
+  }
+
+  .app-control:focus-visible {
+    border-color: var(--ring) !important;
+  }
+
+  .app-toolbar-label {
+    border: 1px solid var(--app-control-border);
+    background: var(--app-control-surface);
+    color: var(--muted-foreground);
+    border-radius: var(--app-control-radius);
+  }
+
+  .app-panel {
+    border: 1px solid var(--app-panel-border) !important;
+    background: var(--app-panel-surface) !important;
+    color: var(--foreground) !important;
+    border-radius: var(--app-panel-radius) !important;
+    box-shadow: none !important;
+  }
+
+  .app-empty {
+    border-color: var(--app-panel-border) !important;
+    background: var(--app-panel-surface) !important;
+    border-radius: var(--app-panel-radius) !important;
+  }
+
+  .app-tile {
+    overflow: hidden;
+    border-radius: var(--app-tile-radius);
+    border: 1px solid var(--app-tile-border);
+    background: var(--app-tile-surface);
+    box-shadow: 0 0 0 1px var(--app-tile-shadow-color);
+  }
+
+  .app-tile:hover {
+    border-color: var(--app-tile-hover-border);
+  }
+
+  .app-tile-copy {
+    font-size: var(--app-tile-body-size);
+    line-height: 1.55;
+    color: color-mix(in srgb, var(--foreground) 92%, transparent);
+  }
+
+  .app-tile-meta {
+    font-size: var(--app-tile-meta-size);
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--muted-foreground);
+  }
+
+  .app-media-badge {
+    border-color: var(--app-media-badge-border) !important;
+    background: var(--app-media-badge-surface) !important;
+    color: var(--foreground) !important;
+    border-radius: var(--app-control-radius) !important;
+  }
+
+  .app-media-scrim {
+    background: linear-gradient(to top, var(--app-media-scrim), transparent 68%);
+  }
+
+  .app-masonry {
+    padding-top: var(--app-grid-gap-y);
+    padding-bottom: calc(var(--app-grid-gap-y) * 3.5);
+    padding-inline: max(calc(var(--app-shell-padding-x) - (var(--app-grid-gap-x) / 2)), 0px);
+  }
+
+  .app-masonry-item {
+    padding-inline: calc(var(--app-grid-gap-x) / 2);
+    padding-bottom: var(--app-grid-gap-y);
+  }
+
+  .app-grid-static {
+    margin-inline: calc(var(--app-grid-gap-x) / -2);
+  }
+
+  .app-lightbox-card {
+    border: 1px solid var(--app-lightbox-border) !important;
+    background: var(--app-lightbox-surface) !important;
+    color: var(--foreground) !important;
+    border-radius: var(--app-panel-radius) !important;
+    box-shadow: none !important;
+  }
+
+  .app-lightbox-copy {
+    font-size: var(--app-lightbox-body-size);
+    line-height: 1.6;
+  }
+
+  .app-studio-shell {
+    padding-top: 1.5rem;
+    padding-bottom: 4rem;
+    padding-inline: var(--app-shell-padding-x);
   }
 }
