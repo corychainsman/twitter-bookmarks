@@ -14,13 +14,13 @@ import {
 import {
   applyQueryStatePatch,
   createQuerySeed,
+  DEFAULT_QUERY_STATE,
   parseQueryState,
   rerandomizeQueryState,
   serializeQueryState,
 } from '@/features/bookmarks/url-state'
 import {
   BOOKMARKS_ZOOM_STEP,
-  DEFAULT_BOOKMARKS_ZOOM,
   resolveMasonryLayout,
   resolveNextBookmarksZoom,
 } from '@/components/grid/masonry-layout'
@@ -360,7 +360,7 @@ export function AppShell() {
         <BookmarksToolbar
           canZoomIn={masonryLayout.columnCount > 1}
           canZoomOut={masonryLayout.columnCount < masonryLayout.maxColumnCount}
-          canResetZoom={queryState.zoom !== DEFAULT_BOOKMARKS_ZOOM}
+          canResetZoom={queryState.zoom !== DEFAULT_QUERY_STATE.zoom}
           currentColumnCount={masonryLayout.columnCount}
           folderOptions={folderOptions}
           queryState={queryState}
@@ -377,7 +377,7 @@ export function AppShell() {
           onRerandomize={onRerandomize}
           onZoomIn={() => onZoomChange(BOOKMARKS_ZOOM_STEP)}
           onZoomOut={() => onZoomChange(-BOOKMARKS_ZOOM_STEP)}
-          onZoomReset={() => patchQueryState({ zoom: DEFAULT_BOOKMARKS_ZOOM })}
+          onZoomReset={() => patchQueryState({ zoom: DEFAULT_QUERY_STATE.zoom })}
         />
 
         {loadingError ? (

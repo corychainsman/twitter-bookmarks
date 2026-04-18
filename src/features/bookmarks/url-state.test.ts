@@ -7,6 +7,19 @@ import {
 } from '@/features/bookmarks/url-state'
 
 describe('query url state', () => {
+  it('uses the default bookmark view without emitting query params', () => {
+    const parsed = parseQueryState(new URLSearchParams(), {
+      generateSeed: () => 'seed-1234',
+    })
+
+    expect(parsed).toEqual({
+      ...DEFAULT_QUERY_STATE,
+      seed: undefined,
+    })
+
+    expect(serializeQueryState(parsed).toString()).toBe('')
+  })
+
   it('hydrates pinned random mode with a generated seed and omits default params on serialization', () => {
     const parsed = parseQueryState(
       new URLSearchParams('q=compiler&sort=random&keepSeed=1'),
@@ -69,16 +82,32 @@ describe('query url state', () => {
 
   it('round-trips immersive mode through the query string', () => {
     const parsed = parseQueryState(
-      new URLSearchParams('immersive=1'),
+      new URLSearchParams('immersive=0'),
       {
         generateSeed: () => 'seed-1234',
       },
     )
 
-    expect(parsed.immersive).toBe(true)
+    expect(parsed.immersive).toBe(false)
     expect(serializeQueryState(parsed).toString()).toBe(
       new URLSearchParams({
-        immersive: '1',
+        immersive: '0',
+      }).toString(),
+    )
+  })
+
+  it('round-trips all-images mode off through the query string', () => {
+    const parsed = parseQueryState(
+      new URLSearchParams('mode=one'),
+      {
+        generateSeed: () => 'seed-1234',
+      },
+    )
+
+    expect(parsed.mode).toBe('one')
+    expect(serializeQueryState(parsed).toString()).toBe(
+      new URLSearchParams({
+        mode: 'one',
       }).toString(),
     )
   })

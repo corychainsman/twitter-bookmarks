@@ -2,13 +2,13 @@ import type { QueryState } from '@/features/bookmarks/model'
 
 export const DEFAULT_QUERY_STATE: QueryState = {
   q: '',
-  folder: '',
+  folder: 'Inspo',
   sort: 'bookmarked',
   dir: 'desc',
-  mode: 'one',
-  immersive: false,
+  mode: 'all',
+  immersive: true,
   preferMotion: false,
-  zoom: 1,
+  zoom: -2,
   keepSeed: false,
 }
 
@@ -20,8 +20,16 @@ export function createQuerySeed(): string {
   return globalThis.crypto?.randomUUID?.().slice(0, 8) ?? `${Date.now().toString(36)}`
 }
 
-function parseBooleanFlag(value: string | null): boolean {
-  return value === '1'
+function parseBooleanFlag(value: string | null, defaultValue = false): boolean {
+  if (value === '1') {
+    return true
+  }
+
+  if (value === '0') {
+    return false
+  }
+
+  return defaultValue
 }
 
 function parseSort(value: string | null): QueryState['sort'] {
@@ -58,7 +66,7 @@ export function parseQueryState(
   options: ParseQueryStateOptions,
 ): QueryState {
   const sort = parseSort(params.get('sort'))
-  const keepSeed = parseBooleanFlag(params.get('keepSeed'))
+  const keepSeed = parseBooleanFlag(params.get('keepSeed'), DEFAULT_QUERY_STATE.keepSeed)
   const urlSeed = params.get('seed') ?? undefined
 
   let seed = keepSeed ? urlSeed : undefined
@@ -77,8 +85,8 @@ export function parseQueryState(
     sort,
     dir: parseDirection(params.get('dir')),
     mode: parseMode(params.get('mode')),
-    immersive: parseBooleanFlag(params.get('immersive')),
-    preferMotion: parseBooleanFlag(params.get('preferMotion')),
+    immersive: parseBooleanFlag(params.get('immersive'), DEFAULT_QUERY_STATE.immersive),
+    preferMotion: parseBooleanFlag(params.get('preferMotion'), DEFAULT_QUERY_STATE.preferMotion),
     zoom: parseZoom(params.get('zoom')),
     keepSeed,
     seed,
@@ -104,10 +112,10 @@ export function serializeQueryState(state: QueryState): URLSearchParams {
     params.set('mode', state.mode)
   }
   if (state.immersive !== DEFAULT_QUERY_STATE.immersive) {
-    params.set('immersive', '1')
+    params.set('immersive', state.immersive ? '1' : '0')
   }
   if (state.preferMotion !== DEFAULT_QUERY_STATE.preferMotion) {
-    params.set('preferMotion', '1')
+    params.set('preferMotion', state.preferMotion ? '1' : '0')
   }
   if (state.zoom !== DEFAULT_QUERY_STATE.zoom) {
     params.set('zoom', String(state.zoom))
