@@ -190,6 +190,84 @@ describe('runBookmarksQuery', () => {
     })
   })
 
+  it('matches substrings anywhere inside indexed tweet fields', () => {
+    const records: RawBookmarkRecord[] = [
+      {
+        id: 'tweet-handle',
+        tweetId: 'tweet-handle',
+        sortIndex: '300',
+        postedAt: '2026-03-12T10:00:00.000Z',
+        url: 'https://x.com/assemblerdaily/status/tweet-handle',
+        text: 'Search should not need word boundaries',
+        authorHandle: 'assemblerdaily',
+        mediaObjects: [{ type: 'photo', url: 'https://img/handle.jpg' }],
+      },
+      {
+        id: 'tweet-other',
+        tweetId: 'tweet-other',
+        sortIndex: '200',
+        postedAt: '2026-03-11T10:00:00.000Z',
+        url: 'https://x.com/other/status/tweet-other',
+        text: 'A different bookmark',
+        authorHandle: 'other',
+        mediaObjects: [{ type: 'photo', url: 'https://img/other.jpg' }],
+      },
+    ]
+
+    const artifacts = buildExportArtifacts(records, {
+      buildId: 'build-substring-search',
+      builtAt: '2026-04-17T19:00:00.000Z',
+    })
+
+    const result = runBookmarksQuery(artifacts, {
+      ...DEFAULT_QUERY_STATE,
+      q: 'mblerdai',
+    })
+
+    expect(result).toEqual({
+      total: 1,
+      orderedGridIds: ['tweet-handle:0'],
+    })
+  })
+
+  it('matches fuzzy misspellings across indexed tweet fields', () => {
+    const records: RawBookmarkRecord[] = [
+      {
+        id: 'tweet-fuzzy',
+        tweetId: 'tweet-fuzzy',
+        sortIndex: '300',
+        postedAt: '2026-03-12T10:00:00.000Z',
+        url: 'https://x.com/alice/status/tweet-fuzzy',
+        text: 'Kernel scheduler notes for media pipelines',
+        mediaObjects: [{ type: 'photo', url: 'https://img/fuzzy.jpg' }],
+      },
+      {
+        id: 'tweet-other',
+        tweetId: 'tweet-other',
+        sortIndex: '200',
+        postedAt: '2026-03-11T10:00:00.000Z',
+        url: 'https://x.com/bob/status/tweet-other',
+        text: 'A different bookmark',
+        mediaObjects: [{ type: 'photo', url: 'https://img/other.jpg' }],
+      },
+    ]
+
+    const artifacts = buildExportArtifacts(records, {
+      buildId: 'build-fuzzy-search',
+      builtAt: '2026-04-17T19:00:00.000Z',
+    })
+
+    const result = runBookmarksQuery(artifacts, {
+      ...DEFAULT_QUERY_STATE,
+      q: 'kernal schedulr',
+    })
+
+    expect(result).toEqual({
+      total: 1,
+      orderedGridIds: ['tweet-fuzzy:0'],
+    })
+  })
+
   it('filters bookmarks to tweets from the selected folder', () => {
     const records: RawBookmarkRecord[] = [
       {

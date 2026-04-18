@@ -3,6 +3,7 @@ import MiniSearch from 'minisearch'
 import {
   BOOKMARK_SEARCH_BOOSTS,
   BOOKMARK_SEARCH_FIELDS,
+  type SearchStoreEntry,
   type CoreArtifacts,
   type SearchArtifacts,
 } from '@/features/bookmarks/export-artifacts'
@@ -11,6 +12,67 @@ import type { QueryResult, QueryState } from '@/features/bookmarks/model'
 export const SEARCH_ARTIFACTS_NOT_HYDRATED_MESSAGE = 'Search artifacts have not been hydrated'
 
 type QueryArtifacts = CoreArtifacts & Partial<SearchArtifacts>
+
+function normalizeSearchValue(value: string): string {
+  return value
+    .normalize('NFKD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, ' ')
+    .trim()
+}
+
+function getSearchEntryFields(entry: SearchStoreEntry): string[] {
+  return BOOKMARK_SEARCH_FIELDS.map((field) => entry[field] ?? '')
+}
+
+function matchesSearchEntrySubstring(entry: SearchStoreEntry, normalizedQuery: string): boolean {
+  if (normalizedQuery.length === 0) {
+    return true
+  }
+
+  const queryTerms = normalizedQuery.split(/\s+/).filter((term) => term.length > 0)
+  const normalizedFields = getSearchEntryFields(entry)
+    .map((field) => normalizeSearchValue(field))
+    .filter((field) => field.length > 0)
+
+  if (normalizedFields.some((field) => field.includes(normalizedQuery))) {
+    return true
+  }
+
+  return queryTerms.every((term) => normalizedFields.some((field) => field.includes(term)))
+}
+
+function findMatchingTweetIds(artifacts: SearchArtifacts, query: string): Set<string> {
+  const matches = new Set<string>()
+  const normalizedQuery = normalizeSearchValue(query)
+
+  for (const entry of artifacts.searchStore) {
+    if (matchesSearchEntrySubstring(entry, normalizedQuery)) {
+      matches.add(entry.id)
+    }
+  }
+
+  const miniSearch = MiniSearch.loadJSON(JSON.stringify(artifacts.searchIndex), {
+    idField: 'id',
+    fields: [...BOOKMARK_SEARCH_FIELDS],
+    storeFields: ['id'],
+    searchOptions: {
+      boost: BOOKMARK_SEARCH_BOOSTS,
+    },
+  })
+
+  for (const match of miniSearch.search(query, {
+    boost: BOOKMARK_SEARCH_BOOSTS,
+    prefix: true,
+    fuzzy: 0.2,
+    combineWith: 'AND',
+  })) {
+    matches.add(String(match.id))
+  }
+
+  return matches
+}
 
 function rankIdBySeed(seed: string, id: string): number {
   let hashA = 0xdeadbeef
@@ -62,23 +124,18 @@ export function runBookmarksQuery(
         ? [...artifacts.orderPosted]
         : [...artifacts.orderBookmarked]
 
-  if (trimmedQuery.length > 0 && !artifacts.searchIndex) {
+  if (trimmedQuery.length > 0 && (!artifacts.searchIndex || !artifacts.searchStore)) {
     throw new Error(SEARCH_ARTIFACTS_NOT_HYDRATED_MESSAGE)
   }
 
   const matchingTweetIds =
-    trimmedQuery.length > 0 && artifacts.searchIndex
-      ? new Set(
-          MiniSearch.loadJSON(JSON.stringify(artifacts.searchIndex), {
-            idField: 'id',
-            fields: [...BOOKMARK_SEARCH_FIELDS],
-            storeFields: ['id'],
-            searchOptions: {
-              boost: BOOKMARK_SEARCH_BOOSTS,
-            },
-          })
-            .search(trimmedQuery)
-            .map((match) => String(match.id)),
+    trimmedQuery.length > 0 && artifacts.searchIndex && artifacts.searchStore
+      ? findMatchingTweetIds(
+          {
+            searchIndex: artifacts.searchIndex,
+            searchStore: artifacts.searchStore,
+          },
+          trimmedQuery,
         )
       : null
 
