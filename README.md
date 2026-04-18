@@ -1,73 +1,94 @@
-# React + TypeScript + Vite
+# Twitter Bookmarks
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Media-first browser for X bookmarks exported through Field Theory.
 
-Currently, two official plugins are available:
+Live demo: [corychainsman.github.io/twitter-bookmarks](https://corychainsman.github.io/twitter-bookmarks/)
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## What It Ships
 
-## React Compiler
+- Real exported bookmark media data committed into `public/data`
+- Fast client-side search, folder filtering, sort controls, and URL-backed state
+- `One` / `All` media modes
+- `Immersive` media-only mode
+- Theme Studio at [`/themes`](https://corychainsman.github.io/twitter-bookmarks/themes) with live cross-tab updates and theme import/export
+- Static deployment to GitHub Pages
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## Stack
 
-## Expanding the ESLint configuration
+- React 19
+- TypeScript
+- Vite
+- Bun
+- shadcn/ui primitives
+- Lucide icons
+- `@virtuoso.dev/masonry` for the media grid
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+## Local Development
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```bash
+bun install
+bun run dev
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+App:
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+- Main app: [http://localhost:5173/](http://localhost:5173/)
+- Theme Studio: [http://localhost:5173/themes](http://localhost:5173/themes)
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+## Data Flow
+
+The app is built to consume static JSON artifacts under `public/data`.
+
+Typical refresh flow:
+
+```bash
+bun run sync:ft
+bun run data:export
+bun run data:validate
+bun run build
+```
+
+Convenience commands:
+
+```bash
+bun run refresh
+bun run refresh:resume
+bun run refresh:full
+```
+
+Notes:
+
+- `sync:ft` depends on a real local Field Theory/X session.
+- The exported app dataset is media-only; non-media bookmarks are not included in the shipped browsing surface.
+
+## Scripts
+
+- `bun run dev`: start the local app
+- `bun run test`: run Vitest
+- `bun run lint`: run ESLint
+- `bun run typecheck`: run TypeScript project checks
+- `bun run build`: build the static app
+- `bun run preview`: preview the production build locally
+- `bun run sync:ft`: sync bookmark data from Field Theory
+- `bun run data:export`: build static artifacts into `public/data`
+- `bun run data:validate`: validate exported artifacts
+
+## GitHub Pages
+
+Deployments are handled by [`.github/workflows/deploy.yml`](./.github/workflows/deploy.yml).
+
+- Push to `main`
+- GitHub Actions builds with `GITHUB_PAGES=true`
+- The site is published at [corychainsman.github.io/twitter-bookmarks](https://corychainsman.github.io/twitter-bookmarks/)
+
+## Repository Structure
+
+```text
+src/app/                  App shell, router, theme studio
+src/components/           Toolbar, grid, lightbox, media, UI primitives
+src/features/bookmarks/   Query state, loaders, export contracts, caching
+src/features/theme/       Theme model, runtime variables, persistence
+src/workers/              Query worker
+scripts/                  Field Theory sync and export pipeline
+public/data/              Shipped static bookmark artifacts
 ```
