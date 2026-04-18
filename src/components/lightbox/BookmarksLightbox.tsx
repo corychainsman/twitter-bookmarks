@@ -1,14 +1,15 @@
+import { useEffect, useMemo, useState } from 'react'
+
 import Lightbox from 'yet-another-react-lightbox'
 import { Video, Zoom } from 'yet-another-react-lightbox/plugins'
-import {
-  HeartIcon,
-  MessageCircleIcon,
-  Repeat2Icon,
-} from 'lucide-react'
+import { HeartIcon, MessageCircleIcon, Repeat2Icon } from 'lucide-react'
 
 import type { TweetDoc } from '@/features/bookmarks/model'
 import { formatCompactNumber, formatPostedDate } from '@/lib/format'
-import { getLightboxMediaPaddingBottom } from '@/components/lightbox/lightbox-layout'
+import {
+  getLightboxMediaPaddingBottom,
+  isLightboxImageRenderedAtNativeSize,
+} from '@/components/lightbox/lightbox-layout'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent } from '@/components/ui/card'
 
@@ -30,23 +31,37 @@ export function BookmarksLightbox({
 }: BookmarksLightboxProps) {
   const tweet = selection ? docsById.get(selection.tweetId) : undefined
   const postedDate = tweet ? formatPostedDate(tweet.postedAt) : ''
+  const [currentIndex, setCurrentIndex] = useState(selection?.mediaIndex ?? 0)
+  const [viewport, setViewport] = useState(() => ({
+    width: typeof window === 'undefined' ? 0 : window.innerWidth,
+    height: typeof window === 'undefined' ? 0 : window.innerHeight,
+  }))
 
-  if (!selection || !tweet) {
-    return null
-  }
+  useEffect(() => {
+    if (typeof window === 'undefined') {
+      return undefined
+    }
 
-  return (
-    <Lightbox
-      open
-      close={onClose}
-      index={selection.mediaIndex}
-      slides={tweet.media.map((media) =>
+    const handleResize = () => {
+      setViewport({
+        width: window.innerWidth,
+        height: window.innerHeight,
+      })
+    }
+
+    window.addEventListener('resize', handleResize)
+    return () => window.removeEventListener('resize', handleResize)
+  }, [])
+
+  const slides = useMemo(
+    () =>
+      (tweet?.media ?? []).map((media) =>
         media.type === 'photo'
           ? {
               src: media.fullUrl,
               width: media.width,
               height: media.height,
-              alt: tweet.text,
+              alt: tweet?.text ?? '',
             }
           : {
               type: 'video' as const,
@@ -65,23 +80,45 @@ export function BookmarksLightbox({
                 }),
               ),
             },
-      )}
+      ),
+    [tweet?.media, tweet?.text],
+  )
+  const currentSlide = slides[currentIndex]
+  const showNavigation = slides.length > 1
+  const showZoomButton =
+    currentSlide !== undefined && isLightboxImageRenderedAtNativeSize(currentSlide, viewport)
+
+  if (!selection || !tweet) {
+    return null
+  }
+
+  return (
+    <Lightbox
+      key={`${selection.tweetId}:${selection.mediaIndex}`}
+      open
+      close={onClose}
+      index={selection.mediaIndex}
+      slides={slides}
+      carousel={{
+        finite: true,
+      }}
       plugins={[Video, Zoom]}
       video={{
         controls: true,
         muted: true,
         playsInline: true,
       }}
+      on={{
+        view: ({ index }) => setCurrentIndex(index),
+      }}
       render={{
-        slideContainer: ({ slide, children }) => (
-          <div
-            className="box-border flex h-full w-full items-center justify-center"
-            style={{ paddingBottom: getLightboxMediaPaddingBottom(slide) }}
-          >
-            {children}
-          </div>
-        ),
-        slideFooter: () => (
+        ...(showNavigation
+          ? {}
+          : {
+              buttonPrev: () => null,
+              buttonNext: () => null,
+            }),
+        controls: () => (
           <div className="pointer-events-none absolute inset-x-0 bottom-0 z-30 flex justify-center p-4">
             <Card className="app-lightbox-card pointer-events-auto w-full max-w-3xl shadow-2xl">
               <CardContent className="flex flex-col gap-4 p-4">
@@ -135,6 +172,39 @@ export function BookmarksLightbox({
             </Card>
           </div>
         ),
+        slideContainer: ({ slide, children }) => (
+          <div
+            className="box-border flex h-full w-full items-center justify-center"
+            style={{ paddingBottom: getLightboxMediaPaddingBottom(slide) }}
+          >
+            {children}
+          </div>
+        ),
+        buttonZoom: ({ disabled, zoom, zoomIn, zoomOut, minZoom, maxZoom }) =>
+          showZoomButton ? (
+            <div className="flex items-center gap-1">
+              <button
+                type="button"
+                className="yarl__button"
+                aria-label="Zoom out"
+                title="Zoom out"
+                disabled={disabled || zoom <= minZoom}
+                onClick={zoomOut}
+              >
+                -
+              </button>
+              <button
+                type="button"
+                className="yarl__button"
+                aria-label="Zoom in"
+                title="Zoom in"
+                disabled={disabled || zoom >= maxZoom}
+                onClick={zoomIn}
+              >
+                +
+              </button>
+            </div>
+          ) : null,
       }}
     />
   )
