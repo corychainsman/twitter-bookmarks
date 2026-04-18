@@ -102,6 +102,9 @@ export function BookmarksLightbox({
       carousel={{
         finite: true,
       }}
+      controller={{
+        closeOnBackdropClick: true,
+      }}
       plugins={[Video, Zoom]}
       video={{
         controls: true,
@@ -176,6 +179,11 @@ export function BookmarksLightbox({
           <div
             className="box-border flex h-full w-full items-center justify-center"
             style={{ paddingBottom: getLightboxMediaPaddingBottom(slide) }}
+            onClick={(event) => {
+              if (event.target === event.currentTarget) {
+                onClose()
+              }
+            }}
           >
             {children}
           </div>
