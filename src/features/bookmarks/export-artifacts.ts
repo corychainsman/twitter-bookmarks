@@ -116,15 +116,65 @@ function normalizeVariants(mediaObject: RawMediaObject): MediaItem['variants'] {
   return variants.length > 0 ? variants : undefined
 }
 
+function isDirectMp4Variant(variant: NonNullable<MediaItem['variants']>[number]): boolean {
+  const normalizedContentType = variant.contentType?.toLowerCase()
+  const normalizedUrl = variant.url.toLowerCase()
+
+  return (
+    normalizedContentType === 'video/mp4' ||
+    normalizedUrl.includes('.mp4') ||
+    normalizedUrl.includes('/vid/')
+  )
+}
+
+function rankVariant(variant: NonNullable<MediaItem['variants']>[number]): number {
+  const normalizedContentType = variant.contentType?.toLowerCase()
+  const normalizedUrl = variant.url.toLowerCase()
+  const isHls =
+    normalizedContentType?.includes('mpegurl') ||
+    normalizedUrl.includes('.m3u8')
+
+  if (isHls) {
+    return -1
+  }
+
+  if (isDirectMp4Variant(variant)) {
+    return variant.bitrate ?? 0
+  }
+
+  return -2
+}
+
+function orderPlayableVariants(variants?: MediaItem['variants']): MediaItem['variants'] {
+  if (!variants) {
+    return undefined
+  }
+
+  return [...variants].sort((left, right) => rankVariant(right) - rankVariant(left))
+}
+
+function resolveDirectVideoUrl(
+  mediaUrl: string | undefined,
+  variants?: MediaItem['variants'],
+): string | undefined {
+  if (!variants || variants.length === 0) {
+    return mediaUrl
+  }
+
+  const orderedVariants = orderPlayableVariants(variants)
+  const preferredVariant = orderedVariants?.find((variant) => rankVariant(variant) >= 0)
+  return preferredVariant?.url ?? mediaUrl ?? orderedVariants?.[0]?.url
+}
+
 function normalizeMediaItem(mediaObject: RawMediaObject): MediaItem | null {
   const type = normalizeMediaType(mediaObject.type)
   if (!type) {
     return null
   }
 
-  const variants = normalizeVariants(mediaObject)
+  const variants = orderPlayableVariants(normalizeVariants(mediaObject))
   const mediaUrl = mediaObject.mediaUrl ?? mediaObject.url
-  const fullUrl = type === 'photo' ? mediaUrl : variants?.[0]?.url ?? mediaUrl
+  const fullUrl = type === 'photo' ? mediaUrl : resolveDirectVideoUrl(mediaUrl, variants)
   if (!fullUrl) {
     return null
   }

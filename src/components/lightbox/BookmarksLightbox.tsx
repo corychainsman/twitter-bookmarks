@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 
 import Lightbox from 'yet-another-react-lightbox'
-import { Video, Zoom } from 'yet-another-react-lightbox/plugins'
+import { Zoom } from 'yet-another-react-lightbox/plugins'
 import { HeartIcon, MessageCircleIcon, Repeat2Icon } from 'lucide-react'
 
 import type { TweetDoc } from '@/features/bookmarks/model'
@@ -10,6 +10,7 @@ import {
   getLightboxMediaPaddingBottom,
   isLightboxImageRenderedAtNativeSize,
 } from '@/components/lightbox/lightbox-layout'
+import { TweetEmbed } from '@/components/media/TweetEmbed'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent } from '@/components/ui/card'
 
@@ -22,6 +23,15 @@ type BookmarksLightboxProps = {
   docsById: Map<string, TweetDoc>
   selection: LightboxSelection | null
   onClose: () => void
+}
+
+type TweetEmbedSlide = {
+  type: 'tweet-embed'
+  tweetId: string
+  tweetUrl: string
+  poster?: string
+  width?: number
+  height?: number
 }
 
 export function BookmarksLightbox({
@@ -64,29 +74,22 @@ export function BookmarksLightbox({
               alt: tweet?.text ?? '',
             }
           : {
-              type: 'video' as const,
+              type: 'tweet-embed' as const,
+              tweetId: tweet?.id ?? '',
+              tweetUrl: tweet?.url ?? '',
               poster: media.posterUrl,
               width: media.width,
               height: media.height,
-              autoPlay: true,
-              controls: true,
-              loop: media.type === 'animated_gif',
-              muted: true,
-              playsInline: true,
-              sources: (media.variants ?? [{ url: media.fullUrl, contentType: 'video/mp4' }]).map(
-                (variant) => ({
-                  src: variant.url,
-                  type: variant.contentType ?? 'video/mp4',
-                }),
-              ),
             },
       ),
-    [tweet?.media, tweet?.text],
+    [tweet?.id, tweet?.media, tweet?.text, tweet?.url],
   )
   const currentSlide = slides[currentIndex]
   const showNavigation = slides.length > 1
   const showZoomButton =
-    currentSlide !== undefined && isLightboxImageRenderedAtNativeSize(currentSlide, viewport)
+    currentSlide?.type !== 'tweet-embed' &&
+    currentSlide !== undefined &&
+    isLightboxImageRenderedAtNativeSize(currentSlide, viewport)
 
   if (!selection || !tweet) {
     return null
@@ -105,12 +108,7 @@ export function BookmarksLightbox({
       controller={{
         closeOnBackdropClick: true,
       }}
-      plugins={[Video, Zoom]}
-      video={{
-        controls: true,
-        muted: true,
-        playsInline: true,
-      }}
+      plugins={[Zoom]}
       on={{
         view: ({ index }) => setCurrentIndex(index),
       }}
@@ -121,6 +119,16 @@ export function BookmarksLightbox({
               buttonPrev: () => null,
               buttonNext: () => null,
             }),
+        slide: ({ slide }) =>
+          slide.type === 'tweet-embed' ? (
+            <div className="flex h-full w-full items-center justify-center px-4">
+              <TweetEmbed
+                tweetId={(slide as TweetEmbedSlide).tweetId}
+                url={(slide as TweetEmbedSlide).tweetUrl}
+                className="max-h-full w-full overflow-auto"
+              />
+            </div>
+          ) : undefined,
         controls: () => (
           <div className="pointer-events-none absolute inset-x-0 bottom-0 z-30 flex justify-center p-4">
             <Card className="app-lightbox-card pointer-events-auto w-full max-w-3xl shadow-2xl">
