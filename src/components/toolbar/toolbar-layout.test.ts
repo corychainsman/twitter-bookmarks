@@ -20,7 +20,7 @@ describe('resolveToolbarOverflow', () => {
         searchExpanded: true,
         isRandomSort: false,
       }),
-    ).toEqual(['zoom', 'seed'])
+    ).toEqual([])
   })
 
   it('also collapses rerandomize when random sort would overflow', () => {
@@ -30,7 +30,7 @@ describe('resolveToolbarOverflow', () => {
         searchExpanded: true,
         isRandomSort: true,
       }),
-    ).toEqual(['zoom', 'seed'])
+    ).toEqual(['zoom'])
   })
 
   it('falls back to the compact essentials on very narrow widths', () => {
@@ -40,7 +40,7 @@ describe('resolveToolbarOverflow', () => {
         searchExpanded: true,
         isRandomSort: false,
       }),
-    ).toEqual(['zoom', 'seed', 'count', 'direction'])
+    ).toEqual(['zoom', 'count'])
   })
 
   it('collapses the mode switch into the overflow menu when space gets tight enough', () => {
@@ -50,7 +50,7 @@ describe('resolveToolbarOverflow', () => {
         searchExpanded: true,
         isRandomSort: false,
       }),
-    ).toEqual(['zoom', 'seed', 'count', 'direction', 'immersive', 'mode'])
+    ).toEqual(['zoom', 'count', 'direction', 'immersive', 'mode'])
   })
 
   it('keeps shrinking to the ellipsis menu instead of clipping on extremely narrow widths', () => {
@@ -60,6 +60,6 @@ describe('resolveToolbarOverflow', () => {
         searchExpanded: true,
         isRandomSort: false,
       }),
-    ).toEqual(['zoom', 'seed', 'count', 'direction', 'immersive', 'mode', 'sort'])
+    ).toEqual(['zoom', 'count', 'direction', 'immersive', 'mode', 'sort'])
   })
 })

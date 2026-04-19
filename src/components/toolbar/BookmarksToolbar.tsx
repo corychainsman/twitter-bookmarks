@@ -33,7 +33,6 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Switch } from '@/components/ui/switch'
-import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
 import { cn } from '@/lib/utils'
 
 type BookmarksToolbarProps = {
@@ -55,95 +54,44 @@ type BookmarksToolbarProps = {
   onZoomReset: () => void
 }
 
-function ToolbarModeToggle({
-  value,
-  onChange,
+function ToolbarStateButton({
+  active,
+  activeLabel,
+  inactiveLabel,
+  activeIcon,
+  inactiveIcon,
+  onToggle,
   className,
-  itemClassName,
 }: {
-  value: QueryState['mode']
-  onChange: (value: QueryState['mode']) => void
+  active: boolean
+  activeLabel: string
+  inactiveLabel: string
+  activeIcon: React.ReactNode
+  inactiveIcon: React.ReactNode
+  onToggle: () => void
   className?: string
-  itemClassName?: string
 }) {
-  return (
-    <ToggleGroup
-      type="single"
-      variant="outline"
-      size="sm"
-      value={value}
-      className={className}
-      onValueChange={(nextValue) => {
-        if (nextValue === 'one' || nextValue === 'all') {
-          onChange(nextValue)
-        }
-      }}
-    >
-      <ToggleGroupItem
-        value="one"
-        aria-label="One image per tweet"
-        title="One image per tweet"
-        className={itemClassName}
-      >
-        <ImageIcon />
-      </ToggleGroupItem>
-      <ToggleGroupItem
-        value="all"
-        aria-label="All images"
-        title="All images"
-        className={itemClassName}
-      >
-        <ImagesIcon />
-      </ToggleGroupItem>
-    </ToggleGroup>
-  )
-}
+  const label = active ? activeLabel : inactiveLabel
 
-function ToolbarImmersiveToggle({
-  immersive,
-  onChange,
-  className,
-  itemClassName,
-}: {
-  immersive: boolean
-  onChange: (value: boolean) => void
-  className?: string
-  itemClassName?: string
-}) {
   return (
-    <ToggleGroup
-      type="single"
+    <Button
+      type="button"
       variant="outline"
-      size="sm"
-      value={immersive ? 'on' : 'off'}
-      className={className}
-      onValueChange={(nextValue) => {
-        if (nextValue === 'on') {
-          onChange(true)
-        }
-
-        if (nextValue === 'off') {
-          onChange(false)
-        }
-      }}
+      size="icon-lg"
+      aria-label={label}
+      title={label}
+      aria-pressed={active}
+      className={cn(
+        'app-control shrink-0',
+        active
+          ? 'border-transparent bg-primary text-primary-foreground hover:bg-primary/90 hover:text-primary-foreground'
+          : 'text-muted-foreground',
+        className,
+      )}
+      onClick={onToggle}
     >
-      <ToggleGroupItem
-        value="off"
-        aria-label="Show captions"
-        title="Show captions"
-        className={itemClassName}
-      >
-        <CaptionsIcon />
-      </ToggleGroupItem>
-      <ToggleGroupItem
-        value="on"
-        aria-label="Hide captions"
-        title="Hide captions"
-        className={itemClassName}
-      >
-        <CaptionsOffIcon />
-      </ToggleGroupItem>
-    </ToggleGroup>
+      {active ? activeIcon : inactiveIcon}
+    </Button>
   )
 }
 
@@ -169,6 +117,7 @@ export function BookmarksToolbar({
   const themeStudioHref = `${import.meta.env.BASE_URL.replace(/\/+$/, '')}/themes`
   const sortDirectionLabel = queryState.dir === 'desc' ? 'Newest first' : 'Oldest first'
   const hasSearchQuery = queryState.q.trim().length > 0
+  const isRandomSort = queryState.sort === 'random'
   const [isSearchExpanded, setIsSearchExpanded] = React.useState(hasSearchQuery)
   const [toolbarWidth, setToolbarWidth] = React.useState(0)
 
@@ -202,9 +151,9 @@ export function BookmarksToolbar({
       resolveToolbarOverflow({
         containerWidth: toolbarWidth,
         searchExpanded: isSearchExpanded || hasSearchQuery,
-        isRandomSort: queryState.sort === 'random',
+        isRandomSort,
       }),
-    [hasSearchQuery, isSearchExpanded, queryState.sort, toolbarWidth],
+    [hasSearchQuery, isRandomSort, isSearchExpanded, toolbarWidth],
   )
   const overflowSet = React.useMemo(() => new Set(overflowKeys), [overflowKeys])
 
@@ -218,7 +167,7 @@ export function BookmarksToolbar({
     <div className="app-toolbar sticky top-0 z-40">
       <div
         ref={toolbarRef}
-        className="app-toolbar-inner mx-auto flex w-full max-w-[1920px] items-center overflow-hidden"
+        className="app-toolbar-inner mx-auto flex w-full max-w-[1920px] items-center"
       >
         <div className="hidden shrink-0 items-center gap-2 xl:flex">
           <div className="app-toolbar-chip px-2.5 py-1 text-[10px] font-medium tracking-[0.28em] uppercase">
@@ -228,7 +177,7 @@ export function BookmarksToolbar({
 
         <div
           className={cn(
-            'relative shrink-0 overflow-hidden transition-[width] duration-200 ease-out',
+            'relative shrink-0 transition-[width] duration-200 ease-out',
             isSearchExpanded || hasSearchQuery ? 'w-[clamp(11rem,24vw,22rem)]' : 'w-9',
           )}
         >
@@ -270,7 +219,7 @@ export function BookmarksToolbar({
           )}
         </div>
 
-        <div className="flex min-w-0 flex-1 items-center justify-end gap-2 overflow-hidden">
+        <div className="flex min-w-0 flex-1 items-center justify-end gap-2">
           {!overflowSet.has('count') ? (
             <Badge
               variant="outline"
@@ -316,37 +265,40 @@ export function BookmarksToolbar({
           ) : null}
 
           {!overflowSet.has('mode') ? (
-            <ToolbarModeToggle
-              value={queryState.mode}
-              onChange={onModeChange}
-              className="app-control shrink-0 p-0.5"
-              itemClassName="size-8 rounded-full border-transparent px-0 text-muted-foreground data-[state=on]:bg-primary data-[state=on]:text-primary-foreground"
+            <ToolbarStateButton
+              active={queryState.mode === 'one'}
+              activeLabel="One image per tweet"
+              inactiveLabel="All images"
+              activeIcon={<ImageIcon />}
+              inactiveIcon={<ImagesIcon />}
+              onToggle={() => onModeChange(queryState.mode === 'one' ? 'all' : 'one')}
             />
           ) : null}
 
           {!overflowSet.has('immersive') ? (
-            <ToolbarImmersiveToggle
-              immersive={queryState.immersive}
-              onChange={onImmersiveChange}
-              className="app-control shrink-0 p-0.5"
-              itemClassName="size-8 rounded-full border-transparent px-0 text-muted-foreground data-[state=on]:bg-primary data-[state=on]:text-primary-foreground"
+            <ToolbarStateButton
+              active={queryState.immersive}
+              activeLabel="Hide captions"
+              inactiveLabel="Show captions"
+              activeIcon={<CaptionsOffIcon />}
+              inactiveIcon={<CaptionsIcon />}
+              onToggle={() => onImmersiveChange(!queryState.immersive)}
             />
           ) : null}
 
-          {!overflowSet.has('seed') ? (
+          {isRandomSort && !overflowSet.has('seed') ? (
             <label className="app-toolbar-label flex h-9 shrink-0 items-center gap-2 px-3 text-[11px] font-medium tracking-[0.18em] uppercase">
               Seed
               <Switch
                 id="keep-seed"
                 size="sm"
                 checked={queryState.keepSeed}
-                disabled={queryState.sort !== 'random'}
                 onCheckedChange={onKeepSeedChange}
               />
             </label>
           ) : null}
 
-          {queryState.sort === 'random' && !overflowSet.has('rerandomize') ? (
+          {isRandomSort && !overflowSet.has('rerandomize') ? (
             <Button
               type="button"
               variant="outline"
@@ -471,41 +423,58 @@ export function BookmarksToolbar({
                   ) : null}
 
                   {overflowSet.has('mode') ? (
-                    <div className="rounded-xl border border-border bg-muted/20 p-1">
-                      <ToolbarModeToggle
-                        value={queryState.mode}
-                        onChange={onModeChange}
-                        className="grid w-full grid-cols-2 rounded-xl border-0 bg-transparent p-0"
-                        itemClassName="h-10 rounded-lg border-transparent px-0 text-muted-foreground data-[state=on]:bg-primary data-[state=on]:text-primary-foreground"
-                      />
-                    </div>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className={cn(
+                        'app-control h-10 w-full justify-between rounded-xl',
+                        queryState.mode === 'one'
+                          ? 'border-transparent bg-primary text-primary-foreground hover:bg-primary/90 hover:text-primary-foreground'
+                          : '',
+                      )}
+                      onClick={() =>
+                        onModeChange(queryState.mode === 'one' ? 'all' : 'one')
+                      }
+                    >
+                      <span>
+                        {queryState.mode === 'one' ? 'One image per tweet' : 'All images'}
+                      </span>
+                      {queryState.mode === 'one' ? <ImageIcon /> : <ImagesIcon />}
+                    </Button>
                   ) : null}
 
                   {overflowSet.has('immersive') ? (
-                    <div className="rounded-xl border border-border bg-muted/20 p-1">
-                      <ToolbarImmersiveToggle
-                        immersive={queryState.immersive}
-                        onChange={onImmersiveChange}
-                        className="grid w-full grid-cols-2 rounded-xl border-0 bg-transparent p-0"
-                        itemClassName="h-10 rounded-lg border-transparent px-0 text-muted-foreground data-[state=on]:bg-primary data-[state=on]:text-primary-foreground"
-                      />
-                    </div>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className={cn(
+                        'app-control h-10 w-full justify-between rounded-xl',
+                        queryState.immersive
+                          ? 'border-transparent bg-primary text-primary-foreground hover:bg-primary/90 hover:text-primary-foreground'
+                          : '',
+                      )}
+                      onClick={() => onImmersiveChange(!queryState.immersive)}
+                    >
+                      <span>
+                        {queryState.immersive ? 'Hide captions' : 'Show captions'}
+                      </span>
+                      {queryState.immersive ? <CaptionsOffIcon /> : <CaptionsIcon />}
+                    </Button>
                   ) : null}
 
-                  {overflowSet.has('seed') ? (
+                  {isRandomSort && overflowSet.has('seed') ? (
                     <label className="flex items-center justify-between rounded-xl border border-border bg-muted/20 px-3 py-2 text-sm">
                       <span className="text-muted-foreground">Seed</span>
                       <Switch
                         id="keep-seed-overflow"
                         size="sm"
                         checked={queryState.keepSeed}
-                        disabled={queryState.sort !== 'random'}
                         onCheckedChange={onKeepSeedChange}
                       />
                     </label>
                   ) : null}
 
-                  {queryState.sort === 'random' && overflowSet.has('rerandomize') ? (
+                  {isRandomSort && overflowSet.has('rerandomize') ? (
                     <Button
                       type="button"
                       variant="outline"

@@ -191,11 +191,16 @@ const surfaceFields: Array<TextFieldDefinition & { key: keyof ThemeSurfaceTokens
 const effectTextFields: Array<TextFieldDefinition & { key: keyof ThemeEffects }> = [
   { key: 'tileShadowColor', label: 'Tile Shadow Color' },
   { key: 'mediaScrimColor', label: 'Media Scrim Color' },
+  { key: 'tileHoverOutlineColor', label: 'Tile Hover Outline Color' },
 ]
 
 const effectNumberFields: Array<NumericFieldDefinition & { key: keyof ThemeEffects }> = [
   { key: 'tileShadowOpacity', label: 'Tile Shadow Opacity', min: 0, max: 1, step: 0.01 },
   { key: 'mediaScrimOpacity', label: 'Media Scrim Opacity', min: 0, max: 1, step: 0.01 },
+  { key: 'tileHoverOutlineWidth', label: 'Tile Hover Outline Width', min: 0, max: 16, step: 1 },
+  { key: 'tileHoverOutlineGap', label: 'Tile Hover Outline Gap', min: 0, max: 24, step: 1 },
+  { key: 'toolbarHoverOutlineWidth', label: 'Toolbar Hover Outline Width', min: 0, max: 16, step: 1 },
+  { key: 'toolbarHoverOutlineGap', label: 'Toolbar Hover Outline Gap', min: 0, max: 24, step: 1 },
 ]
 
 const geometryFields: Array<NumericFieldDefinition & { key: keyof ThemeGeometry }> = [

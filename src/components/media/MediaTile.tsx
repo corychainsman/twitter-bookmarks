@@ -90,10 +90,10 @@ export function MediaTile({ item, tweet, immersive, onOpen }: MediaTileProps) {
   const { ref, autoplayFailed } = useAutoplayState(item.gridId, isMotion)
 
   return (
-    <article className="app-tile group transition-transform duration-300 hover:-translate-y-0.5">
+    <article className="app-tile group">
       <button
         type="button"
-        className="block w-full cursor-pointer text-left"
+        className="app-tile-button cursor-pointer text-left"
         onClick={onOpen}
       >
         <div className="relative overflow-hidden bg-black">
@@ -101,7 +101,7 @@ export function MediaTile({ item, tweet, immersive, onOpen }: MediaTileProps) {
             <>
               <video
                 ref={ref}
-                className="block h-auto w-full transition-transform duration-500 group-hover:scale-[1.02]"
+                className="block h-auto w-full"
                 muted
                 loop
                 playsInline
@@ -121,7 +121,7 @@ export function MediaTile({ item, tweet, immersive, onOpen }: MediaTileProps) {
               src={item.thumbUrl}
               alt={tweet?.text || 'Bookmarked media'}
               loading="lazy"
-              className="block h-auto w-full transition-transform duration-500 group-hover:scale-[1.02]"
+              className="block h-auto w-full"
             />
           )}
 

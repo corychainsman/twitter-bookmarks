@@ -16,6 +16,8 @@ describe('theme model', () => {
     expect(variables['--background']).toBe(theme.semantic.background)
     expect(variables['--app-canvas-top']).toBe(theme.canvas.top)
     expect(variables['--app-control-radius']).toBe('999.00px')
+    expect(variables['--app-tile-radius']).toBe('2.00px')
+    expect(variables['--app-grid-gap-x']).toBe('4.00px')
     expect(variables['--app-tile-body-size']).toBe('13.00px')
   })
 
@@ -28,7 +30,7 @@ describe('theme model', () => {
 
     const variables = deriveThemeVariables(theme)
 
-    expect(variables['--app-grid-gap-x']).toBe('13.12px')
+    expect(variables['--app-grid-gap-x']).toBe('3.28px')
     expect(variables['--app-panel-radius']).toBe('36.00px')
     expect(variables['--app-toolbar-blur']).toBe('30.00px')
     expect(variables['--app-lightbox-body-size']).toBe('18.00px')
@@ -61,5 +63,21 @@ describe('theme model', () => {
 
     expect(parsed.name).toBe('Imported Theme')
     expect(parsed.geometry.tileRadius).toBe(31)
+  })
+
+  it('migrates the untouched legacy default theme geometry to the new defaults', () => {
+    const normalized = normalizeThemeDocument({
+      ...createDefaultTheme(),
+      geometry: {
+        ...createDefaultTheme().geometry,
+        tileRadius: 22,
+        gridGapX: 16,
+        gridGapY: 16,
+      },
+    })
+
+    expect(normalized.geometry.tileRadius).toBe(2)
+    expect(normalized.geometry.gridGapX).toBe(4)
+    expect(normalized.geometry.gridGapY).toBe(4)
   })
 })

@@ -47,7 +47,7 @@ describe('BookmarksToolbar', () => {
     expect(link).toHaveAttribute('href', '/themes')
   })
 
-  it('uses lucide image toggles for mode and immersive state', async () => {
+  it('uses single stateful buttons for mode and immersive state', async () => {
     const user = userEvent.setup()
     const onModeChange = vi.fn()
     const onImmersiveChange = vi.fn()
@@ -73,10 +73,87 @@ describe('BookmarksToolbar', () => {
       />,
     )
 
-    await user.click(screen.getByTitle('All images'))
+    await user.click(screen.getByRole('button', { name: 'One image per tweet' }))
     expect(onModeChange).toHaveBeenCalledWith('all')
 
-    await user.click(screen.getByTitle('Hide captions'))
+    await user.click(screen.getByRole('button', { name: 'Show captions' }))
     expect(onImmersiveChange).toHaveBeenCalledWith(true)
+  })
+
+  it('only shows the seed switch when random sort is selected', () => {
+    const { rerender } = render(
+      <BookmarksToolbar
+        canZoomIn
+        canZoomOut
+        canResetZoom={false}
+        currentColumnCount={5}
+        queryState={queryState}
+        resultCount={42}
+        onSearchChange={() => {}}
+        onSortChange={() => {}}
+        onDirectionToggle={() => {}}
+        onModeChange={() => {}}
+        onImmersiveChange={() => {}}
+        onKeepSeedChange={() => {}}
+        onRerandomize={() => {}}
+        onZoomIn={() => {}}
+        onZoomOut={() => {}}
+        onZoomReset={() => {}}
+      />,
+    )
+
+    expect(screen.queryByText('Seed')).not.toBeInTheDocument()
+
+    rerender(
+      <BookmarksToolbar
+        canZoomIn
+        canZoomOut
+        canResetZoom={false}
+        currentColumnCount={5}
+        queryState={{ ...queryState, sort: 'random' }}
+        resultCount={42}
+        onSearchChange={() => {}}
+        onSortChange={() => {}}
+        onDirectionToggle={() => {}}
+        onModeChange={() => {}}
+        onImmersiveChange={() => {}}
+        onKeepSeedChange={() => {}}
+        onRerandomize={() => {}}
+        onZoomIn={() => {}}
+        onZoomOut={() => {}}
+        onZoomReset={() => {}}
+      />,
+    )
+
+    expect(screen.getByText('Seed')).toBeInTheDocument()
+  })
+
+  it('toggles immersive mode off the non-default hidden-captions state', async () => {
+    const user = userEvent.setup()
+    const onImmersiveChange = vi.fn()
+
+    render(
+      <BookmarksToolbar
+        canZoomIn
+        canZoomOut
+        canResetZoom={false}
+        currentColumnCount={5}
+        queryState={{ ...queryState, immersive: true }}
+        resultCount={42}
+        onSearchChange={() => {}}
+        onSortChange={() => {}}
+        onDirectionToggle={() => {}}
+        onModeChange={() => {}}
+        onImmersiveChange={onImmersiveChange}
+        onKeepSeedChange={() => {}}
+        onRerandomize={() => {}}
+        onZoomIn={() => {}}
+        onZoomOut={() => {}}
+        onZoomReset={() => {}}
+      />,
+    )
+
+    await user.click(screen.getByRole('button', { name: 'Hide captions' }))
+    expect(onImmersiveChange).toHaveBeenCalledWith(false)
   })
 })

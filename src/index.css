@@ -66,11 +66,16 @@
   --app-lightbox-border: rgb(255 255 255 / 0.2);
   --app-tile-shadow-color: color-mix(in srgb, rgb(255 255 255) 2%, transparent);
   --app-media-scrim: color-mix(in srgb, rgb(0 0 0) 85%, transparent);
+  --app-tile-hover-outline-color: rgb(255 255 255);
+  --app-tile-hover-outline-width: 2px;
+  --app-tile-hover-outline-gap: 2px;
+  --app-toolbar-hover-outline-width: 2px;
+  --app-toolbar-hover-outline-gap: 2px;
   --app-control-radius: 999px;
   --app-panel-radius: 24px;
-  --app-tile-radius: 22px;
-  --app-grid-gap-x: 16px;
-  --app-grid-gap-y: 16px;
+  --app-tile-radius: 2px;
+  --app-grid-gap-x: 4px;
+  --app-grid-gap-y: 4px;
   --app-shell-padding-x: 12px;
   --app-toolbar-padding-y: 12px;
   --app-toolbar-blur: 24px;
@@ -209,10 +214,44 @@ body {
   }
 
   .app-control {
+    position: relative;
+    overflow: visible;
     border-color: var(--app-control-border) !important;
     background: var(--app-control-surface) !important;
     color: var(--foreground) !important;
     border-radius: var(--app-control-radius) !important;
+  }
+
+  .app-control::after,
+  .app-toolbar-label::after {
+    content: "";
+    position: absolute;
+    inset: calc(-1 * (var(--app-toolbar-hover-outline-gap) + var(--app-toolbar-hover-outline-width)));
+    border: var(--app-toolbar-hover-outline-width) solid var(--app-tile-hover-outline-color);
+    border-radius: calc(
+      var(--app-control-radius) +
+      var(--app-toolbar-hover-outline-gap) +
+      var(--app-toolbar-hover-outline-width)
+    );
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .app-control:hover::after,
+  .app-toolbar-label:hover::after {
+    opacity: 1;
+  }
+
+  .app-control[aria-expanded="true"]::after {
+    opacity: 0;
+  }
+
+  input.app-control:hover,
+  input.app-control:focus-visible {
+    box-shadow:
+      0 0 0 var(--app-toolbar-hover-outline-gap) var(--app-toolbar-surface),
+      0 0 0 calc(var(--app-toolbar-hover-outline-gap) + var(--app-toolbar-hover-outline-width))
+        var(--app-tile-hover-outline-color) !important;
   }
 
   .app-control:hover {
@@ -223,7 +262,13 @@ body {
     border-color: var(--ring) !important;
   }
 
+  input.app-control:focus-visible {
+    border-color: var(--app-control-border) !important;
+  }
+
   .app-toolbar-label {
+    position: relative;
+    overflow: visible;
     border: 1px solid var(--app-control-border);
     background: var(--app-control-surface);
     color: var(--muted-foreground);
@@ -238,6 +283,17 @@ body {
     box-shadow: none !important;
   }
 
+  .app-select-content {
+    border: 1px solid var(--app-panel-border) !important;
+    background: var(--app-panel-surface) !important;
+    color: var(--foreground) !important;
+    border-radius: var(--app-panel-radius) !important;
+    box-shadow:
+      0 0 0 var(--app-toolbar-hover-outline-gap) var(--app-toolbar-surface),
+      0 0 0 calc(var(--app-toolbar-hover-outline-gap) + var(--app-toolbar-hover-outline-width))
+        var(--app-tile-hover-outline-color) !important;
+  }
+
   .app-empty {
     border-color: var(--app-panel-border) !important;
     background: var(--app-panel-surface) !important;
@@ -245,15 +301,41 @@ body {
   }
 
   .app-tile {
-    overflow: hidden;
+    position: relative;
+    overflow: visible;
     border-radius: var(--app-tile-radius);
     border: 1px solid var(--app-tile-border);
     background: var(--app-tile-surface);
     box-shadow: 0 0 0 1px var(--app-tile-shadow-color);
   }
 
+  .app-tile::after {
+    content: "";
+    position: absolute;
+    inset: calc(-1 * (var(--app-tile-hover-outline-gap) + var(--app-tile-hover-outline-width)));
+    border: var(--app-tile-hover-outline-width) solid var(--app-tile-hover-outline-color);
+    border-radius: calc(
+      var(--app-tile-radius) +
+      var(--app-tile-hover-outline-gap) +
+      var(--app-tile-hover-outline-width)
+    );
+    opacity: 0;
+    pointer-events: none;
+  }
+
   .app-tile:hover {
     border-color: var(--app-tile-hover-border);
+  }
+
+  .app-tile:hover::after {
+    opacity: 1;
+  }
+
+  .app-tile-button {
+    display: block;
+    width: 100%;
+    overflow: hidden;
+    border-radius: inherit;
   }
 
   .app-tile-copy {

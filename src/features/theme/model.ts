@@ -1,4 +1,9 @@
 export const THEME_SCHEMA_VERSION = 1 as const
+const LEGACY_DEFAULT_THEME_GEOMETRY = {
+  tileRadius: 22,
+  gridGapX: 16,
+  gridGapY: 16,
+} as const
 
 export type ThemeHyperparameters = {
   density: number
@@ -59,6 +64,11 @@ export type ThemeEffects = {
   tileShadowOpacity: number
   mediaScrimColor: string
   mediaScrimOpacity: number
+  tileHoverOutlineColor: string
+  tileHoverOutlineWidth: number
+  tileHoverOutlineGap: number
+  toolbarHoverOutlineWidth: number
+  toolbarHoverOutlineGap: number
 }
 
 export type ThemeGeometry = {
@@ -202,14 +212,19 @@ export const DEFAULT_THEME: ThemeDocument = {
     tileShadowOpacity: 0.02,
     mediaScrimColor: 'rgb(0 0 0)',
     mediaScrimOpacity: 0.85,
+    tileHoverOutlineColor: 'rgb(255 255 255)',
+    tileHoverOutlineWidth: 2,
+    tileHoverOutlineGap: 2,
+    toolbarHoverOutlineWidth: 2,
+    toolbarHoverOutlineGap: 2,
   },
   geometry: {
     radius: 10,
     controlRadius: 999,
     panelRadius: 24,
-    tileRadius: 22,
-    gridGapX: 16,
-    gridGapY: 16,
+    tileRadius: 2,
+    gridGapX: 4,
+    gridGapY: 4,
     shellPaddingX: 12,
     toolbarPaddingY: 12,
     toolbarBlur: 24,
@@ -221,6 +236,27 @@ export const DEFAULT_THEME: ThemeDocument = {
     tileMetaSize: 10,
     lightboxBodySize: 15,
   },
+}
+
+function migrateDefaultThemeGeometry(theme: ThemeDocument): ThemeDocument {
+  if (
+    theme.id !== DEFAULT_THEME.id ||
+    theme.geometry.tileRadius !== LEGACY_DEFAULT_THEME_GEOMETRY.tileRadius ||
+    theme.geometry.gridGapX !== LEGACY_DEFAULT_THEME_GEOMETRY.gridGapX ||
+    theme.geometry.gridGapY !== LEGACY_DEFAULT_THEME_GEOMETRY.gridGapY
+  ) {
+    return theme
+  }
+
+  return {
+    ...theme,
+    geometry: {
+      ...theme.geometry,
+      tileRadius: DEFAULT_THEME.geometry.tileRadius,
+      gridGapX: DEFAULT_THEME.geometry.gridGapX,
+      gridGapY: DEFAULT_THEME.geometry.gridGapY,
+    },
+  }
 }
 
 export function createDefaultTheme(): ThemeDocument {
@@ -260,7 +296,7 @@ export function normalizeThemeDocument(value: unknown): ThemeDocument {
   const geometry = isRecord(value.geometry) ? value.geometry : {}
   const typography = isRecord(value.typography) ? value.typography : {}
 
-  return {
+  return migrateDefaultThemeGeometry({
     version: THEME_SCHEMA_VERSION,
     id: withDefaultText(value.id, base.id),
     name: withDefaultText(value.name, base.name),
@@ -330,6 +366,34 @@ export function normalizeThemeDocument(value: unknown): ThemeDocument {
         0,
         1,
       ),
+      tileHoverOutlineColor: withDefaultText(
+        effects.tileHoverOutlineColor,
+        base.effects.tileHoverOutlineColor,
+      ),
+      tileHoverOutlineWidth: withDefaultNumber(
+        effects.tileHoverOutlineWidth,
+        base.effects.tileHoverOutlineWidth,
+        0,
+        16,
+      ),
+      tileHoverOutlineGap: withDefaultNumber(
+        effects.tileHoverOutlineGap,
+        base.effects.tileHoverOutlineGap,
+        0,
+        24,
+      ),
+      toolbarHoverOutlineWidth: withDefaultNumber(
+        effects.toolbarHoverOutlineWidth,
+        base.effects.toolbarHoverOutlineWidth,
+        0,
+        16,
+      ),
+      toolbarHoverOutlineGap: withDefaultNumber(
+        effects.toolbarHoverOutlineGap,
+        base.effects.toolbarHoverOutlineGap,
+        0,
+        24,
+      ),
     },
     geometry: {
       radius: withDefaultNumber(geometry.radius, base.geometry.radius, 2, 40),
@@ -369,7 +433,7 @@ export function normalizeThemeDocument(value: unknown): ThemeDocument {
         30,
       ),
     },
-  }
+  })
 }
 
 function px(value: number): string {
@@ -470,6 +534,11 @@ export function deriveThemeVariables(theme: ThemeDocument): Record<string, strin
       normalized.effects.mediaScrimColor,
       normalized.effects.mediaScrimOpacity,
     ),
+    '--app-tile-hover-outline-color': normalized.effects.tileHoverOutlineColor,
+    '--app-tile-hover-outline-width': px(normalized.effects.tileHoverOutlineWidth),
+    '--app-tile-hover-outline-gap': px(normalized.effects.tileHoverOutlineGap),
+    '--app-toolbar-hover-outline-width': px(normalized.effects.toolbarHoverOutlineWidth),
+    '--app-toolbar-hover-outline-gap': px(normalized.effects.toolbarHoverOutlineGap),
     '--app-control-radius': px(scaleSoftness(normalized.geometry.controlRadius, softness)),
     '--app-panel-radius': px(scaleSoftness(normalized.geometry.panelRadius, softness)),
     '--app-tile-radius': px(scaleSoftness(normalized.geometry.tileRadius, softness)),

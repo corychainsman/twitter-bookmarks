@@ -11,8 +11,8 @@ export type ToolbarOverflowKey =
 const CONTROL_WIDTH: Record<ToolbarOverflowKey | 'search' | 'more', number> = {
   search: 0,
   sort: 136,
-  mode: 78,
-  immersive: 78,
+  mode: 36,
+  immersive: 36,
   count: 34,
   direction: 96,
   seed: 96,
@@ -52,7 +52,7 @@ export function resolveToolbarOverflow(input: {
     'direction',
     'mode',
     'immersive',
-    'seed',
+    ...(input.isRandomSort ? (['seed'] as const) : []),
     ...(input.isRandomSort ? (['rerandomize'] as const) : []),
     'zoom',
   ]
