@@ -37,7 +37,7 @@ describe('data loader', () => {
 
       const responses: Record<string, unknown> = {
         'data/manifest.json': manifest,
-        'data/tweets/docs-0001.json': [
+        'data/tweets/docs-0001.json?v=build-1': [
           {
             id: 'tweet-1',
             sortIndex: '100',
@@ -56,10 +56,10 @@ describe('data loader', () => {
             representativeMotionMediaIndex: 0,
           },
         ],
-        'data/grid/one.json': [{ gridId: 'tweet-1:0', tweetId: 'tweet-1', mediaIndex: 0, mediaType: 'photo', thumbUrl: 'https://img/1.jpg', fullUrl: 'https://img/1.jpg' }],
-        'data/grid/all.json': [{ gridId: 'tweet-1:0', tweetId: 'tweet-1', mediaIndex: 0, mediaType: 'photo', thumbUrl: 'https://img/1.jpg', fullUrl: 'https://img/1.jpg' }],
-        'data/order/bookmarked.json': ['tweet-1'],
-        'data/order/posted.json': ['tweet-1'],
+        'data/grid/one.json?v=build-1': [{ gridId: 'tweet-1:0', tweetId: 'tweet-1', mediaIndex: 0, mediaType: 'photo', thumbUrl: 'https://img/1.jpg', fullUrl: 'https://img/1.jpg' }],
+        'data/grid/all.json?v=build-1': [{ gridId: 'tweet-1:0', tweetId: 'tweet-1', mediaIndex: 0, mediaType: 'photo', thumbUrl: 'https://img/1.jpg', fullUrl: 'https://img/1.jpg' }],
+        'data/order/bookmarked.json?v=build-1': ['tweet-1'],
+        'data/order/posted.json?v=build-1': ['tweet-1'],
         'search/index.json': { shouldNotLoad: true },
         'search/store.json': [{ id: 'tweet-1' }],
       }
@@ -79,11 +79,11 @@ describe('data loader', () => {
     expect(artifacts.manifest.buildId).toBe('build-1')
     expect(requestedPaths).toEqual([
       'data/manifest.json',
-      'data/tweets/docs-0001.json',
-      'data/grid/one.json',
-      'data/grid/all.json',
-      'data/order/bookmarked.json',
-      'data/order/posted.json',
+      'data/tweets/docs-0001.json?v=build-1',
+      'data/grid/one.json?v=build-1',
+      'data/grid/all.json?v=build-1',
+      'data/order/bookmarked.json?v=build-1',
+      'data/order/posted.json?v=build-1',
     ])
     expect(cache.setCore).toHaveBeenCalledTimes(1)
   })
@@ -99,10 +99,10 @@ describe('data loader', () => {
     const fetchJson: JsonFetcher = async <T,>(path: string): Promise<T> => {
       requestedPaths.push(path)
 
-      if (path === 'data/search/index.json') {
+      if (path === 'data/search/index.json?v=build-1') {
         return searchArtifacts.searchIndex as T
       }
-      if (path === 'data/search/store.json') {
+      if (path === 'data/search/store.json?v=build-1') {
         return searchArtifacts.searchStore as T
       }
 
@@ -123,6 +123,9 @@ describe('data loader', () => {
 
     expect(first).toEqual(searchArtifacts)
     expect(second).toEqual(searchArtifacts)
-    expect(requestedPaths).toEqual(['data/search/index.json', 'data/search/store.json'])
+    expect(requestedPaths).toEqual([
+      'data/search/index.json?v=build-1',
+      'data/search/store.json?v=build-1',
+    ])
   })
 })

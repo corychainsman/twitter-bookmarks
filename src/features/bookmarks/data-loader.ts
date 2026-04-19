@@ -25,6 +25,15 @@ function resolveArtifactPath(path: string): string {
   return `data/${path.replace(/^\/+/, '')}`
 }
 
+function withVersionQuery(path: string, version: string): string {
+  const [pathname, existingQuery = ''] = path.split('?')
+  const params = new URLSearchParams(existingQuery)
+  params.set('v', version)
+  const query = params.toString()
+
+  return query.length > 0 ? `${pathname}?${query}` : pathname
+}
+
 async function defaultFetchJson<T>(path: string): Promise<T> {
   const response = await fetch(resolveDataUrl(path))
 
@@ -33,6 +42,20 @@ async function defaultFetchJson<T>(path: string): Promise<T> {
   }
 
   return response.json() as Promise<T>
+}
+
+async function fetchManifest(): Promise<Manifest> {
+  const response = await fetch(resolveDataUrl('data/manifest.json'), {
+    cache: 'no-store',
+  })
+
+  if (!response.ok) {
+    throw new Error(
+      `Failed to load data/manifest.json: ${response.status} ${response.statusText}`,
+    )
+  }
+
+  return response.json() as Promise<Manifest>
 }
 
 function getFetchJson(options?: DataLoaderOptions): JsonFetcher {
@@ -44,6 +67,10 @@ function getCache(options?: DataLoaderOptions): BookmarksArtifactCache {
 }
 
 export async function loadManifest(options?: DataLoaderOptions): Promise<Manifest> {
+  if (!options?.fetchJson) {
+    return fetchManifest()
+  }
+
   return getFetchJson(options)<Manifest>('data/manifest.json')
 }
 
@@ -62,12 +89,24 @@ export async function loadCoreArtifacts(options?: DataLoaderOptions): Promise<Co
 
   const [docs, gridOne, gridAll, orderBookmarked, orderPosted] = await Promise.all([
     Promise.all(
-      manifest.files.docs.map((fileName) => fetchJson<TweetDoc[]>(resolveArtifactPath(fileName))),
+      manifest.files.docs.map((fileName) =>
+        fetchJson<TweetDoc[]>(
+          withVersionQuery(resolveArtifactPath(fileName), manifest.buildId),
+        ),
+      ),
     ),
-    fetchJson<GridItem[]>(resolveArtifactPath(manifest.files.gridOne)),
-    fetchJson<GridItem[]>(resolveArtifactPath(manifest.files.gridAll)),
-    fetchJson<string[]>(resolveArtifactPath(manifest.files.orderBookmarked)),
-    fetchJson<string[]>(resolveArtifactPath(manifest.files.orderPosted)),
+    fetchJson<GridItem[]>(
+      withVersionQuery(resolveArtifactPath(manifest.files.gridOne), manifest.buildId),
+    ),
+    fetchJson<GridItem[]>(
+      withVersionQuery(resolveArtifactPath(manifest.files.gridAll), manifest.buildId),
+    ),
+    fetchJson<string[]>(
+      withVersionQuery(resolveArtifactPath(manifest.files.orderBookmarked), manifest.buildId),
+    ),
+    fetchJson<string[]>(
+      withVersionQuery(resolveArtifactPath(manifest.files.orderPosted), manifest.buildId),
+    ),
   ])
 
   const coreArtifacts: CoreArtifacts = {
@@ -107,10 +146,10 @@ export async function loadSearchArtifacts(
 
   const searchArtifacts: SearchArtifacts = {
     searchIndex: await fetchJson<ExportArtifacts['searchIndex']>(
-      resolveArtifactPath(manifest.files.searchIndex),
+      withVersionQuery(resolveArtifactPath(manifest.files.searchIndex), manifest.buildId),
     ),
     searchStore: await fetchJson<ExportArtifacts['searchStore']>(
-      resolveArtifactPath(manifest.files.searchStore),
+      withVersionQuery(resolveArtifactPath(manifest.files.searchStore), manifest.buildId),
     ),
   }
 
