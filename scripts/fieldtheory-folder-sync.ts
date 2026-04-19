@@ -3,7 +3,6 @@ import { loadChromeSessionConfig } from 'fieldtheory/dist/config.js'
 import { extractFirefoxXCookies } from 'fieldtheory/dist/firefox-cookies.js'
 import {
   applyFolderMirror,
-  clearFolderEverywhere,
   fetchBookmarkFolders,
   walkFolderTimeline,
 } from 'fieldtheory/dist/graphql-bookmarks.js'
@@ -20,7 +19,11 @@ import {
   twitterBookmarksMetaPath,
 } from 'fieldtheory/dist/paths.js'
 
-import { FIELDTHEORY_DELAY_MS, FIELDTHEORY_MAX_PAGES } from './fieldtheory'
+import {
+  FIELDTHEORY_DELAY_MS,
+  FIELDTHEORY_FOLDER_NAME,
+  FIELDTHEORY_MAX_PAGES,
+} from './fieldtheory'
 
 type Folder = {
   id: string
@@ -30,6 +33,7 @@ type Folder = {
 type BookmarkRecord = {
   id: string
   folderIds?: string[]
+  folderNames?: string[]
 }
 
 type SyncMeta = {
@@ -41,7 +45,6 @@ type SyncOptions = {
   chromeUserDataDir?: string
   chromeProfileDirectory?: string
   firefoxProfileDir?: string
-  onlyFolderName?: string
   delayMs: number
   maxPages: number
 }
@@ -57,7 +60,9 @@ function parseArgs(argv: string[]): SyncOptions {
     const next = argv[index + 1]
 
     if (value === '--folder' && next) {
-      options.onlyFolderName = next
+      if (next.trim() !== FIELDTHEORY_FOLDER_NAME) {
+        throw new Error(`Only the "${FIELDTHEORY_FOLDER_NAME}" folder is supported.`)
+      }
       index += 1
       continue
     }
@@ -128,12 +133,8 @@ async function resolveFolderSyncCookies(options: SyncOptions): Promise<{
   return { csrfToken: cookies.csrfToken, cookieHeader: cookies.cookieHeader }
 }
 
-function resolveTargetFolders(allFolders: Folder[], onlyFolderName?: string): Folder[] {
-  if (!onlyFolderName) {
-    return allFolders
-  }
-
-  const lower = onlyFolderName.trim().toLowerCase()
+function resolveTargetFolders(allFolders: Folder[]): Folder[] {
+  const lower = FIELDTHEORY_FOLDER_NAME.trim().toLowerCase()
   const exact = allFolders.find((folder) => folder.name.trim().toLowerCase() === lower)
   const prefix = allFolders.filter((folder) =>
     folder.name.trim().toLowerCase().startsWith(lower),
@@ -146,10 +147,24 @@ function resolveTargetFolders(allFolders: Folder[], onlyFolderName?: string): Fo
         ? `Multiple matches: ${prefix.map((folder) => folder.name).join(', ')}. Be more specific.`
         : `Available: ${allFolders.map((folder) => folder.name).join(', ') || '(none)'}`
 
-    throw new Error(`No folder matches "${onlyFolderName}". ${hint}`)
+    throw new Error(`No folder matches "${FIELDTHEORY_FOLDER_NAME}". ${hint}`)
   }
 
   return [resolved]
+}
+
+function retainOnlyTargetFolder(
+  records: BookmarkRecord[],
+  targetFolder: Folder,
+): BookmarkRecord[] {
+  return records.filter((record) => {
+    const folderIdMatch = (record.folderIds ?? []).includes(targetFolder.id)
+    const folderNameMatch = (record.folderNames ?? []).some(
+      (folderName) => folderName.trim().toLowerCase() === targetFolder.name.trim().toLowerCase(),
+    )
+
+    return folderIdMatch || folderNameMatch
+  })
 }
 
 async function persistFolderCheckpoint(records: BookmarkRecord[]): Promise<void> {
@@ -177,10 +192,12 @@ async function main() {
 
   const cachePath = twitterBookmarksCachePath()
   const existingRecords = await readJsonLines<BookmarkRecord>(cachePath)
-  let mergedRecords = existingRecords
   const allFolders = await fetchBookmarkFolders(csrfToken, cookieHeader)
-  const targetFolders = resolveTargetFolders(allFolders, options.onlyFolderName)
+  const targetFolders = resolveTargetFolders(allFolders)
+  let mergedRecords = retainOnlyTargetFolder(existingRecords, targetFolders[0])
   const skippedFolders: Array<{ folder: Folder; reason: string }> = []
+
+  await persistFolderCheckpoint(mergedRecords)
 
   for (const folder of targetFolders) {
     console.error(`  -> ${folder.name}...`)
@@ -200,38 +217,14 @@ async function main() {
         continue
       }
 
-      mergedRecords = applyFolderMirror(mergedRecords, folder, walkResult.records)
-        .merged as BookmarkRecord[]
+      mergedRecords = applyFolderMirror(mergedRecords, folder, walkResult.records).merged as BookmarkRecord[]
+      mergedRecords = retainOnlyTargetFolder(mergedRecords, folder)
       await persistFolderCheckpoint(mergedRecords)
     } catch (error) {
       skippedFolders.push({
         folder,
         reason: error instanceof Error ? error.message : 'unknown error',
       })
-    }
-  }
-
-  if (!options.onlyFolderName) {
-    const currentFolderIds = new Set(allFolders.map((folder) => folder.id))
-    const knownTaggedFolderIds = new Set<string>()
-
-    for (const record of mergedRecords) {
-      for (const folderId of record.folderIds ?? []) {
-        knownTaggedFolderIds.add(folderId)
-      }
-    }
-
-    for (const folderId of knownTaggedFolderIds) {
-      if (currentFolderIds.has(folderId)) {
-        continue
-      }
-
-      const result = clearFolderEverywhere(mergedRecords, folderId)
-      mergedRecords = result.merged as BookmarkRecord[]
-
-      if (result.cleared > 0) {
-        await persistFolderCheckpoint(mergedRecords)
-      }
     }
   }
 
@@ -246,7 +239,7 @@ async function main() {
   }
 
   console.log(
-    `Folder sync complete: ${targetFolders.length} folder${targetFolders.length === 1 ? '' : 's'} mirrored with max-pages=${options.maxPages}.`,
+    `Folder sync complete: ${targetFolders[0].name} mirrored with max-pages=${options.maxPages}.`,
   )
 }
 

@@ -1,5 +1,4 @@
 export type ToolbarOverflowKey =
-  | 'folder'
   | 'sort'
   | 'mode'
   | 'immersive'
@@ -11,7 +10,6 @@ export type ToolbarOverflowKey =
 
 const CONTROL_WIDTH: Record<ToolbarOverflowKey | 'search' | 'more', number> = {
   search: 0,
-  folder: 148,
   sort: 136,
   mode: 78,
   immersive: 78,
@@ -30,7 +28,6 @@ const HIDE_PRIORITY: ToolbarOverflowKey[] = [
   'count',
   'rerandomize',
   'direction',
-  'folder',
   'immersive',
   'mode',
   'sort',
@@ -39,7 +36,6 @@ const HIDE_PRIORITY: ToolbarOverflowKey[] = [
 export function resolveToolbarOverflow(input: {
   containerWidth: number
   searchExpanded: boolean
-  hasFolderControl: boolean
   isRandomSort: boolean
 }): ToolbarOverflowKey[] {
   if (input.containerWidth <= 0) {
@@ -52,7 +48,6 @@ export function resolveToolbarOverflow(input: {
 
   const visibleControls: ToolbarOverflowKey[] = [
     'count',
-    ...(input.hasFolderControl ? (['folder'] as const) : []),
     'sort',
     'direction',
     'mode',

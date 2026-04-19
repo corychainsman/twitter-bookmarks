@@ -71,7 +71,6 @@ export type Manifest = {
 
 export type QueryState = {
   q: string
-  folder: string
   sort: 'bookmarked' | 'posted' | 'random'
   dir: 'asc' | 'desc'
   mode: 'one' | 'all'

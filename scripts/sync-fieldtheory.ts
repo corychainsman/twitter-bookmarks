@@ -1,59 +1,6 @@
 import { spawnSync } from 'node:child_process'
 
-import {
-  buildFieldTheoryGapArgs,
-  buildFieldTheoryTimelineArgs,
-  FIELDTHEORY_DELAY_MS,
-  FIELDTHEORY_MAX_PAGES,
-  type FieldTheorySyncMode,
-} from './fieldtheory'
-
-function detectMode(argv: string[]): FieldTheorySyncMode {
-  if (argv.includes('--rebuild')) {
-    return 'full'
-  }
-
-  if (argv.includes('--continue')) {
-    return 'resume'
-  }
-
-  return 'fresh'
-}
-
-function partitionArgs(argv: string[]): {
-  ftArgs: string[]
-  folderArgs: string[]
-} {
-  const ftArgs: string[] = []
-  const folderArgs: string[] = []
-
-  for (let index = 0; index < argv.length; index += 1) {
-    const value = argv[index]
-    const next = argv[index + 1]
-
-    if (value === '--rebuild' || value === '--continue') {
-      continue
-    }
-
-    if (value === '--folders') {
-      continue
-    }
-
-    if (value === '--folder') {
-      if (next) {
-        folderArgs.push(value, next)
-        index += 1
-      }
-
-      continue
-    }
-
-    ftArgs.push(value)
-    folderArgs.push(value)
-  }
-
-  return { ftArgs, folderArgs }
-}
+import { buildFieldTheoryFolderArgs, FIELDTHEORY_FOLDER_NAME } from './fieldtheory'
 
 function runStep(label: string, args: string[]): void {
   const bunExecutable = process.release?.name === 'bun' ? process.execPath : 'bun'
@@ -70,25 +17,34 @@ function runStep(label: string, args: string[]): void {
 
 function main() {
   const argv = process.argv.slice(2)
-  const mode = detectMode(argv)
-  const { ftArgs, folderArgs } = partitionArgs(argv)
+  const passthroughArgs: string[] = []
 
-  runStep('Field Theory timeline sync', [
-    'x',
-    'ft',
-    ...buildFieldTheoryTimelineArgs(mode),
-    ...ftArgs,
-  ])
-  runStep('Field Theory gap fill', ['x', 'ft', ...buildFieldTheoryGapArgs(), ...ftArgs])
-  runStep('Field Theory folder sync', [
-    'run',
-    'scripts/fieldtheory-folder-sync.ts',
-    '--max-pages',
-    String(FIELDTHEORY_MAX_PAGES),
-    '--delay-ms',
-    String(FIELDTHEORY_DELAY_MS),
-    ...folderArgs,
-  ])
+  for (let index = 0; index < argv.length; index += 1) {
+    const value = argv[index]
+    const next = argv[index + 1]
+
+    if (value === '--rebuild' || value === '--continue' || value === '--gaps') {
+      continue
+    }
+
+    if (value === '--folders') {
+      continue
+    }
+
+    if (value === '--folder') {
+      if (next && next !== FIELDTHEORY_FOLDER_NAME) {
+        throw new Error(`Only the "${FIELDTHEORY_FOLDER_NAME}" folder is supported.`)
+      }
+      if (next) {
+        index += 1
+      }
+      continue
+    }
+
+    passthroughArgs.push(value)
+  }
+
+  runStep('Field Theory folder sync', [...buildFieldTheoryFolderArgs(), ...passthroughArgs])
 }
 
 try {

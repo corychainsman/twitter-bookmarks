@@ -284,23 +284,6 @@ export function AppShell() {
     return map
   }, [artifacts])
 
-  const folderOptions = React.useMemo(() => {
-    const names = new Set<string>()
-
-    for (const chunk of artifacts?.docsChunks ?? []) {
-      for (const doc of chunk.docs) {
-        for (const folderName of doc.folderNames) {
-          const normalized = folderName.trim()
-          if (normalized.length > 0) {
-            names.add(normalized)
-          }
-        }
-      }
-    }
-
-    return [...names].sort((left, right) => left.localeCompare(right, undefined, { sensitivity: 'base' }))
-  }, [artifacts])
-
   const gridById = React.useMemo(() => {
     const map = new Map<string, GridItem>()
     for (const item of artifacts?.gridAll ?? []) {
@@ -362,11 +345,9 @@ export function AppShell() {
           canZoomOut={masonryLayout.columnCount < masonryLayout.maxColumnCount}
           canResetZoom={queryState.zoom !== DEFAULT_QUERY_STATE.zoom}
           currentColumnCount={masonryLayout.columnCount}
-          folderOptions={folderOptions}
           queryState={queryState}
           resultCount={queryResult.total}
           onSearchChange={(value) => patchQueryState({ q: value })}
-          onFolderChange={(value) => patchQueryState({ folder: value })}
           onSortChange={(value) => patchQueryState({ sort: value })}
           onDirectionToggle={() =>
             patchQueryState({ dir: queryState.dir === 'desc' ? 'asc' : 'desc' })

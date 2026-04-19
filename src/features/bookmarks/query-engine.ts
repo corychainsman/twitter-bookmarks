@@ -149,10 +149,6 @@ export function runBookmarksQuery(
       return false
     }
 
-    if (state.folder.length > 0 && !doc.folderNames.includes(state.folder)) {
-      return false
-    }
-
     if (matchingTweetIds && !matchingTweetIds.has(tweetId)) {
       return false
     }

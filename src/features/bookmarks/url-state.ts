@@ -2,7 +2,6 @@ import type { QueryState } from '@/features/bookmarks/model'
 
 export const DEFAULT_QUERY_STATE: QueryState = {
   q: '',
-  folder: 'Inspo',
   sort: 'bookmarked',
   dir: 'desc',
   mode: 'all',
@@ -48,10 +47,6 @@ function parseMode(value: string | null): QueryState['mode'] {
   return value === 'one' || value === 'all' ? value : DEFAULT_QUERY_STATE.mode
 }
 
-function parseFolder(value: string | null): string {
-  return value?.trim() ?? DEFAULT_QUERY_STATE.folder
-}
-
 function parseZoom(value: string | null): number {
   if (!value) {
     return DEFAULT_QUERY_STATE.zoom
@@ -81,7 +76,6 @@ export function parseQueryState(
 
   return {
     q: params.get('q') ?? DEFAULT_QUERY_STATE.q,
-    folder: parseFolder(params.get('folder')),
     sort,
     dir: parseDirection(params.get('dir')),
     mode: parseMode(params.get('mode')),
@@ -98,9 +92,6 @@ export function serializeQueryState(state: QueryState): URLSearchParams {
 
   if (state.q !== DEFAULT_QUERY_STATE.q) {
     params.set('q', state.q)
-  }
-  if (state.folder !== DEFAULT_QUERY_STATE.folder) {
-    params.set('folder', state.folder)
   }
   if (state.sort !== DEFAULT_QUERY_STATE.sort) {
     params.set('sort', state.sort)

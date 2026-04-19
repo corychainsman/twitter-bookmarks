@@ -64,22 +64,6 @@ describe('query url state', () => {
     )
   })
 
-  it('round-trips a folder filter through the query string', () => {
-    const parsed = parseQueryState(
-      new URLSearchParams('folder=Research%20Trail'),
-      {
-        generateSeed: () => 'seed-1234',
-      },
-    )
-
-    expect(parsed.folder).toBe('Research Trail')
-    expect(serializeQueryState(parsed).toString()).toBe(
-      new URLSearchParams({
-        folder: 'Research Trail',
-      }).toString(),
-    )
-  })
-
   it('round-trips immersive mode through the query string', () => {
     const parsed = parseQueryState(
       new URLSearchParams('immersive=0'),

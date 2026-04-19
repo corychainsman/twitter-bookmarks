@@ -268,55 +268,6 @@ describe('runBookmarksQuery', () => {
     })
   })
 
-  it('filters bookmarks to tweets from the selected folder', () => {
-    const records: RawBookmarkRecord[] = [
-      {
-        id: 'tweet-folder-a',
-        tweetId: 'tweet-folder-a',
-        sortIndex: '300',
-        postedAt: '2026-03-12T10:00:00.000Z',
-        url: 'https://x.com/alice/status/tweet-folder-a',
-        text: 'Compiler note in the research folder',
-        folderNames: ['Research Trail'],
-        mediaObjects: [{ type: 'photo', url: 'https://img/folder-a.jpg' }],
-      },
-      {
-        id: 'tweet-folder-b',
-        tweetId: 'tweet-folder-b',
-        sortIndex: '200',
-        postedAt: '2026-03-11T10:00:00.000Z',
-        url: 'https://x.com/bob/status/tweet-folder-b',
-        text: 'Unrelated design bookmark',
-        folderNames: ['Design'],
-        mediaObjects: [{ type: 'photo', url: 'https://img/folder-b.jpg' }],
-      },
-      {
-        id: 'tweet-folder-c',
-        tweetId: 'tweet-folder-c',
-        sortIndex: '100',
-        postedAt: '2026-03-10T10:00:00.000Z',
-        url: 'https://x.com/carol/status/tweet-folder-c',
-        text: 'No folder bookmark',
-        mediaObjects: [{ type: 'photo', url: 'https://img/folder-c.jpg' }],
-      },
-    ]
-
-    const artifacts = buildExportArtifacts(records, {
-      buildId: 'build-folder',
-      builtAt: '2026-04-17T19:00:00.000Z',
-    })
-
-    const result = runBookmarksQuery(artifacts, {
-      ...DEFAULT_QUERY_STATE,
-      folder: 'Research Trail',
-    })
-
-    expect(result).toEqual({
-      total: 1,
-      orderedGridIds: ['tweet-folder-a:0'],
-    })
-  })
-
   it('runs non-search queries without requiring hydrated search artifacts', () => {
     const artifacts = buildExportArtifacts(
       [

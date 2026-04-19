@@ -7,7 +7,6 @@ import type { QueryState } from '@/features/bookmarks/model'
 
 const queryState: QueryState = {
   q: '',
-  folder: '',
   sort: 'posted',
   dir: 'desc',
   mode: 'one',
@@ -27,11 +26,9 @@ describe('BookmarksToolbar', () => {
         canZoomOut
         canResetZoom={false}
         currentColumnCount={5}
-        folderOptions={['Inspo']}
         queryState={queryState}
         resultCount={42}
         onSearchChange={() => {}}
-        onFolderChange={() => {}}
         onSortChange={() => {}}
         onDirectionToggle={() => {}}
         onModeChange={() => {}}
@@ -61,11 +58,9 @@ describe('BookmarksToolbar', () => {
         canZoomOut
         canResetZoom={false}
         currentColumnCount={5}
-        folderOptions={['Inspo']}
         queryState={queryState}
         resultCount={42}
         onSearchChange={() => {}}
-        onFolderChange={() => {}}
         onSortChange={() => {}}
         onDirectionToggle={() => {}}
         onModeChange={onModeChange}

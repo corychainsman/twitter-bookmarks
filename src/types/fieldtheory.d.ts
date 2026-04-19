@@ -44,23 +44,15 @@ declare module 'fieldtheory/dist/graphql-bookmarks.js' {
     },
   ): Promise<{
     complete: boolean
-    records: Array<{ id: string; folderIds?: string[] }>
+    records: Array<{ id: string; folderIds?: string[]; folderNames?: string[] }>
   }>
 
-  export function applyFolderMirror<T extends { id: string; folderIds?: string[] }>(
+  export function applyFolderMirror<T extends { id: string; folderIds?: string[]; folderNames?: string[] }>(
     existing: T[],
     folder: { id: string; name: string },
     walkedRecords: T[],
   ): {
     merged: T[]
-  }
-
-  export function clearFolderEverywhere<T extends { id: string; folderIds?: string[] }>(
-    existing: T[],
-    folderId: string,
-  ): {
-    merged: T[]
-    cleared: number
   }
 }
 

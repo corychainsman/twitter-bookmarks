@@ -41,11 +41,9 @@ type BookmarksToolbarProps = {
   canZoomOut: boolean
   canResetZoom: boolean
   currentColumnCount: number
-  folderOptions: string[]
   queryState: QueryState
   resultCount: number
   onSearchChange: (value: string) => void
-  onFolderChange: (value: string) => void
   onSortChange: (value: QueryState['sort']) => void
   onDirectionToggle: () => void
   onModeChange: (value: QueryState['mode']) => void
@@ -154,11 +152,9 @@ export function BookmarksToolbar({
   canZoomOut,
   canResetZoom,
   currentColumnCount,
-  folderOptions,
   queryState,
   resultCount,
   onSearchChange,
-  onFolderChange,
   onSortChange,
   onDirectionToggle,
   onModeChange,
@@ -173,7 +169,6 @@ export function BookmarksToolbar({
   const themeStudioHref = `${import.meta.env.BASE_URL.replace(/\/+$/, '')}/themes`
   const sortDirectionLabel = queryState.dir === 'desc' ? 'Newest first' : 'Oldest first'
   const hasSearchQuery = queryState.q.trim().length > 0
-  const hasFolderControl = folderOptions.length > 0
   const [isSearchExpanded, setIsSearchExpanded] = React.useState(hasSearchQuery)
   const [toolbarWidth, setToolbarWidth] = React.useState(0)
 
@@ -207,10 +202,9 @@ export function BookmarksToolbar({
       resolveToolbarOverflow({
         containerWidth: toolbarWidth,
         searchExpanded: isSearchExpanded || hasSearchQuery,
-        hasFolderControl,
         isRandomSort: queryState.sort === 'random',
       }),
-    [hasFolderControl, hasSearchQuery, isSearchExpanded, queryState.sort, toolbarWidth],
+    [hasSearchQuery, isSearchExpanded, queryState.sort, toolbarWidth],
   )
   const overflowSet = React.useMemo(() => new Set(overflowKeys), [overflowKeys])
 
@@ -284,30 +278,6 @@ export function BookmarksToolbar({
             >
               {resultCount}
             </Badge>
-          ) : null}
-
-          {hasFolderControl && !overflowSet.has('folder') ? (
-            <Select
-              value={queryState.folder.length > 0 ? queryState.folder : '__all_folders__'}
-              onValueChange={(value) => onFolderChange(value === '__all_folders__' ? '' : value)}
-            >
-              <SelectTrigger
-                aria-label="Folder filter"
-                className="app-control h-9 min-w-34 max-w-52 shrink-0"
-              >
-                <SelectValue placeholder="Folder" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectGroup>
-                  <SelectItem value="__all_folders__">All folders</SelectItem>
-                  {folderOptions.map((folderName) => (
-                    <SelectItem key={folderName} value={folderName}>
-                      {folderName}
-                    </SelectItem>
-                  ))}
-                </SelectGroup>
-              </SelectContent>
-            </Select>
           ) : null}
 
           {!overflowSet.has('sort') ? (
@@ -471,34 +441,6 @@ export function BookmarksToolbar({
                             <SelectItem value="bookmarked">Bookmarked</SelectItem>
                             <SelectItem value="posted">Posted</SelectItem>
                             <SelectItem value="random">Random</SelectItem>
-                          </SelectGroup>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  ) : null}
-
-                  {hasFolderControl && overflowSet.has('folder') ? (
-                    <div className="rounded-xl border border-border bg-muted/20 p-2">
-                      <Select
-                        value={queryState.folder.length > 0 ? queryState.folder : '__all_folders__'}
-                        onValueChange={(value) =>
-                          onFolderChange(value === '__all_folders__' ? '' : value)
-                        }
-                      >
-                        <SelectTrigger
-                          aria-label="Folder filter"
-                          className="app-control h-10 w-full rounded-xl"
-                        >
-                          <SelectValue placeholder="Folder" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectGroup>
-                            <SelectItem value="__all_folders__">All folders</SelectItem>
-                            {folderOptions.map((folderName) => (
-                              <SelectItem key={folderName} value={folderName}>
-                                {folderName}
-                              </SelectItem>
-                            ))}
                           </SelectGroup>
                         </SelectContent>
                       </Select>

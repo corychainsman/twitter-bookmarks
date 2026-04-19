@@ -8,7 +8,6 @@ describe('resolveToolbarOverflow', () => {
       resolveToolbarOverflow({
         containerWidth: 920,
         searchExpanded: false,
-        hasFolderControl: true,
         isRandomSort: false,
       }),
     ).toEqual([])
@@ -19,10 +18,9 @@ describe('resolveToolbarOverflow', () => {
       resolveToolbarOverflow({
         containerWidth: 760,
         searchExpanded: true,
-        hasFolderControl: true,
         isRandomSort: false,
       }),
-    ).toEqual(['zoom', 'seed', 'count', 'direction'])
+    ).toEqual(['zoom', 'seed'])
   })
 
   it('also collapses rerandomize when random sort would overflow', () => {
@@ -30,10 +28,9 @@ describe('resolveToolbarOverflow', () => {
       resolveToolbarOverflow({
         containerWidth: 760,
         searchExpanded: true,
-        hasFolderControl: true,
         isRandomSort: true,
       }),
-    ).toEqual(['zoom', 'seed', 'count', 'rerandomize', 'direction'])
+    ).toEqual(['zoom', 'seed'])
   })
 
   it('falls back to the compact essentials on very narrow widths', () => {
@@ -41,10 +38,9 @@ describe('resolveToolbarOverflow', () => {
       resolveToolbarOverflow({
         containerWidth: 560,
         searchExpanded: true,
-        hasFolderControl: true,
         isRandomSort: false,
       }),
-    ).toEqual(['zoom', 'seed', 'count', 'direction', 'folder'])
+    ).toEqual(['zoom', 'seed', 'count', 'direction'])
   })
 
   it('collapses the mode switch into the overflow menu when space gets tight enough', () => {
@@ -52,10 +48,9 @@ describe('resolveToolbarOverflow', () => {
       resolveToolbarOverflow({
         containerWidth: 400,
         searchExpanded: true,
-        hasFolderControl: true,
         isRandomSort: false,
       }),
-    ).toEqual(['zoom', 'seed', 'count', 'direction', 'folder', 'immersive', 'mode'])
+    ).toEqual(['zoom', 'seed', 'count', 'direction', 'immersive', 'mode'])
   })
 
   it('keeps shrinking to the ellipsis menu instead of clipping on extremely narrow widths', () => {
@@ -63,20 +58,8 @@ describe('resolveToolbarOverflow', () => {
       resolveToolbarOverflow({
         containerWidth: 300,
         searchExpanded: true,
-        hasFolderControl: true,
         isRandomSort: false,
       }),
-    ).toEqual(['zoom', 'seed', 'count', 'direction', 'folder', 'immersive', 'mode', 'sort'])
-  })
-
-  it('does not reserve overflow width for folders when none exist in the dataset', () => {
-    expect(
-      resolveToolbarOverflow({
-        containerWidth: 760,
-        searchExpanded: true,
-        hasFolderControl: false,
-        isRandomSort: false,
-      }),
-    ).toEqual(['zoom', 'seed'])
+    ).toEqual(['zoom', 'seed', 'count', 'direction', 'immersive', 'mode', 'sort'])
   })
 })
