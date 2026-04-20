@@ -83,7 +83,7 @@ export function BookmarksMasonry({
   if (items.length === 0) {
     return (
       <div className="px-4 py-10 sm:px-6">
-        <Empty className="app-empty">
+        <Empty className="border-[var(--app-panel-border)] bg-[var(--app-panel-surface)] rounded-[var(--app-panel-radius)]">
           <EmptyHeader>
             <EmptyMedia variant="icon">
               <ImagesIcon />

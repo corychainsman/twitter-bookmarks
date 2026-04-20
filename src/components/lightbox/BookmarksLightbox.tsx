@@ -214,7 +214,7 @@ export function BookmarksLightbox({
             ref={controlsRef}
             className="pointer-events-none absolute inset-x-0 bottom-0 z-30 flex justify-center p-4"
           >
-            <Card className="app-lightbox-card pointer-events-auto w-full max-w-3xl shadow-2xl">
+            <Card className="pointer-events-auto w-full max-w-3xl border border-[var(--app-lightbox-border)] bg-[var(--app-lightbox-surface)] text-[var(--foreground)] rounded-[var(--app-panel-radius)] ring-0 shadow-none">
               <CardContent className="flex flex-col gap-4 p-4">
                 <div className="flex flex-col gap-3">
                   <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm">

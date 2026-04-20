@@ -22,7 +22,7 @@ function BookmarksPageStatus({
 }) {
   return (
     <div className="flex flex-1 items-center justify-center px-4 py-10">
-      <Empty className="app-empty max-w-sm">
+      <Empty className="max-w-sm border-[var(--app-panel-border)] bg-[var(--app-panel-surface)] rounded-[var(--app-panel-radius)]">
         <EmptyHeader>
           <EmptyTitle>{title}</EmptyTitle>
           {description ? <EmptyDescription>{description}</EmptyDescription> : null}

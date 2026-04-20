@@ -206,20 +206,9 @@ body {
     padding-inline: var(--app-shell-padding-x);
   }
 
-  .app-toolbar-chip {
-    border-color: var(--app-control-border) !important;
-    background: var(--app-control-surface) !important;
-    color: var(--muted-foreground) !important;
-    border-radius: var(--app-control-radius) !important;
-  }
-
   .app-control {
     position: relative;
     overflow: visible;
-    border-color: var(--app-control-border) !important;
-    background: var(--app-control-surface) !important;
-    color: var(--foreground) !important;
-    border-radius: var(--app-control-radius) !important;
   }
 
   .app-control::after,
@@ -246,26 +235,6 @@ body {
     opacity: 0;
   }
 
-  input.app-control:hover,
-  input.app-control:focus-visible {
-    box-shadow:
-      0 0 0 var(--app-toolbar-hover-outline-gap) var(--app-toolbar-surface),
-      0 0 0 calc(var(--app-toolbar-hover-outline-gap) + var(--app-toolbar-hover-outline-width))
-        var(--app-tile-hover-outline-color) !important;
-  }
-
-  .app-control:hover {
-    background: color-mix(in srgb, var(--app-control-surface) 88%, var(--foreground) 12%) !important;
-  }
-
-  .app-control:focus-visible {
-    border-color: var(--ring) !important;
-  }
-
-  input.app-control:focus-visible {
-    border-color: var(--app-control-border) !important;
-  }
-
   .app-toolbar-label {
     position: relative;
     overflow: visible;
@@ -273,31 +242,6 @@ body {
     background: var(--app-control-surface);
     color: var(--muted-foreground);
     border-radius: var(--app-control-radius);
-  }
-
-  .app-panel {
-    border: 1px solid var(--app-panel-border) !important;
-    background: var(--app-panel-surface) !important;
-    color: var(--foreground) !important;
-    border-radius: var(--app-panel-radius) !important;
-    box-shadow: none !important;
-  }
-
-  .app-select-content {
-    border: 1px solid var(--app-panel-border) !important;
-    background: var(--app-panel-surface) !important;
-    color: var(--foreground) !important;
-    border-radius: var(--app-panel-radius) !important;
-    box-shadow:
-      0 0 0 var(--app-toolbar-hover-outline-gap) var(--app-toolbar-surface),
-      0 0 0 calc(var(--app-toolbar-hover-outline-gap) + var(--app-toolbar-hover-outline-width))
-        var(--app-tile-hover-outline-color) !important;
-  }
-
-  .app-empty {
-    border-color: var(--app-panel-border) !important;
-    background: var(--app-panel-surface) !important;
-    border-radius: var(--app-panel-radius) !important;
   }
 
   .app-tile {
@@ -351,13 +295,6 @@ body {
     color: var(--muted-foreground);
   }
 
-  .app-media-badge {
-    border-color: var(--app-media-badge-border) !important;
-    background: var(--app-media-badge-surface) !important;
-    color: var(--foreground) !important;
-    border-radius: var(--app-control-radius) !important;
-  }
-
   .app-media-scrim {
     background: linear-gradient(to top, var(--app-media-scrim), transparent 68%);
   }
@@ -377,38 +314,9 @@ body {
     margin-inline: calc(var(--app-grid-gap-x) / -2);
   }
 
-  .app-lightbox-card {
-    border: 1px solid var(--app-lightbox-border) !important;
-    background: var(--app-lightbox-surface) !important;
-    color: var(--foreground) !important;
-    border-radius: var(--app-panel-radius) !important;
-    box-shadow: none !important;
-  }
-
   .app-lightbox-copy {
     font-size: var(--app-lightbox-body-size);
     line-height: 1.6;
-  }
-
-  .app-tweet-embed {
-    width: 100%;
-  }
-
-  .app-tweet-embed > div {
-    width: 100%;
-  }
-
-  .app-tweet-embed blockquote.twitter-tweet {
-    margin: 0 !important;
-  }
-
-  .app-tweet-embed twitter-widget,
-  .app-tweet-embed iframe {
-    display: block !important;
-    border: 0 !important;
-    outline: none !important;
-    box-shadow: none !important;
-    margin-block: 0 !important;
   }
 
   .app-studio-shell {

@@ -33,7 +33,7 @@ export function MediaTile({ item, tweet, immersive, onOpen }: MediaTileProps) {
               <div className="flex items-center justify-between gap-2">
                 <Badge
                   variant="secondary"
-                  className="app-media-badge border text-[10px] font-medium tracking-[0.2em] uppercase"
+                  className="border border-[var(--app-media-badge-border)] bg-[var(--app-media-badge-surface)] text-[var(--foreground)] rounded-[var(--app-control-radius)] text-[10px] font-medium tracking-[0.2em] uppercase"
                 >
                   {item.mediaType.replace('_', ' ')}
                 </Badge>

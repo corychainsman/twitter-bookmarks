@@ -1,5 +1,6 @@
 import * as React from 'react'
 
+import { cn } from '@/lib/utils'
 import { ensureTwitterWidgets } from '@/lib/twitter-widgets'
 
 type TweetEmbedProps = {
@@ -280,7 +281,13 @@ export function TweetEmbed({ url, availableBox, fallbackBox, className }: TweetE
         }
 
   return (
-    <div className={`app-tweet-embed ${className ?? ''}`.trim()} style={wrapperStyle}>
+    <div
+      className={cn(
+        'w-full [&>div]:w-full [&_blockquote.twitter-tweet]:m-0 [&_iframe]:my-0 [&_iframe]:block [&_iframe]:border-0 [&_iframe]:outline-none [&_iframe]:shadow-none [&_twitter-widget]:my-0 [&_twitter-widget]:block [&_twitter-widget]:border-0 [&_twitter-widget]:outline-none [&_twitter-widget]:shadow-none',
+        className,
+      )}
+      style={wrapperStyle}
+    >
       <div ref={hostRef} className="h-full w-full" style={hostStyle} />
       {status === 'error' ? (
         <div className="mt-3 text-center text-sm text-white/75">

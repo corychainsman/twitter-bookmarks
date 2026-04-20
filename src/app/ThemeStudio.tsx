@@ -47,6 +47,7 @@ import {
   type ThemeSurfaceTokens,
   type ThemeTypography,
 } from '@/features/theme/model'
+import { cn } from '@/lib/utils'
 
 type NumericFieldDefinition = {
   key: string
@@ -60,6 +61,12 @@ type TextFieldDefinition = {
   key: string
   label: string
 }
+
+const themeStudioControlClass =
+  'border-[var(--app-control-border)] bg-[var(--app-control-surface)] text-[var(--foreground)] rounded-[var(--app-control-radius)] hover:bg-[color-mix(in_srgb,var(--app-control-surface)_88%,var(--foreground)_12%)] focus-visible:border-[var(--ring)]'
+
+const themeStudioPanelClass =
+  'border border-[var(--app-panel-border)] bg-[var(--app-panel-surface)] text-[var(--foreground)] rounded-[var(--app-panel-radius)] ring-0 shadow-none'
 
 function clamp(value: number, min?: number, max?: number): number {
   let next = value
@@ -399,7 +406,7 @@ function ThemeColorInput({
         <button
           type="button"
           aria-label={`Open color picker for ${label}`}
-          className="app-control size-9 shrink-0 p-1"
+          className={cn('app-control size-9 shrink-0 p-1', themeStudioControlClass)}
           onClick={openPicker}
           onKeyDown={(event) => {
             if (event.key === ' ' || event.key === 'Enter') {
@@ -556,7 +563,7 @@ function ThemeSection({
   children: React.ReactNode
 }) {
   return (
-    <Card className="app-panel">
+    <Card className={themeStudioPanelClass}>
       <CardHeader>
         <CardTitle>{title}</CardTitle>
         {description ? <CardDescription>{description}</CardDescription> : null}
@@ -730,7 +737,7 @@ export function ThemeStudio() {
   return (
     <div className="app-studio-shell">
       <div className="mx-auto flex w-full max-w-[1920px] flex-col gap-6">
-        <Card className="app-panel">
+        <Card className={themeStudioPanelClass}>
           <CardHeader className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
             <div className="flex min-w-0 flex-1 flex-col gap-4">
               <div className="flex items-center gap-2">
