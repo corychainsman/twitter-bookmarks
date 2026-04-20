@@ -150,4 +150,54 @@ describe('buildExportArtifacts', () => {
       },
     })
   })
+
+  it('prefers the highest bitrate direct mp4 variant over playlist entries', () => {
+    const records: RawBookmarkRecord[] = [
+      {
+        id: 'tweet-video',
+        tweetId: 'tweet-video',
+        sortIndex: '100',
+        postedAt: '2026-04-18T10:00:00.000Z',
+        url: 'https://x.com/video/status/tweet-video',
+        text: 'Choose the direct mp4 URL.',
+        mediaObjects: [
+          {
+            type: 'video',
+            previewUrl: 'https://pbs.twimg.com/ext_tw_video_thumb/123/pu/img/poster.jpg',
+            variants: [
+              {
+                url: 'https://video.twimg.com/ext_tw_video/123/pu/pl/playlist.m3u8?tag=12',
+                contentType: 'application/x-mpegURL',
+              },
+              {
+                url: 'https://video.twimg.com/ext_tw_video/123/pu/vid/avc1/640x360/medium.mp4?tag=12',
+                bitrate: 832000,
+                contentType: 'video/mp4',
+              },
+              {
+                url: 'https://video.twimg.com/ext_tw_video/123/pu/vid/avc1/1280x720/high.mp4?tag=12',
+                bitrate: 2176000,
+                contentType: 'video/mp4',
+              },
+            ],
+          },
+        ],
+      },
+    ]
+
+    const artifacts = buildExportArtifacts(records, {
+      buildId: 'build-variants',
+      builtAt: '2026-04-19T00:00:00.000Z',
+    })
+
+    const exportedVideo = artifacts.docsChunks[0]?.docs[0]?.media[0]
+    expect(exportedVideo?.fullUrl).toBe(
+      'https://video.twimg.com/ext_tw_video/123/pu/vid/avc1/1280x720/high.mp4?tag=12',
+    )
+    expect(exportedVideo?.variants?.map((variant) => variant.url)).toEqual([
+      'https://video.twimg.com/ext_tw_video/123/pu/vid/avc1/1280x720/high.mp4?tag=12',
+      'https://video.twimg.com/ext_tw_video/123/pu/vid/avc1/640x360/medium.mp4?tag=12',
+      'https://video.twimg.com/ext_tw_video/123/pu/pl/playlist.m3u8?tag=12',
+    ])
+  })
 })
