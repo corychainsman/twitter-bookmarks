@@ -729,7 +729,7 @@ export function ThemeStudio() {
 
   return (
     <div className="app-studio-shell">
-      <div className="mx-auto flex w-full max-w-[1920px] flex-col gap-6">
+      <div className="mx-auto flex w-full max-w-[10000px] flex-col gap-6">
         <Card className="app-panel">
           <CardHeader className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
             <div className="flex min-w-0 flex-1 flex-col gap-4">

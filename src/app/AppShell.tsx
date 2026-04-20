@@ -339,7 +339,7 @@ export function AppShell() {
 
   return (
     <div className="min-h-screen">
-      <div className="mx-auto flex min-h-screen w-full max-w-[1920px] flex-col">
+      <div className="mx-auto flex min-h-screen w-full max-w-[10000px] flex-col">
         <BookmarksToolbar
           canZoomIn={masonryLayout.columnCount > 1}
           canZoomOut={masonryLayout.columnCount < masonryLayout.maxColumnCount}
