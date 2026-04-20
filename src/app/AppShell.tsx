@@ -27,6 +27,8 @@ export function AppShell() {
     onZoomReset,
     onOpenLightbox,
     onCloseLightbox,
+    onScrollAnchorApplied,
+    scrollAnchorRequest,
   } = useBookmarksPageController()
 
   return (
@@ -59,7 +61,9 @@ export function AppShell() {
           items={visibleItems}
           loadingError={loadingError}
           onOpen={onOpenLightbox}
+          onScrollAnchorApplied={onScrollAnchorApplied}
           ready={hasLoadedArtifacts}
+          scrollAnchorRequest={scrollAnchorRequest}
         />
       </div>
 

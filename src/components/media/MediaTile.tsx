@@ -12,6 +12,11 @@ type MediaTileProps = {
 export function MediaTile({ item, tweet, immersive, onOpen }: MediaTileProps) {
   const isMotion = item.mediaType === 'video' || item.mediaType === 'animated_gif'
   const previewUrl = item.posterUrl ?? item.thumbUrl
+  const aspectRatio =
+    item.aspectRatio ??
+    (item.width && item.height && item.width > 0 && item.height > 0
+      ? item.width / item.height
+      : undefined)
 
   return (
     <article className="app-tile group">
@@ -25,6 +30,9 @@ export function MediaTile({ item, tweet, immersive, onOpen }: MediaTileProps) {
             src={isMotion ? previewUrl : item.thumbUrl}
             alt={tweet?.text || 'Bookmarked media'}
             loading="lazy"
+            width={item.width}
+            height={item.height}
+            style={aspectRatio ? { aspectRatio } : undefined}
             className="block h-auto w-full"
           />
 

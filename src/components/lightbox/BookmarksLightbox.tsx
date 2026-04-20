@@ -35,7 +35,7 @@ type TweetEmbedSlide = {
   height?: number
 }
 
-const LightboxComponent = Lightbox as unknown as ComponentType<any>
+const LightboxRenderer = Lightbox as unknown as ComponentType<Record<string, unknown>>
 
 export function BookmarksLightbox({
   docsById,
@@ -143,7 +143,7 @@ export function BookmarksLightbox({
               height: media.height,
             },
       ),
-    [tweet?.id, tweet?.media, tweet?.text, tweet?.url],
+    [tweet?.media, tweet?.text, tweet?.url],
   )
   const currentSlide = slides[currentIndex]
   const showNavigation = slides.length > 1
@@ -161,7 +161,7 @@ export function BookmarksLightbox({
   }
 
   return (
-    <LightboxComponent
+    <LightboxRenderer
       key={`${selection.tweetId}:${selection.mediaIndex}`}
       open
       close={onClose}

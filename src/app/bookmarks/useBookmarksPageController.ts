@@ -24,6 +24,11 @@ import {
   resolveMasonryLayout,
   resolveNextBookmarksZoom,
 } from '@/components/grid/masonry-layout'
+import {
+  captureMasonryScrollAnchor,
+  type MasonryScrollAnchor,
+  type MasonryScrollAnchorRequest,
+} from '@/components/grid/masonry-anchor'
 import { sessionStorageStore } from '@/lib/storage'
 import type {
   QueryWorkerRequest,
@@ -92,11 +97,44 @@ export function useBookmarksPageController() {
     initialSessionState.selectedGridId,
   )
   const [queryState, setQueryState] = React.useState<QueryState>(initialQueryState)
+  const [scrollAnchorRequest, setScrollAnchorRequest] =
+    React.useState<MasonryScrollAnchorRequest | null>(null)
   const windowWidth = useWindowWidth()
   const deferredQuery = React.useDeferredValue(queryState.q)
   const effectiveQueryState = React.useMemo(
     () => ({ ...queryState, q: deferredQuery }),
     [deferredQuery, queryState],
+  )
+  const {
+    dir: queryRequestDir,
+    keepSeed: queryRequestKeepSeed,
+    mode: queryRequestMode,
+    preferMotion: queryRequestPreferMotion,
+    q: queryRequestText,
+    seed: queryRequestSeed,
+    sort: queryRequestSort,
+  } = effectiveQueryState
+  const queryRequestState = React.useMemo(
+    () => ({
+      q: queryRequestText,
+      sort: queryRequestSort,
+      dir: queryRequestDir,
+      mode: queryRequestMode,
+      immersive: DEFAULT_QUERY_STATE.immersive,
+      preferMotion: queryRequestPreferMotion,
+      zoom: DEFAULT_QUERY_STATE.zoom,
+      keepSeed: queryRequestKeepSeed,
+      seed: queryRequestSeed,
+    }),
+    [
+      queryRequestDir,
+      queryRequestKeepSeed,
+      queryRequestMode,
+      queryRequestPreferMotion,
+      queryRequestSeed,
+      queryRequestSort,
+      queryRequestText,
+    ],
   )
   const masonryLayout = React.useMemo(
     () => resolveMasonryLayout({ viewportWidth: windowWidth, zoom: queryState.zoom }),
@@ -104,6 +142,8 @@ export function useBookmarksPageController() {
   )
   const workerRef = React.useRef<Worker | null>(null)
   const searchHydrationRef = React.useRef<Promise<void> | null>(null)
+  const queryStateRef = React.useRef(initialQueryState)
+  const scrollAnchorRequestIdRef = React.useRef(0)
   const [isQueryPending, startTransition] = React.useTransition()
 
   const postWorkerMessage = React.useEffectEvent((message: QueryWorkerRequest) => {
@@ -183,6 +223,14 @@ export function useBookmarksPageController() {
   }, [initialQueryState, initialSessionState.scrollY, startTransition])
 
   React.useEffect(() => {
+    queryStateRef.current = queryState
+  }, [queryState])
+
+  React.useEffect(() => {
+    updateUrlFromState(queryState)
+  }, [queryState])
+
+  React.useEffect(() => {
     const handlePopState = () => {
       setQueryState(
         parseQueryState(new URLSearchParams(window.location.search), {
@@ -230,13 +278,13 @@ export function useBookmarksPageController() {
 
     postWorkerMessage({
       type: 'query',
-      state: effectiveQueryState,
+      state: queryRequestState,
     })
 
-    if (effectiveQueryState.q.trim().length > 0 && !artifacts.searchIndex) {
+    if (queryRequestState.q.trim().length > 0 && !artifacts.searchIndex) {
       void ensureSearchArtifacts()
     }
-  }, [artifacts, effectiveQueryState])
+  }, [artifacts, queryRequestState])
 
   React.useEffect(() => {
     writeBookmarksSelectedGridId(sessionStorageStore, selectedGridId)
@@ -301,40 +349,63 @@ export function useBookmarksPageController() {
 
   const patchQueryState = React.useCallback((patch: Partial<QueryState>) => {
     setQueryState((current) => {
-      const next = applyQueryStatePatch(current, patch, {
+      return applyQueryStatePatch(current, patch, {
         generateSeed: createQuerySeed,
       })
-      updateUrlFromState(next)
-      return next
     })
   }, [])
 
   const onRerandomize = React.useCallback(() => {
     setQueryState((current) => {
-      const next = rerandomizeQueryState(current, {
+      return rerandomizeQueryState(current, {
         generateSeed: createQuerySeed,
       })
-      updateUrlFromState(next)
-      return next
     })
   }, [])
 
-  const onZoomChange = React.useCallback(
-    (delta: number) => {
+  const queueScrollAnchor = React.useCallback((anchor: MasonryScrollAnchor | null) => {
+    if (!anchor) {
+      return
+    }
+
+    scrollAnchorRequestIdRef.current += 1
+    setScrollAnchorRequest({
+      ...anchor,
+      requestId: scrollAnchorRequestIdRef.current,
+    })
+  }, [])
+
+  const updateZoom = React.useCallback(
+    (resolveNextZoom: (currentZoom: number) => number) => {
+      const currentState = queryStateRef.current
+      const nextZoom = resolveNextZoom(currentState.zoom)
+
+      if (nextZoom === currentState.zoom) {
+        return
+      }
+
+      queueScrollAnchor(captureMasonryScrollAnchor())
       setQueryState((current) => {
-        const next = {
+        return {
           ...current,
-          zoom: resolveNextBookmarksZoom({
-            currentZoom: current.zoom,
-            deltaColumns: delta,
-            viewportWidth: windowWidth,
-          }),
+          zoom: nextZoom,
         }
-        updateUrlFromState(next)
-        return next
       })
     },
-    [windowWidth],
+    [queueScrollAnchor],
+  )
+
+  const onZoomChange = React.useCallback(
+    (delta: number) => {
+      updateZoom((currentZoom) =>
+        resolveNextBookmarksZoom({
+          currentZoom,
+          deltaColumns: delta,
+          viewportWidth: windowWidth,
+        }),
+      )
+    },
+    [updateZoom, windowWidth],
   )
 
   return {
@@ -345,7 +416,12 @@ export function useBookmarksPageController() {
     loadingError,
     hasLoadedArtifacts: artifacts !== null,
     isQueryPending,
+    onScrollAnchorApplied: (requestId: number) =>
+      setScrollAnchorRequest((current) =>
+        current?.requestId === requestId ? null : current,
+      ),
     selection,
+    scrollAnchorRequest,
     visibleItems,
     canResetZoom: queryState.zoom !== DEFAULT_QUERY_STATE.zoom,
     onSearchChange: (value: string) => patchQueryState({ q: value }),
@@ -358,7 +434,7 @@ export function useBookmarksPageController() {
     onRerandomize,
     onZoomIn: () => onZoomChange(BOOKMARKS_ZOOM_STEP),
     onZoomOut: () => onZoomChange(-BOOKMARKS_ZOOM_STEP),
-    onZoomReset: () => patchQueryState({ zoom: DEFAULT_QUERY_STATE.zoom }),
+    onZoomReset: () => updateZoom(() => DEFAULT_QUERY_STATE.zoom),
     onOpenLightbox: (gridId: string) => setSelectedGridId(gridId),
     onCloseLightbox: () => setSelectedGridId(null),
   }

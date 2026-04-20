@@ -1,4 +1,5 @@
 import { BookmarksMasonry } from '@/components/grid/BookmarksMasonry'
+import type { MasonryScrollAnchorRequest } from '@/components/grid/masonry-anchor'
 import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from '@/components/ui/empty'
 import type { GridItem, TweetDoc } from '@/features/bookmarks/model'
 
@@ -10,7 +11,9 @@ type BookmarksPageContentProps = {
   items: GridItem[]
   loadingError: string | null
   onOpen: (gridId: string) => void
+  onScrollAnchorApplied: (requestId: number) => void
   ready: boolean
+  scrollAnchorRequest: MasonryScrollAnchorRequest | null
 }
 
 function BookmarksPageStatus({
@@ -40,7 +43,9 @@ export function BookmarksPageContent({
   items,
   loadingError,
   onOpen,
+  onScrollAnchorApplied,
   ready,
+  scrollAnchorRequest,
 }: BookmarksPageContentProps) {
   if (loadingError) {
     return <BookmarksPageStatus title="Load failed" description={loadingError} />
@@ -62,6 +67,8 @@ export function BookmarksPageContent({
       docsById={docsById}
       immersive={immersive}
       onOpen={onOpen}
+      onScrollAnchorApplied={onScrollAnchorApplied}
+      scrollAnchorRequest={scrollAnchorRequest}
     />
   )
 }

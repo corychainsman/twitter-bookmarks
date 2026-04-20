@@ -57,6 +57,16 @@ describe('resolveMasonryLayout', () => {
     expect(zoomedOutLayout.maxColumnCount).toBe(MAX_BOOKMARKS_COLUMN_COUNT)
     expect(zoomedOutLayout.columnCount).toBe(MAX_BOOKMARKS_COLUMN_COUNT)
   })
+
+  it('keeps the max column count capped at 50 on wide viewports', () => {
+    const layout = resolveMasonryLayout({
+      viewportWidth: 20_000,
+      zoom: -100,
+    })
+
+    expect(layout.maxColumnCount).toBe(MAX_BOOKMARKS_COLUMN_COUNT)
+    expect(layout.columnCount).toBe(MAX_BOOKMARKS_COLUMN_COUNT)
+  })
 })
 
 describe('resolveNextBookmarksZoom', () => {
@@ -74,6 +84,39 @@ describe('resolveNextBookmarksZoom', () => {
 
     expect(resolveMasonryLayout({ viewportWidth: 1200, zoom: removeColumn }).columnCount).toBe(2)
     expect(resolveMasonryLayout({ viewportWidth: 1200, zoom: addColumn }).columnCount).toBe(4)
+  })
+
+  it('changes the rendered column count by one for every enabled click across a zoom range', () => {
+    for (let currentZoom = -20; currentZoom <= 20; currentZoom += 1) {
+      const currentLayout = resolveMasonryLayout({
+        viewportWidth: 1200,
+        zoom: currentZoom,
+      })
+
+      if (currentLayout.columnCount > 1) {
+        const nextZoom = resolveNextBookmarksZoom({
+          currentZoom,
+          deltaColumns: 1,
+          viewportWidth: 1200,
+        })
+
+        expect(resolveMasonryLayout({ viewportWidth: 1200, zoom: nextZoom }).columnCount).toBe(
+          currentLayout.columnCount - 1,
+        )
+      }
+
+      if (currentLayout.columnCount < currentLayout.maxColumnCount) {
+        const nextZoom = resolveNextBookmarksZoom({
+          currentZoom,
+          deltaColumns: -1,
+          viewportWidth: 1200,
+        })
+
+        expect(resolveMasonryLayout({ viewportWidth: 1200, zoom: nextZoom }).columnCount).toBe(
+          currentLayout.columnCount + 1,
+        )
+      }
+    }
   })
 
   it('stops at one column when zooming in repeatedly', () => {
