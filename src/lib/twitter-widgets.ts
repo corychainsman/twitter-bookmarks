@@ -45,13 +45,18 @@ export function ensureTwitterWidgets(): Promise<TwitterWidgetApi> {
     twitterWidgetsPromise = new Promise<TwitterWidgetApi>((resolve, reject) => {
       ensureTwitterStub()
 
+      const rejectAndReset = (error: Error) => {
+        twitterWidgetsPromise = null
+        reject(error)
+      }
+
       const existingScript = document.querySelector<HTMLScriptElement>(
         'script[data-twitter-widgets="true"]',
       )
 
       const handleReady = () => {
         if (!window.twttr) {
-          reject(new Error('Twitter widgets failed to initialize'))
+          rejectAndReset(new Error('Twitter widgets failed to initialize'))
           return
         }
 
@@ -59,12 +64,22 @@ export function ensureTwitterWidgets(): Promise<TwitterWidgetApi> {
       }
 
       if (existingScript) {
+        if (window.twttr?.widgets.load && !window.twttr._e) {
+          resolve(window.twttr)
+          return
+        }
+
         existingScript.addEventListener('load', handleReady, { once: true })
         existingScript.addEventListener(
           'error',
-          () => reject(new Error('Twitter widgets failed to load')),
+          () => rejectAndReset(new Error('Twitter widgets failed to load')),
           { once: true },
         )
+
+        if (existingScript.dataset.twitterWidgetsLoaded === 'true') {
+          handleReady()
+        }
+
         return
       }
 
@@ -73,10 +88,17 @@ export function ensureTwitterWidgets(): Promise<TwitterWidgetApi> {
       script.async = true
       script.charset = 'utf-8'
       script.dataset.twitterWidgets = 'true'
-      script.addEventListener('load', handleReady, { once: true })
+      script.addEventListener(
+        'load',
+        () => {
+          script.dataset.twitterWidgetsLoaded = 'true'
+          handleReady()
+        },
+        { once: true },
+      )
       script.addEventListener(
         'error',
-        () => reject(new Error('Twitter widgets failed to load')),
+        () => rejectAndReset(new Error('Twitter widgets failed to load')),
         { once: true },
       )
       document.head.appendChild(script)
