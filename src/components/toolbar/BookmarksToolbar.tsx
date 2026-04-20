@@ -167,7 +167,7 @@ export function BookmarksToolbar({
     <div className="app-toolbar sticky top-0 z-40">
       <div
         ref={toolbarRef}
-        className="app-toolbar-inner mx-auto flex w-full max-w-[1920px] items-center"
+        className="app-toolbar-inner mx-auto flex w-full max-w-[10000px] items-center"
       >
         <div className="hidden shrink-0 items-center gap-2 xl:flex">
           <div className="app-toolbar-chip px-2.5 py-1 text-[10px] font-medium tracking-[0.28em] uppercase">
