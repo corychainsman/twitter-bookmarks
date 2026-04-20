@@ -15,7 +15,7 @@ const CONTROL_WIDTH: Record<ToolbarOverflowKey | 'search' | 'more', number> = {
   immersive: 36,
   count: 34,
   direction: 96,
-  seed: 96,
+  seed: 0,
   rerandomize: 36,
   zoom: 72,
   more: 36,
@@ -24,8 +24,8 @@ const CONTROL_WIDTH: Record<ToolbarOverflowKey | 'search' | 'more', number> = {
 const CONTROL_GAP = 8
 const HIDE_PRIORITY: ToolbarOverflowKey[] = [
   'zoom',
-  'seed',
   'count',
+  'seed',
   'rerandomize',
   'direction',
   'immersive',
@@ -67,10 +67,15 @@ export function resolveToolbarOverflow(input: {
         .map((key) => CONTROL_WIDTH[key]),
       CONTROL_WIDTH.more,
     ]
+    const clusterGapDiscount =
+      input.isRandomSort && !hiddenSet.has('sort') && !hiddenSet.has('rerandomize')
+        ? CONTROL_GAP
+        : 0
 
     return (
       itemWidths.reduce((total, width) => total + width, 0) +
-      Math.max(0, itemWidths.length - 1) * CONTROL_GAP
+      Math.max(0, itemWidths.length - 1) * CONTROL_GAP -
+      clusterGapDiscount
     )
   }
 

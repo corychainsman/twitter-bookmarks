@@ -23,10 +23,20 @@ describe('resolveToolbarOverflow', () => {
     ).toEqual([])
   })
 
-  it('also collapses rerandomize when random sort would overflow', () => {
+  it('keeps the compact random-sort cluster on the rail at wider widths', () => {
     expect(
       resolveToolbarOverflow({
         containerWidth: 760,
+        searchExpanded: true,
+        isRandomSort: true,
+      }),
+    ).toEqual([])
+  })
+
+  it('accounts for the compact sort and rerandomize cluster before overflowing count', () => {
+    expect(
+      resolveToolbarOverflow({
+        containerWidth: 648,
         searchExpanded: true,
         isRandomSort: true,
       }),

@@ -1,38 +1,35 @@
 import * as React from 'react'
 
-import {
-  ArrowDownUpIcon,
-  CaptionsIcon,
-  CaptionsOffIcon,
-  ExternalLinkIcon,
-  ImageIcon,
-  ImagesIcon,
-  MoreHorizontalIcon,
-  RefreshCcwIcon,
-  SearchIcon,
-  ZoomInIcon,
-  ZoomOutIcon,
-} from 'lucide-react'
+import { MoreHorizontalIcon, SearchIcon } from 'lucide-react'
 
 import type { QueryState } from '@/features/bookmarks/model'
+import { shouldUseDesktopMoreSurface } from '@/components/toolbar/toolbar-breakpoint'
 import { resolveToolbarOverflow } from '@/components/toolbar/toolbar-layout'
-import { Badge } from '@/components/ui/badge'
+import {
+  ToolbarDirectionToggle,
+  ToolbarImmersiveToggle,
+  ToolbarModeToggle,
+  ToolbarOverflowContent,
+  ToolbarResultCount,
+  ToolbarRerandomizeButton,
+  ToolbarSortSelect,
+  ToolbarZoomCluster,
+  toolbarControlClass,
+  toolbarInputControlClass,
+  toolbarPopoverPanelClass,
+  toolbarSheetPanelClass,
+} from '@/components/toolbar/toolbar-controls'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/popover'
-import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
-import { Switch } from '@/components/ui/switch'
+  Drawer,
+  DrawerContent,
+  DrawerHandle,
+  DrawerHeader,
+  DrawerTrigger,
+} from '@/components/ui/drawer'
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
+import { TooltipProvider } from '@/components/ui/tooltip'
 import { cn } from '@/lib/utils'
 
 type BookmarksToolbarProps = {
@@ -52,59 +49,130 @@ type BookmarksToolbarProps = {
   onZoomIn: () => void
   onZoomOut: () => void
   onZoomReset: () => void
+  dockPosition?: 'top' | 'bottom'
 }
 
-const toolbarChipClass =
-  'border-[var(--app-control-border)] bg-[var(--app-control-surface)] text-[var(--muted-foreground)] rounded-[var(--app-control-radius)]'
-
-const toolbarControlClass =
-  'border-[var(--app-control-border)] bg-[var(--app-control-surface)] text-[var(--foreground)] rounded-[var(--app-control-radius)] hover:bg-[color-mix(in_srgb,var(--app-control-surface)_88%,var(--foreground)_12%)] focus-visible:border-[var(--ring)]'
-
-const toolbarInputControlClass =
-  'border-[var(--app-control-border)] bg-[var(--app-control-surface)] text-[var(--foreground)] rounded-[var(--app-control-radius)] hover:bg-[color-mix(in_srgb,var(--app-control-surface)_88%,var(--foreground)_12%)] hover:[box-shadow:0_0_0_var(--app-toolbar-hover-outline-gap)_var(--app-toolbar-surface),0_0_0_calc(var(--app-toolbar-hover-outline-gap)+var(--app-toolbar-hover-outline-width))_var(--app-tile-hover-outline-color)] focus-visible:border-[var(--app-control-border)] focus-visible:[box-shadow:0_0_0_var(--app-toolbar-hover-outline-gap)_var(--app-toolbar-surface),0_0_0_calc(var(--app-toolbar-hover-outline-gap)+var(--app-toolbar-hover-outline-width))_var(--app-tile-hover-outline-color)]'
-
-const toolbarPopoverPanelClass =
-  'border border-[var(--app-panel-border)] bg-[var(--app-panel-surface)] text-[var(--foreground)] rounded-[var(--app-panel-radius)] ring-0 shadow-none'
-
-function ToolbarStateButton({
-  active,
-  activeLabel,
-  inactiveLabel,
-  activeIcon,
-  inactiveIcon,
-  onToggle,
-  className,
+function ToolbarSearchControl({
+  hasSearchQuery,
+  isExpanded,
+  onExpand,
+  onCollapse,
+  value,
+  onChange,
 }: {
-  active: boolean
-  activeLabel: string
-  inactiveLabel: string
-  activeIcon: React.ReactNode
-  inactiveIcon: React.ReactNode
-  onToggle: () => void
-  className?: string
+  hasSearchQuery: boolean
+  isExpanded: boolean
+  onExpand: () => void
+  onCollapse: () => void
+  value: string
+  onChange: (value: string) => void
 }) {
-  const label = active ? activeLabel : inactiveLabel
+  const inputRef = React.useRef<HTMLInputElement | null>(null)
+  const wasVisibleRef = React.useRef(false)
+
+  React.useEffect(() => {
+    const isVisible = isExpanded || hasSearchQuery
+
+    if (isVisible && !wasVisibleRef.current) {
+      inputRef.current?.focus()
+    }
+
+    wasVisibleRef.current = isVisible
+  }, [hasSearchQuery, isExpanded])
+
+  if (!isExpanded && !hasSearchQuery) {
+    return (
+      <Button
+        type="button"
+        variant="outline"
+        size="icon-sm"
+        aria-label="Open search"
+        className={cn('app-control size-9', toolbarControlClass)}
+        onClick={onExpand}
+      >
+        <SearchIcon />
+      </Button>
+    )
+  }
 
   return (
+    <div className="relative shrink-0 transition-[width] duration-200 ease-out w-[clamp(11rem,24vw,22rem)]">
+      <SearchIcon
+        className="pointer-events-none absolute top-1/2 left-3 z-10 size-4 -translate-y-1/2 text-muted-foreground"
+        data-icon="inline-start"
+      />
+      <Input
+        ref={inputRef}
+        id="bookmark-search"
+        type="search"
+        aria-label="Search bookmarks"
+        placeholder="Search"
+        value={value}
+        onBlur={() => {
+          if (!hasSearchQuery) {
+            onCollapse()
+          }
+        }}
+        onChange={(event) => onChange(event.target.value)}
+        onKeyDown={(event) => {
+          if (event.key === 'Escape' && !hasSearchQuery) {
+            event.currentTarget.blur()
+            onCollapse()
+          }
+        }}
+        className={cn('app-control h-9 pl-9 text-sm', toolbarInputControlClass)}
+      />
+    </div>
+  )
+}
+
+function ToolbarMoreSurface({
+  useDesktopSurface,
+  open,
+  onOpenChange,
+  overflowContent,
+}: {
+  useDesktopSurface: boolean
+  open: boolean
+  onOpenChange: (open: boolean) => void
+  overflowContent: React.ReactNode
+}) {
+  const trigger = (
     <Button
       type="button"
       variant="outline"
-      size="icon-lg"
-      aria-label={label}
-      title={label}
-      aria-pressed={active}
-      className={cn(
-        'app-control shrink-0',
-        toolbarControlClass,
-        active
-          ? 'border-transparent bg-primary text-primary-foreground hover:bg-primary/90 hover:text-primary-foreground'
-          : 'text-muted-foreground',
-        className,
-      )}
-      onClick={onToggle}
+      size="icon-sm"
+      aria-label="More"
+      aria-expanded={open}
+      className={cn('app-control shrink-0', toolbarControlClass)}
     >
-      {active ? activeIcon : inactiveIcon}
+      <MoreHorizontalIcon />
     </Button>
+  )
+
+  if (useDesktopSurface) {
+    return (
+      <Popover open={open} onOpenChange={onOpenChange}>
+        <PopoverTrigger asChild>{trigger}</PopoverTrigger>
+        <PopoverContent align="end" className={cn('w-60 p-2.5', toolbarPopoverPanelClass)}>
+          {overflowContent}
+        </PopoverContent>
+      </Popover>
+    )
+  }
+
+  return (
+    <Drawer open={open} onOpenChange={onOpenChange} direction="bottom">
+      <DrawerTrigger asChild>{trigger}</DrawerTrigger>
+      <DrawerContent
+        className={cn('px-0 pb-[max(env(safe-area-inset-bottom),0px)]', toolbarSheetPanelClass)}
+      >
+        <DrawerHeader className="gap-0 px-0">
+          <DrawerHandle />
+        </DrawerHeader>
+        <div className="px-2.5 pt-2.5">{overflowContent}</div>
+      </DrawerContent>
+    </Drawer>
   )
 }
 
@@ -125,14 +193,16 @@ export function BookmarksToolbar({
   onZoomIn,
   onZoomOut,
   onZoomReset,
+  dockPosition = 'top',
 }: BookmarksToolbarProps) {
   const toolbarRef = React.useRef<HTMLDivElement | null>(null)
   const themeStudioHref = `${import.meta.env.BASE_URL.replace(/\/+$/, '')}/themes`
-  const sortDirectionLabel = queryState.dir === 'desc' ? 'Newest first' : 'Oldest first'
   const hasSearchQuery = queryState.q.trim().length > 0
   const isRandomSort = queryState.sort === 'random'
   const [isSearchExpanded, setIsSearchExpanded] = React.useState(hasSearchQuery)
   const [toolbarWidth, setToolbarWidth] = React.useState(0)
+  const [moreOpen, setMoreOpen] = React.useState(false)
+  const useDesktopMoreSurface = shouldUseDesktopMoreSurface()
 
   React.useEffect(() => {
     const node = toolbarRef.current
@@ -161,14 +231,15 @@ export function BookmarksToolbar({
 
   const overflowKeys = React.useMemo(
     () =>
-      resolveToolbarOverflow({
-        containerWidth: toolbarWidth,
-        searchExpanded: isSearchExpanded || hasSearchQuery,
-        isRandomSort,
-      }),
+      new Set(
+        resolveToolbarOverflow({
+          containerWidth: toolbarWidth,
+          searchExpanded: isSearchExpanded || hasSearchQuery,
+          isRandomSort,
+        }),
+      ),
     [hasSearchQuery, isRandomSort, isSearchExpanded, toolbarWidth],
   )
-  const overflowSet = React.useMemo(() => new Set(overflowKeys), [overflowKeys])
 
   const collapseSearch = React.useCallback(() => {
     if (!hasSearchQuery) {
@@ -176,406 +247,110 @@ export function BookmarksToolbar({
     }
   }, [hasSearchQuery])
 
+  const overflowContent = (
+    <ToolbarOverflowContent
+      canZoomIn={canZoomIn}
+      canZoomOut={canZoomOut}
+      canResetZoom={canResetZoom}
+      currentColumnCount={currentColumnCount}
+      isRandomSort={isRandomSort}
+      queryState={queryState}
+      resultCount={resultCount}
+      themeStudioHref={themeStudioHref}
+      overflowKeys={overflowKeys}
+      onSortChange={onSortChange}
+      onDirectionToggle={onDirectionToggle}
+      onModeChange={onModeChange}
+      onImmersiveChange={onImmersiveChange}
+      onKeepSeedChange={onKeepSeedChange}
+      onRerandomize={onRerandomize}
+      onZoomIn={onZoomIn}
+      onZoomOut={onZoomOut}
+      onZoomReset={onZoomReset}
+      reverseOrder={!useDesktopMoreSurface}
+    />
+  )
+
   return (
-    <div className="app-toolbar sticky top-0 z-40">
-      <div
-        ref={toolbarRef}
-        className="app-toolbar-inner mx-auto flex w-full max-w-[1920px] items-center"
-      >
-        <div className="hidden shrink-0 items-center gap-2 xl:flex">
-          <div
-            className={cn(
-              'app-toolbar-chip px-2.5 py-1 text-[10px] font-medium tracking-[0.28em] uppercase',
-              toolbarChipClass,
-            )}
-          >
-            Bookmarks
-          </div>
-        </div>
-
+    <div
+      className={cn(
+        'app-toolbar sticky z-40',
+        dockPosition === 'bottom' ? 'bottom-0' : 'top-0',
+      )}
+    >
+      <TooltipProvider delayDuration={150}>
         <div
-          className={cn(
-            'relative shrink-0 transition-[width] duration-200 ease-out',
-            isSearchExpanded || hasSearchQuery ? 'w-[clamp(11rem,24vw,22rem)]' : 'w-9',
-          )}
+          ref={toolbarRef}
+          className="app-toolbar-inner mx-auto flex w-full max-w-[1920px] items-center"
         >
-          {isSearchExpanded || hasSearchQuery ? (
-            <>
-              <SearchIcon
-                className="pointer-events-none absolute top-1/2 left-3 z-10 size-4 -translate-y-1/2 text-muted-foreground"
-                data-icon="inline-start"
-              />
-              <Input
-                id="bookmark-search"
-                type="search"
-                aria-label="Search bookmarks"
-                placeholder="Search"
-                autoFocus
-                value={queryState.q}
-                onBlur={collapseSearch}
-                onChange={(event) => onSearchChange(event.target.value)}
-                onKeyDown={(event) => {
-                  if (event.key === 'Escape' && !hasSearchQuery) {
-                    event.currentTarget.blur()
-                    setIsSearchExpanded(false)
-                  }
-                }}
-                className={cn('app-control h-9 pl-9 text-sm', toolbarInputControlClass)}
-              />
-            </>
-          ) : (
-            <Button
-              type="button"
-              variant="outline"
-              size="icon-sm"
-              aria-label="Open search"
-              className={cn('app-control size-9', toolbarControlClass)}
-              onClick={() => setIsSearchExpanded(true)}
-            >
-              <SearchIcon />
-            </Button>
-          )}
-        </div>
-
-        <div className="flex min-w-0 flex-1 items-center justify-end gap-2">
-          {!overflowSet.has('count') ? (
-            <Badge
-              variant="outline"
-              className={cn(
-                'app-toolbar-chip h-9 shrink-0 px-3 text-[11px] font-medium tracking-[0.2em] uppercase',
-                toolbarChipClass,
-              )}
-            >
-              {resultCount}
-            </Badge>
-          ) : null}
-
-          {!overflowSet.has('sort') ? (
-            <Select
-              value={queryState.sort}
-              onValueChange={(value) => onSortChange(value as QueryState['sort'])}
-            >
-              <SelectTrigger
-                aria-label="Sort order"
-                className={cn('app-control h-9 min-w-30 shrink-0 sm:min-w-34', toolbarControlClass)}
-              >
-                <SelectValue placeholder="Sort order" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectGroup>
-                  <SelectItem value="bookmarked">Bookmarked</SelectItem>
-                  <SelectItem value="posted">Posted</SelectItem>
-                  <SelectItem value="random">Random</SelectItem>
-                </SelectGroup>
-              </SelectContent>
-            </Select>
-          ) : null}
-
-          {!overflowSet.has('direction') ? (
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              aria-label={sortDirectionLabel}
-              className={cn('app-control h-9 shrink-0', toolbarControlClass)}
-              onClick={onDirectionToggle}
-            >
-              <ArrowDownUpIcon data-icon="inline-start" />
-              {queryState.dir === 'desc' ? 'Desc' : 'Asc'}
-            </Button>
-          ) : null}
-
-          {!overflowSet.has('mode') ? (
-            <ToolbarStateButton
-              active={queryState.mode === 'one'}
-              activeLabel="One image per tweet"
-              inactiveLabel="All images"
-              activeIcon={<ImageIcon />}
-              inactiveIcon={<ImagesIcon />}
-              onToggle={() => onModeChange(queryState.mode === 'one' ? 'all' : 'one')}
+          <div className="relative shrink-0">
+            <ToolbarSearchControl
+              hasSearchQuery={hasSearchQuery}
+              isExpanded={isSearchExpanded}
+              onExpand={() => setIsSearchExpanded(true)}
+              onCollapse={collapseSearch}
+              value={queryState.q}
+              onChange={onSearchChange}
             />
-          ) : null}
+          </div>
 
-          {!overflowSet.has('immersive') ? (
-            <ToolbarStateButton
-              active={queryState.immersive}
-              activeLabel="Hide captions"
-              inactiveLabel="Show captions"
-              activeIcon={<CaptionsOffIcon />}
-              inactiveIcon={<CaptionsIcon />}
-              onToggle={() => onImmersiveChange(!queryState.immersive)}
-            />
-          ) : null}
-
-          {isRandomSort && !overflowSet.has('seed') ? (
-            <label className="app-toolbar-label flex h-9 shrink-0 items-center gap-2 px-3 text-[11px] font-medium tracking-[0.18em] uppercase">
-              Seed
-              <Switch
-                id="keep-seed"
-                size="sm"
-                checked={queryState.keepSeed}
-                onCheckedChange={onKeepSeedChange}
-              />
-            </label>
-          ) : null}
-
-          {isRandomSort && !overflowSet.has('rerandomize') ? (
-            <Button
-              type="button"
-              variant="outline"
-              size="icon-sm"
-              aria-label="Rerandomize"
-              className={cn('app-control', toolbarControlClass)}
-              onClick={onRerandomize}
-            >
-              <RefreshCcwIcon />
-            </Button>
-          ) : null}
-
-          {!overflowSet.has('zoom') ? (
-            <div className="app-toolbar-label flex shrink-0 items-center gap-1 p-1">
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon-sm"
-                aria-label="Zoom out"
-                className="rounded-full border-transparent bg-transparent"
-                disabled={!canZoomOut}
-                onClick={onZoomOut}
-              >
-                <ZoomOutIcon />
-              </Button>
-              <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                aria-label="Reset zoom"
-                title="Reset zoom"
-                className="h-7 min-w-8 rounded-full border-transparent px-2 text-[10px] font-medium tracking-[0.16em] uppercase"
-                disabled={!canResetZoom}
-                onClick={onZoomReset}
-              >
-                {currentColumnCount}
-              </Button>
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon-sm"
-                aria-label="Zoom in"
-                className="rounded-full border-transparent bg-transparent"
-                disabled={!canZoomIn}
-                onClick={onZoomIn}
-              >
-                <ZoomInIcon />
-              </Button>
-            </div>
-          ) : null}
-
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button
-                type="button"
-                variant="outline"
-                size="icon-sm"
-                aria-label="More"
-                className={cn('app-control shrink-0', toolbarControlClass)}
-              >
-                <MoreHorizontalIcon />
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent align="end" className={cn('w-60 p-2.5', toolbarPopoverPanelClass)}>
-              <div className="flex flex-col gap-2">
-                <Button
-                  asChild
-                  type="button"
-                  variant="outline"
-                  className={cn(
-                    'app-control h-10 w-full justify-start rounded-xl',
-                    toolbarControlClass,
-                  )}
-                >
-                  <a href={themeStudioHref} target="_blank" rel="noreferrer">
-                    <ExternalLinkIcon data-icon="inline-start" />
-                    Open Theme Studio
-                  </a>
-                </Button>
-
-                {overflowKeys.length > 0 ? (
-                  <div className="h-px bg-border" />
-                ) : null}
-
-                <div className="flex flex-col gap-2">
-                  {overflowSet.has('sort') ? (
-                    <div className="rounded-xl border border-border bg-muted/20 p-2">
-                      <Select
-                        value={queryState.sort}
-                        onValueChange={(value) => onSortChange(value as QueryState['sort'])}
-                      >
-                        <SelectTrigger
-                          aria-label="Sort order"
-                          className={cn(
-                            'app-control h-10 w-full rounded-xl',
-                            toolbarControlClass,
-                          )}
-                        >
-                          <SelectValue placeholder="Sort order" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectGroup>
-                            <SelectItem value="bookmarked">Bookmarked</SelectItem>
-                            <SelectItem value="posted">Posted</SelectItem>
-                            <SelectItem value="random">Random</SelectItem>
-                          </SelectGroup>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  ) : null}
-
-                  {overflowSet.has('count') ? (
-                    <div className="flex items-center justify-between rounded-xl border border-border bg-muted/20 px-3 py-2 text-sm">
-                      <span className="text-muted-foreground">Results</span>
-                      <Badge
-                        variant="outline"
-                        className={cn('app-toolbar-chip bg-transparent', toolbarChipClass)}
-                      >
-                        {resultCount}
-                      </Badge>
-                    </div>
-                  ) : null}
-
-                  {overflowSet.has('direction') ? (
-                    <Button
-                      type="button"
-                      variant="outline"
-                      className={cn(
-                        'app-control h-10 w-full justify-between rounded-xl',
-                        toolbarControlClass,
-                      )}
-                      onClick={onDirectionToggle}
-                    >
-                      <span>Direction</span>
-                      <span className="text-muted-foreground">
-                        {queryState.dir === 'desc' ? 'Desc' : 'Asc'}
-                      </span>
-                    </Button>
-                  ) : null}
-
-                  {overflowSet.has('mode') ? (
-                    <Button
-                      type="button"
-                      variant="outline"
-                      className={cn(
-                        'app-control h-10 w-full justify-between rounded-xl',
-                        toolbarControlClass,
-                        queryState.mode === 'one'
-                          ? 'border-transparent bg-primary text-primary-foreground hover:bg-primary/90 hover:text-primary-foreground'
-                          : '',
-                      )}
-                      onClick={() =>
-                        onModeChange(queryState.mode === 'one' ? 'all' : 'one')
-                      }
-                    >
-                      <span>
-                        {queryState.mode === 'one' ? 'One image per tweet' : 'All images'}
-                      </span>
-                      {queryState.mode === 'one' ? <ImageIcon /> : <ImagesIcon />}
-                    </Button>
-                  ) : null}
-
-                  {overflowSet.has('immersive') ? (
-                    <Button
-                      type="button"
-                      variant="outline"
-                      className={cn(
-                        'app-control h-10 w-full justify-between rounded-xl',
-                        toolbarControlClass,
-                        queryState.immersive
-                          ? 'border-transparent bg-primary text-primary-foreground hover:bg-primary/90 hover:text-primary-foreground'
-                          : '',
-                      )}
-                      onClick={() => onImmersiveChange(!queryState.immersive)}
-                    >
-                      <span>
-                        {queryState.immersive ? 'Hide captions' : 'Show captions'}
-                      </span>
-                      {queryState.immersive ? <CaptionsOffIcon /> : <CaptionsIcon />}
-                    </Button>
-                  ) : null}
-
-                  {isRandomSort && overflowSet.has('seed') ? (
-                    <label className="flex items-center justify-between rounded-xl border border-border bg-muted/20 px-3 py-2 text-sm">
-                      <span className="text-muted-foreground">Seed</span>
-                      <Switch
-                        id="keep-seed-overflow"
-                        size="sm"
-                        checked={queryState.keepSeed}
-                        onCheckedChange={onKeepSeedChange}
-                      />
-                    </label>
-                  ) : null}
-
-                  {isRandomSort && overflowSet.has('rerandomize') ? (
-                    <Button
-                      type="button"
-                      variant="outline"
-                      className={cn(
-                        'app-control h-10 w-full justify-center rounded-xl',
-                        toolbarControlClass,
-                      )}
-                      onClick={onRerandomize}
-                    >
-                      <RefreshCcwIcon data-icon="inline-start" />
-                      Rerandomize
-                    </Button>
-                  ) : null}
-
-                  {overflowSet.has('zoom') ? (
-                    <div className="flex items-center justify-between rounded-xl border border-border bg-muted/20 px-3 py-2 text-sm">
-                      <span className="text-muted-foreground">Zoom</span>
-                      <div className="app-toolbar-label flex items-center gap-1 p-1">
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="icon-sm"
-                          aria-label="Zoom out"
-                          className="rounded-full border-transparent bg-transparent"
-                          disabled={!canZoomOut}
-                          onClick={onZoomOut}
-                        >
-                          <ZoomOutIcon />
-                        </Button>
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="sm"
-                          aria-label="Reset zoom"
-                          title="Reset zoom"
-                          className="h-7 min-w-8 rounded-full border-transparent px-2 text-[10px] font-medium tracking-[0.16em] uppercase"
-                          disabled={!canResetZoom}
-                          onClick={onZoomReset}
-                        >
-                          {currentColumnCount}
-                        </Button>
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="icon-sm"
-                          aria-label="Zoom in"
-                          className="rounded-full border-transparent bg-transparent"
-                          disabled={!canZoomIn}
-                          onClick={onZoomIn}
-                        >
-                          <ZoomInIcon />
-                        </Button>
-                      </div>
-                    </div>
+          <div className="flex min-w-0 flex-1 items-center justify-end gap-2">
+            {!overflowKeys.has('sort') ? (
+              isRandomSort ? (
+                <div className="flex shrink-0 items-center gap-2">
+                  <ToolbarSortSelect value={queryState.sort} onValueChange={onSortChange} />
+                  {!overflowKeys.has('rerandomize') ? (
+                    <ToolbarRerandomizeButton onRerandomize={onRerandomize} />
                   ) : null}
                 </div>
-              </div>
-            </PopoverContent>
-          </Popover>
+              ) : (
+                <ToolbarSortSelect value={queryState.sort} onValueChange={onSortChange} />
+              )
+            ) : null}
+
+            {!overflowKeys.has('direction') ? (
+              <ToolbarDirectionToggle dir={queryState.dir} onToggle={onDirectionToggle} />
+            ) : null}
+
+            {!overflowKeys.has('mode') ? (
+              <ToolbarModeToggle
+                mode={queryState.mode}
+                onToggle={() => onModeChange(queryState.mode === 'one' ? 'all' : 'one')}
+              />
+            ) : null}
+
+            {!overflowKeys.has('immersive') ? (
+              <ToolbarImmersiveToggle
+                immersive={queryState.immersive}
+                onToggle={() => onImmersiveChange(!queryState.immersive)}
+              />
+            ) : null}
+
+            {!overflowKeys.has('zoom') ? (
+              <ToolbarZoomCluster
+                canZoomIn={canZoomIn}
+                canZoomOut={canZoomOut}
+                canResetZoom={canResetZoom}
+                currentColumnCount={currentColumnCount}
+                onZoomIn={onZoomIn}
+                onZoomOut={onZoomOut}
+                onZoomReset={onZoomReset}
+              />
+            ) : null}
+
+            {!overflowKeys.has('count') ? (
+              <ToolbarResultCount resultCount={resultCount} />
+            ) : null}
+
+            <ToolbarMoreSurface
+              useDesktopSurface={useDesktopMoreSurface}
+              open={moreOpen}
+              onOpenChange={setMoreOpen}
+              overflowContent={overflowContent}
+            />
+          </div>
         </div>
-      </div>
+      </TooltipProvider>
     </div>
   )
 }
