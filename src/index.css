@@ -390,6 +390,27 @@ body {
     line-height: 1.6;
   }
 
+  .app-tweet-embed {
+    width: 100%;
+  }
+
+  .app-tweet-embed > div {
+    width: 100%;
+  }
+
+  .app-tweet-embed blockquote.twitter-tweet {
+    margin: 0 !important;
+  }
+
+  .app-tweet-embed twitter-widget,
+  .app-tweet-embed iframe {
+    display: block !important;
+    border: 0 !important;
+    outline: none !important;
+    box-shadow: none !important;
+    margin-block: 0 !important;
+  }
+
   .app-studio-shell {
     padding-top: 1.5rem;
     padding-bottom: 4rem;

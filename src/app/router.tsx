@@ -4,7 +4,10 @@ import { indexRoute } from '@/routes/index'
 import { rootRoute } from '@/routes/__root'
 import { themesRoute } from '@/routes/themes'
 
-const routeTree = rootRoute.addChildren([indexRoute, themesRoute])
+const routeTree = rootRoute.addChildren([
+  indexRoute,
+  themesRoute,
+])
 const basepath =
   import.meta.env.BASE_URL === '/'
     ? '/'

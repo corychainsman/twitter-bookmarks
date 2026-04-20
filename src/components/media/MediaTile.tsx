@@ -1,5 +1,3 @@
-import * as React from 'react'
-
 import type { GridItem, TweetDoc } from '@/features/bookmarks/model'
 import { formatPostedDate } from '@/lib/format'
 import { Badge } from '@/components/ui/badge'
