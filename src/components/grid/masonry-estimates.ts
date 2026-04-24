@@ -7,7 +7,7 @@ import type { GridItem } from '@/features/bookmarks/model'
 const FALLBACK_MEDIA_ASPECT_RATIO = 1
 const NON_IMMERSIVE_CHROME_HEIGHT = 108
 
-type BookmarksMasonryCache = {
+export type BookmarksMasonryCache = {
   clear(rowIndex: number, columnIndex: number): void
   clearAll(): void
   columnWidth(params: { index: number }): number

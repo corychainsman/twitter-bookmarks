@@ -1,6 +1,5 @@
 import * as React from 'react'
 import {
-  CellMeasurer,
   Masonry,
   WindowScroller,
   createMasonryCellPositioner,
@@ -20,6 +19,7 @@ import {
   estimateBookmarksMasonryHeight,
   resolveBookmarksMasonryColumnWidth,
 } from '@/components/grid/masonry-estimates'
+import { MeasuredMasonryCell } from '@/components/grid/MeasuredMasonryCell'
 import { resolveBookmarksMasonryRenderKey } from '@/components/grid/masonry-render-key'
 import { resolveBookmarksMasonryCellStyle } from '@/components/grid/masonry-cell-style'
 import { resolveMasonryViewportTopInset } from '@/components/grid/masonry-viewport'
@@ -217,27 +217,23 @@ export function BookmarksMasonry({
       const cellStyle = resolveBookmarksMasonryCellStyle(style)
 
       return (
-        <CellMeasurer cache={cellMeasurerCache} index={index} key={key} parent={parent}>
-          {({ registerChild }) => (
-            <div
-              ref={(node) => {
-                registerChild(node)
-              }}
-              key={key}
-              style={cellStyle}
-              data-grid-id={item.gridId}
-            >
-              <div className="app-masonry-item">
-                <MediaTile
-                  item={item}
-                  tweet={docsById.get(item.tweetId)}
-                  immersive={renderedImmersive}
-                  onOpen={() => onOpen(item.gridId)}
-                />
-              </div>
-            </div>
-          )}
-        </CellMeasurer>
+        <MeasuredMasonryCell
+          cache={cellMeasurerCache}
+          gridId={item.gridId}
+          index={index}
+          key={key}
+          parent={parent}
+          style={cellStyle}
+        >
+          <div className="app-masonry-item">
+            <MediaTile
+              item={item}
+              tweet={docsById.get(item.tweetId)}
+              immersive={renderedImmersive}
+              onOpen={() => onOpen(item.gridId)}
+            />
+          </div>
+        </MeasuredMasonryCell>
       )
     },
     [cellMeasurerCache, docsById, items, onOpen, renderedImmersive],
