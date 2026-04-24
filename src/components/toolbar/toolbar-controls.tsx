@@ -42,7 +42,10 @@ export const toolbarSheetPanelClass =
   'border border-[var(--app-panel-border)] bg-[var(--app-panel-surface)] text-[var(--foreground)] shadow-none'
 
 const toolbarDrawerRowClass =
-  'flex h-11 min-h-11 items-center justify-between gap-3 rounded-xl border border-border bg-muted/20 px-3 text-sm'
+  'flex min-h-12 items-center gap-3 rounded-xl border border-border bg-muted/20 px-3 py-1.5 text-sm'
+
+const toolbarDrawerActionClass =
+  'app-control h-10 w-full rounded-xl px-3 text-sm'
 
 function ToolbarTooltip({
   label,
@@ -69,6 +72,102 @@ function ToolbarDrawerRow({
   children: React.ReactNode
 }) {
   return <div className={cn(toolbarDrawerRowClass, className)}>{children}</div>
+}
+
+function ToolbarDrawerActionRow({
+  className,
+  children,
+  ...props
+}: React.ComponentProps<typeof Button>) {
+  return (
+    <Button
+      type="button"
+      variant="outline"
+      className={cn(toolbarDrawerActionClass, toolbarControlClass, className)}
+      {...props}
+    >
+      {children}
+    </Button>
+  )
+}
+
+function ToolbarDrawerValueRow({
+  label,
+  value,
+  className,
+}: {
+  label: string
+  value: React.ReactNode
+  className?: string
+}) {
+  return (
+    <ToolbarDrawerRow className={className}>
+      <span className="text-muted-foreground">{label}</span>
+      <div className="ml-auto flex items-center">{value}</div>
+    </ToolbarDrawerRow>
+  )
+}
+
+function ToolbarDrawerZoomRow({
+  canZoomIn,
+  canZoomOut,
+  canResetZoom,
+  currentColumnCount,
+  onZoomIn,
+  onZoomOut,
+  onZoomReset,
+}: {
+  canZoomIn: boolean
+  canZoomOut: boolean
+  canResetZoom: boolean
+  currentColumnCount: number
+  onZoomIn: () => void
+  onZoomOut: () => void
+  onZoomReset: () => void
+}) {
+  return (
+    <ToolbarDrawerValueRow
+      label="Zoom"
+      value={
+        <div className="flex items-center gap-1">
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon-sm"
+            aria-label="Zoom out"
+            className="size-8 rounded-full border-transparent bg-transparent"
+            disabled={!canZoomOut}
+            onClick={onZoomOut}
+          >
+            <ZoomOutIcon />
+          </Button>
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            aria-label="Reset zoom"
+            title="Reset zoom"
+            className="h-8 min-w-9 rounded-full border-transparent px-2 text-[10px] font-medium tracking-[0.16em] uppercase"
+            disabled={!canResetZoom}
+            onClick={onZoomReset}
+          >
+            {currentColumnCount}
+          </Button>
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon-sm"
+            aria-label="Zoom in"
+            className="size-8 rounded-full border-transparent bg-transparent"
+            disabled={!canZoomIn}
+            onClick={onZoomIn}
+          >
+            <ZoomInIcon />
+          </Button>
+        </div>
+      }
+    />
+  )
 }
 
 export function ToolbarIconToggle({
@@ -308,7 +407,7 @@ export function ToolbarSeedSwitch({
   onKeepSeedChange: (value: boolean) => void
 }) {
   return (
-    <label className="flex items-center justify-between rounded-xl border border-border bg-muted/20 px-3 py-2 text-sm">
+    <label className={cn(toolbarDrawerRowClass, 'justify-between')}>
       <span className="text-muted-foreground">Seed</span>
       <Switch
         id="keep-seed-overflow"
@@ -326,16 +425,12 @@ export function ToolbarThemeStudioAction({
   href: string
 }) {
   return (
-    <Button
-      asChild
-      variant="outline"
-      className={cn('app-control h-10 w-full justify-start rounded-xl', toolbarControlClass)}
-    >
+    <ToolbarDrawerActionRow asChild className="justify-start">
       <a href={href} target="_blank" rel="noreferrer">
         <ExternalLinkIcon data-icon="inline-start" />
         Open Theme Studio
       </a>
-    </Button>
+    </ToolbarDrawerActionRow>
   )
 }
 
@@ -380,92 +475,74 @@ export function ToolbarOverflowContent({
   onZoomReset: () => void
   reverseOrder?: boolean
 }) {
-  const contentItems = [
+  const primaryItems = [
     overflowKeys.has('sort') ? (
-      <ToolbarDrawerRow key="sort" className="p-2">
+      <ToolbarDrawerRow key="sort">
         <ToolbarSortSelect
           value={queryState.sort}
           onValueChange={onSortChange}
-          className="h-9 w-full rounded-xl"
+          className="h-10 w-full rounded-xl"
         />
       </ToolbarDrawerRow>
     ) : null,
     overflowKeys.has('direction') ? (
-      <ToolbarDrawerRow key="direction">
-        <Button
-          type="button"
-          variant="outline"
-          className={cn('app-control h-9 w-full justify-between rounded-xl', toolbarControlClass)}
+      <ToolbarDrawerActionRow
+        key="direction"
+        className="justify-between"
           onClick={onDirectionToggle}
-        >
-          <span>Direction</span>
-          <span className="text-muted-foreground">{queryState.dir === 'desc' ? 'Desc' : 'Asc'}</span>
-        </Button>
-      </ToolbarDrawerRow>
+      >
+        <span>Direction</span>
+        <span className="text-muted-foreground">{queryState.dir === 'desc' ? 'Desc' : 'Asc'}</span>
+      </ToolbarDrawerActionRow>
     ) : null,
     overflowKeys.has('mode') ? (
-      <ToolbarDrawerRow key="mode">
-        <Button
-          type="button"
-          variant="outline"
-          className={cn(
-            'app-control h-9 w-full justify-between rounded-xl',
+      <ToolbarDrawerActionRow
+        key="mode"
+        className={cn(
+          'justify-between',
             toolbarControlClass,
             queryState.mode === 'one'
               ? 'border-transparent bg-primary text-primary-foreground hover:bg-primary/90 hover:text-primary-foreground'
               : '',
-          )}
-          onClick={() => onModeChange(queryState.mode === 'one' ? 'all' : 'one')}
-        >
-          <span>{queryState.mode === 'one' ? 'One image per tweet' : 'All images'}</span>
-          {queryState.mode === 'one' ? <ImageIcon /> : <ImagesIcon />}
-        </Button>
-      </ToolbarDrawerRow>
+        )}
+        onClick={() => onModeChange(queryState.mode === 'one' ? 'all' : 'one')}
+      >
+        <span>{queryState.mode === 'one' ? 'One image per tweet' : 'All images'}</span>
+        {queryState.mode === 'one' ? <ImageIcon /> : <ImagesIcon />}
+      </ToolbarDrawerActionRow>
     ) : null,
     overflowKeys.has('immersive') ? (
-      <ToolbarDrawerRow key="immersive">
-        <Button
-          type="button"
-          variant="outline"
-          className={cn(
-            'app-control h-9 w-full justify-between rounded-xl',
+      <ToolbarDrawerActionRow
+        key="immersive"
+        className={cn(
+          'justify-between',
             toolbarControlClass,
             queryState.immersive
               ? 'border-transparent bg-primary text-primary-foreground hover:bg-primary/90 hover:text-primary-foreground'
               : '',
-          )}
-          onClick={() => onImmersiveChange(!queryState.immersive)}
-        >
-          <span>{queryState.immersive ? 'Hide captions' : 'Show captions'}</span>
-          {queryState.immersive ? <CaptionsOffIcon /> : <CaptionsIcon />}
-        </Button>
-      </ToolbarDrawerRow>
+        )}
+        onClick={() => onImmersiveChange(!queryState.immersive)}
+      >
+        <span>{queryState.immersive ? 'Hide captions' : 'Show captions'}</span>
+        {queryState.immersive ? <CaptionsOffIcon /> : <CaptionsIcon />}
+      </ToolbarDrawerActionRow>
     ) : null,
     isRandomSort ? (
-      <ToolbarDrawerRow key="seed">
-        <ToolbarSeedSwitch
-          keepSeed={queryState.keepSeed}
-          onKeepSeedChange={onKeepSeedChange}
-        />
-      </ToolbarDrawerRow>
+      <ToolbarSeedSwitch
+        key="seed"
+        keepSeed={queryState.keepSeed}
+        onKeepSeedChange={onKeepSeedChange}
+      />
     ) : null,
     overflowKeys.has('rerandomize') ? (
-      <ToolbarDrawerRow key="rerandomize">
-        <Button
-          type="button"
-          variant="outline"
-          className={cn('app-control h-9 w-full justify-center rounded-xl', toolbarControlClass)}
-          onClick={onRerandomize}
-        >
+      <ToolbarDrawerActionRow key="rerandomize" className="justify-center" onClick={onRerandomize}>
           <RefreshCcwIcon data-icon="inline-start" />
           Rerandomize
-        </Button>
-      </ToolbarDrawerRow>
+      </ToolbarDrawerActionRow>
     ) : null,
     overflowKeys.has('zoom') ? (
-      <ToolbarDrawerRow key="zoom">
-        <span className="text-muted-foreground">Zoom</span>
-        <ToolbarZoomCluster
+      <ToolbarDrawerZoomRow
+        key="zoom"
           canZoomIn={canZoomIn}
           canZoomOut={canZoomOut}
           canResetZoom={canResetZoom}
@@ -473,22 +550,27 @@ export function ToolbarOverflowContent({
           onZoomIn={onZoomIn}
           onZoomOut={onZoomOut}
           onZoomReset={onZoomReset}
-        />
-      </ToolbarDrawerRow>
+      />
     ) : null,
-    overflowKeys.has('count') ? (
-      <ToolbarDrawerRow key="count">
-        <span className="text-muted-foreground">Results</span>
-        <ToolbarResultCount resultCount={resultCount} className="bg-transparent" />
-      </ToolbarDrawerRow>
-    ) : null,
-    overflowKeys.size > 0 ? <div key="separator" className="h-px bg-border" /> : null,
-    <ToolbarDrawerRow key="theme-studio" className="p-0">
-      <ToolbarThemeStudioAction href={themeStudioHref} />
-    </ToolbarDrawerRow>,
-  ]
+  ].filter(Boolean)
 
-  const orderedItems = reverseOrder ? [...contentItems].reverse() : contentItems
+  const trailingItems = [
+    overflowKeys.has('count') ? (
+      <ToolbarDrawerValueRow
+        key="count"
+        label="Results"
+        value={<ToolbarResultCount resultCount={resultCount} className="bg-transparent" />}
+      />
+    ) : null,
+    <ToolbarThemeStudioAction key="theme-studio" href={themeStudioHref} />,
+  ].filter(Boolean)
+
+  const orderedPrimaryItems = reverseOrder ? [...primaryItems].reverse() : primaryItems
+  const orderedItems = [
+    ...orderedPrimaryItems,
+    orderedPrimaryItems.length > 0 ? <div key="separator" className="h-px bg-border" /> : null,
+    ...trailingItems,
+  ].filter(Boolean)
 
   return (
     <div className="flex flex-col gap-2">

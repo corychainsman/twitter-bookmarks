@@ -1,0 +1,24 @@
+- generic [ref=e4]:
+  - generic [ref=e6]:
+    - button "Open search" [ref=e8]:
+      - img
+    - generic [ref=e9]:
+      - combobox "Sort order" [ref=e10]:
+        - generic: Bookmarked
+        - img
+      - button "Newest first" [pressed] [ref=e11]:
+        - img
+      - button "All images" [ref=e12]:
+        - img
+      - button "Hide captions" [pressed] [ref=e13]:
+        - img
+      - generic [ref=e14]:
+        - button "Zoom out" [ref=e15]:
+          - img
+        - button "Reset zoom" [disabled]: "6"
+        - button "Zoom in" [ref=e16]:
+          - img
+      - generic [ref=e17]: "0"
+      - button "More" [ref=e18]:
+        - img
+  - generic [ref=e22]: Loading

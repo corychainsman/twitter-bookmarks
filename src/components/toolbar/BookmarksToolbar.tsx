@@ -4,6 +4,10 @@ import { MoreHorizontalIcon, SearchIcon } from 'lucide-react'
 
 import type { QueryState } from '@/features/bookmarks/model'
 import { shouldUseDesktopMoreSurface } from '@/components/toolbar/toolbar-breakpoint'
+import {
+  getToolbarDrawerViewportHeight,
+  resolveToolbarDrawerLayout,
+} from '@/components/toolbar/toolbar-drawer-sizing'
 import { resolveToolbarOverflow } from '@/components/toolbar/toolbar-layout'
 import {
   ToolbarDirectionToggle,
@@ -23,9 +27,10 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import {
   Drawer,
+  DrawerDescription,
   DrawerContent,
   DrawerHandle,
-  DrawerHeader,
+  DrawerTitle,
   DrawerTrigger,
 } from '@/components/ui/drawer'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
@@ -50,6 +55,11 @@ type BookmarksToolbarProps = {
   onZoomOut: () => void
   onZoomReset: () => void
   dockPosition?: 'top' | 'bottom'
+}
+
+function parsePixelValue(value: string) {
+  const parsed = Number.parseFloat(value)
+  return Number.isFinite(parsed) ? parsed : 0
 }
 
 function ToolbarSearchControl({
@@ -150,6 +160,113 @@ function ToolbarMoreSurface({
     </Button>
   )
 
+  const headerRef = React.useRef<HTMLDivElement | null>(null)
+  const bodyRef = React.useRef<HTMLDivElement | null>(null)
+  const frameRef = React.useRef<number | null>(null)
+  const [drawerLayout, setDrawerLayout] = React.useState(() =>
+    resolveToolbarDrawerLayout({
+      bodyHeight: 0,
+      headerHeight: 0,
+      safeAreaBottom: 0,
+      viewportHeight: 0,
+    }),
+  )
+  const measureDrawer = React.useCallback(() => {
+    const headerNode = headerRef.current
+    const bodyNode = bodyRef.current
+
+    if (!headerNode || !bodyNode) {
+      return
+    }
+
+    const bodyStyles = window.getComputedStyle(bodyNode)
+    const safeAreaBottom = parsePixelValue(bodyStyles.paddingBottom)
+    const layout = resolveToolbarDrawerLayout({
+      bodyHeight: bodyNode.scrollHeight - safeAreaBottom,
+      headerHeight: headerNode.offsetHeight,
+      safeAreaBottom,
+      viewportHeight: getToolbarDrawerViewportHeight(),
+    })
+
+    setDrawerLayout((current) => {
+      if (
+        current.contentHeight === layout.contentHeight
+        && current.maxDrawerHeight === layout.maxDrawerHeight
+        && current.snapPoint === layout.snapPoint
+        && current.bodyMaxHeight === layout.bodyMaxHeight
+        && current.isOverflowing === layout.isOverflowing
+      ) {
+        return current
+      }
+
+      return layout
+    })
+  }, [])
+
+  const scheduleMeasure = React.useCallback(() => {
+    if (typeof window === 'undefined') {
+      measureDrawer()
+      return
+    }
+
+    if (frameRef.current !== null) {
+      window.cancelAnimationFrame(frameRef.current)
+    }
+
+    frameRef.current = window.requestAnimationFrame(() => {
+      frameRef.current = null
+      measureDrawer()
+    })
+  }, [measureDrawer])
+
+  React.useEffect(() => {
+    return () => {
+      if (frameRef.current !== null && typeof window !== 'undefined') {
+        window.cancelAnimationFrame(frameRef.current)
+      }
+    }
+  }, [])
+
+  React.useEffect(() => {
+    if (useDesktopSurface || !open) {
+      return
+    }
+
+    scheduleMeasure()
+
+    if (typeof window === 'undefined') {
+      return
+    }
+
+    const headerNode = headerRef.current
+    const bodyNode = bodyRef.current
+    const viewport = window.visualViewport
+    const resizeObserver = typeof ResizeObserver === 'undefined'
+      ? null
+      : new ResizeObserver(() => {
+        scheduleMeasure()
+      })
+
+    if (headerNode) {
+      resizeObserver?.observe(headerNode)
+    }
+
+    if (bodyNode) {
+      resizeObserver?.observe(bodyNode)
+    }
+
+    window.addEventListener('resize', scheduleMeasure)
+    viewport?.addEventListener('resize', scheduleMeasure)
+
+    return () => {
+      resizeObserver?.disconnect()
+      window.removeEventListener('resize', scheduleMeasure)
+      viewport?.removeEventListener('resize', scheduleMeasure)
+    }
+  }, [open, scheduleMeasure, useDesktopSurface])
+
+  const snapPoint = drawerLayout.snapPoint > 0 ? `${drawerLayout.snapPoint}px` : null
+
   if (useDesktopSurface) {
     return (
       <Popover open={open} onOpenChange={onOpenChange}>
@@ -165,12 +282,34 @@ function ToolbarMoreSurface({
     <Drawer open={open} onOpenChange={onOpenChange} direction="bottom">
       <DrawerTrigger asChild>{trigger}</DrawerTrigger>
       <DrawerContent
-        className={cn('px-0 pb-[max(env(safe-area-inset-bottom),0px)]', toolbarSheetPanelClass)}
+        className={cn('overflow-hidden px-0', toolbarSheetPanelClass)}
+        data-toolbar-drawer-content=""
+        data-toolbar-drawer-overflowing={drawerLayout.isOverflowing ? 'true' : 'false'}
+        data-toolbar-drawer-snap-point={snapPoint ?? 'auto'}
+        style={snapPoint ? { height: snapPoint } : undefined}
       >
-        <DrawerHeader className="gap-0 px-0">
+        <div ref={headerRef} className="pt-2" data-toolbar-drawer-header="">
           <DrawerHandle />
-        </DrawerHeader>
-        <div className="px-2.5 pt-2.5">{overflowContent}</div>
+          <DrawerTitle className="sr-only">More controls</DrawerTitle>
+          <DrawerDescription className="sr-only">
+            Extra bookmark toolbar controls for mobile layouts.
+          </DrawerDescription>
+        </div>
+        <div
+          ref={bodyRef}
+          data-toolbar-drawer-body=""
+          className={cn(
+            'px-2.5 pt-2.5 pb-[max(env(safe-area-inset-bottom),0px)]',
+            drawerLayout.isOverflowing ? 'overflow-y-auto' : 'overflow-hidden',
+          )}
+          style={
+            drawerLayout.bodyMaxHeight > 0
+              ? { maxHeight: `${drawerLayout.bodyMaxHeight}px` }
+              : undefined
+          }
+        >
+          {overflowContent}
+        </div>
       </DrawerContent>
     </Drawer>
   )

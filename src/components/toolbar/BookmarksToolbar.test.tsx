@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react'
+import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
@@ -20,11 +20,31 @@ const queryState: QueryState = {
 }
 
 const originalMatchMedia = window.matchMedia
+const originalResizeObserver = globalThis.ResizeObserver
+const originalRequestAnimationFrame = window.requestAnimationFrame
+const originalCancelAnimationFrame = window.cancelAnimationFrame
+const originalInnerHeight = window.innerHeight
 
 afterEach(() => {
   Object.defineProperty(window, 'matchMedia', {
     configurable: true,
     value: originalMatchMedia,
+  })
+  Object.defineProperty(globalThis, 'ResizeObserver', {
+    configurable: true,
+    value: originalResizeObserver,
+  })
+  Object.defineProperty(window, 'requestAnimationFrame', {
+    configurable: true,
+    value: originalRequestAnimationFrame,
+  })
+  Object.defineProperty(window, 'cancelAnimationFrame', {
+    configurable: true,
+    value: originalCancelAnimationFrame,
+  })
+  Object.defineProperty(window, 'innerHeight', {
+    configurable: true,
+    value: originalInnerHeight,
   })
   vi.restoreAllMocks()
 })
@@ -51,6 +71,24 @@ function ensureMatchMedia() {
 
 function isFollowing(a: Element, b: Element) {
   return Boolean(a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING)
+}
+
+function installMeasurementMocks() {
+  Object.defineProperty(globalThis, 'ResizeObserver', {
+    configurable: true,
+    value: originalResizeObserver,
+  })
+  Object.defineProperty(window, 'requestAnimationFrame', {
+    configurable: true,
+    value: vi.fn((callback: FrameRequestCallback) => {
+      callback(0)
+      return 1
+    }),
+  })
+  Object.defineProperty(window, 'cancelAnimationFrame', {
+    configurable: true,
+    value: vi.fn(),
+  })
 }
 
 describe('BookmarksToolbar', () => {
@@ -193,6 +231,7 @@ describe('BookmarksToolbar', () => {
     const user = userEvent.setup()
     vi.spyOn(breakpointModule, 'shouldUseDesktopMoreSurface').mockReturnValue(false)
     ensureMatchMedia()
+    installMeasurementMocks()
 
     render(
       <BookmarksToolbar
@@ -220,6 +259,93 @@ describe('BookmarksToolbar', () => {
     const panel = await screen.findByRole('dialog')
     expect(panel).toHaveAttribute('data-slot', 'drawer-content')
     expect(panel).toContainElement(await screen.findByRole('link', { name: 'Open Theme Studio' }))
+  })
+
+  it('updates the mobile drawer snap point when open content grows', async () => {
+    const user = userEvent.setup()
+    const onSortChange = vi.fn()
+    vi.spyOn(breakpointModule, 'shouldUseDesktopMoreSurface').mockReturnValue(false)
+    ensureMatchMedia()
+    installMeasurementMocks()
+
+    Object.defineProperty(window, 'innerHeight', {
+      configurable: true,
+      value: 800,
+    })
+
+    const { rerender } = render(
+      <BookmarksToolbar
+        canZoomIn
+        canZoomOut
+        canResetZoom={false}
+        currentColumnCount={5}
+        queryState={queryState}
+        resultCount={42}
+        onSearchChange={() => {}}
+        onSortChange={onSortChange}
+        onDirectionToggle={() => {}}
+        onModeChange={() => {}}
+        onImmersiveChange={() => {}}
+        onKeepSeedChange={() => {}}
+        onRerandomize={() => {}}
+        onZoomIn={() => {}}
+        onZoomOut={() => {}}
+        onZoomReset={() => {}}
+      />,
+    )
+
+    await user.click(screen.getByRole('button', { name: 'More' }))
+
+    const panel = await screen.findByRole('dialog')
+    const header = panel.querySelector('[data-toolbar-drawer-header]') as HTMLDivElement
+    const body = panel.querySelector('[data-toolbar-drawer-body]') as HTMLDivElement
+
+    Object.defineProperty(header, 'offsetHeight', {
+      configurable: true,
+      get: () => 24,
+    })
+    Object.defineProperty(body, 'scrollHeight', {
+      configurable: true,
+      get: () => 210,
+    })
+
+    window.dispatchEvent(new Event('resize'))
+
+    await waitFor(() => {
+      expect(panel).toHaveAttribute('data-toolbar-drawer-snap-point', '234px')
+    })
+
+    rerender(
+      <BookmarksToolbar
+        canZoomIn
+        canZoomOut
+        canResetZoom={false}
+        currentColumnCount={5}
+        queryState={{ ...queryState, sort: 'random' }}
+        resultCount={42}
+        onSearchChange={() => {}}
+        onSortChange={onSortChange}
+        onDirectionToggle={() => {}}
+        onModeChange={() => {}}
+        onImmersiveChange={() => {}}
+        onKeepSeedChange={() => {}}
+        onRerandomize={() => {}}
+        onZoomIn={() => {}}
+        onZoomOut={() => {}}
+        onZoomReset={() => {}}
+      />,
+    )
+
+    Object.defineProperty(body, 'scrollHeight', {
+      configurable: true,
+      get: () => 278,
+    })
+
+    window.dispatchEvent(new Event('resize'))
+
+    await waitFor(() => {
+      expect(panel).toHaveAttribute('data-toolbar-drawer-snap-point', '302px')
+    })
   })
 
   it('keeps overflow items in rail order with Theme Studio last', () => {
@@ -289,8 +415,10 @@ describe('BookmarksToolbar', () => {
     const themeStudio = screen.getByRole('link', { name: 'Open Theme Studio' })
     const count = screen.getByText('42')
     const sort = screen.getByRole('combobox', { name: 'Sort order' })
+    const zoomOut = screen.getByRole('button', { name: 'Zoom out' })
 
-    expect(isFollowing(themeStudio, count)).toBe(true)
-    expect(isFollowing(count, sort)).toBe(true)
+    expect(isFollowing(zoomOut, sort)).toBe(true)
+    expect(isFollowing(sort, count)).toBe(true)
+    expect(isFollowing(count, themeStudio)).toBe(true)
   })
 })
