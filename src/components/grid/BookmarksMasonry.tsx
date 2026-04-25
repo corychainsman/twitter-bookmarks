@@ -43,6 +43,57 @@ function resolveToolbarBottom(): number {
   return toolbar ? toolbar.getBoundingClientRect().bottom : 0
 }
 
+function resolveBookmarksMasonryCellKey(items: GridItem[], index: number): string {
+  const item = items[index]
+  return item ? `${item.gridId}:${index}` : `missing:${index}`
+}
+
+function resolveBookmarksMasonryRenderedCellKey(
+  key: React.Key,
+  style: React.CSSProperties | undefined,
+): string {
+  const renderPhase = style?.position === 'absolute' ? 'positioned' : 'measure'
+  return `${String(key)}:${renderPhase}`
+}
+
+function createBookmarksMasonryRenderedCellKeyAllocator() {
+  const renderedKeyCounts = new Map<string, number>()
+  let clearScheduled = false
+
+  const clear = () => {
+    renderedKeyCounts.clear()
+    clearScheduled = false
+  }
+
+  const scheduleClear = () => {
+    if (clearScheduled) {
+      return
+    }
+
+    clearScheduled = true
+
+    if (typeof queueMicrotask === 'function') {
+      queueMicrotask(clear)
+      return
+    }
+
+    Promise.resolve().then(clear)
+  }
+
+  return {
+    clear,
+    resolve(key: React.Key, style: React.CSSProperties | undefined): string {
+      scheduleClear()
+
+      const baseKey = resolveBookmarksMasonryRenderedCellKey(key, style)
+      const renderedCount = renderedKeyCounts.get(baseKey) ?? 0
+      renderedKeyCounts.set(baseKey, renderedCount + 1)
+
+      return renderedCount === 0 ? baseKey : `${baseKey}:duplicate-${renderedCount}`
+    },
+  }
+}
+
 function useMeasuredElementWidth(element: HTMLDivElement | null) {
   const [width, setWidth] = React.useState(0)
 
@@ -133,6 +184,13 @@ export function BookmarksMasonry({
   const [containerElement, setContainerElement] = React.useState<HTMLDivElement | null>(null)
   const containerWidth = useMeasuredElementWidth(containerElement)
   const isResettingImmersiveLayout = immersive !== renderedImmersive
+  const renderedCellKeyAllocatorRef = React.useRef(
+    createBookmarksMasonryRenderedCellKeyAllocator(),
+  )
+
+  React.useLayoutEffect(() => {
+    renderedCellKeyAllocatorRef.current.clear()
+  })
 
   React.useEffect(() => {
     if (!isResettingImmersiveLayout) {
@@ -221,7 +279,7 @@ export function BookmarksMasonry({
           cache={cellMeasurerCache}
           gridId={item.gridId}
           index={index}
-          key={key}
+          key={renderedCellKeyAllocatorRef.current.resolve(key, style)}
           parent={parent}
           style={cellStyle}
         >
@@ -282,20 +340,20 @@ export function BookmarksMasonry({
                 })
 
                 return (
-              <Masonry
-                key={masonryRenderKey}
-                autoHeight
-                cellCount={items.length}
-                cellMeasurerCache={cellMeasurerCache}
-                cellPositioner={cellPositioner}
-                cellRenderer={cellRenderer}
-                height={effectiveHeight}
-                keyMapper={(index: number) => items[index]?.gridId ?? index}
-                overscanByPixels={overscanByPixels}
-                role="list"
-                scrollTop={effectiveScrollTop}
-                width={containerWidth}
-              />
+                  <Masonry
+                    key={masonryRenderKey}
+                    autoHeight
+                    cellCount={items.length}
+                    cellMeasurerCache={cellMeasurerCache}
+                    cellPositioner={cellPositioner}
+                    cellRenderer={cellRenderer}
+                    height={effectiveHeight}
+                    keyMapper={(index: number) => resolveBookmarksMasonryCellKey(items, index)}
+                    overscanByPixels={overscanByPixels}
+                    role="list"
+                    scrollTop={effectiveScrollTop}
+                    width={containerWidth}
+                  />
                 )
               })()
             ) : null}

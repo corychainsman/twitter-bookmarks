@@ -15,6 +15,7 @@ const reactVirtualizedMocks = vi.hoisted(() => {
       overscanByPixels: number
       width: number
     },
+    duplicateCellRenderMode: null as null | 'measurement' | 'positioned',
     positionerReset,
     createMasonryCellPositioner: vi.fn(() =>
       Object.assign(
@@ -46,6 +47,7 @@ vi.mock('react-virtualized', async () => {
       style: React.CSSProperties
     }) => React.ReactNode
     height: number
+    keyMapper?: (index: number) => string
     overscanByPixels: number
     width: number
   }
@@ -131,17 +133,42 @@ vi.mock('react-virtualized', async () => {
       return (
         <div data-testid="mock-masonry">
           {Array.from({ length: props.cellCount }, (_, index) =>
-            props.cellRenderer({
-              index,
-              key: `cell-${index}`,
-              parent: {},
-              style: {
-                left: 0,
-                position: 'absolute',
-                top: index * 120,
-                width: props.width,
-              },
-            }),
+            [
+              props.cellRenderer({
+                index,
+                key: props.keyMapper?.(index) ?? `cell-${index}`,
+                parent: {},
+                style: {
+                  left: 0,
+                  position: 'absolute',
+                  top: index * 120,
+                  width: props.width,
+                },
+              }),
+              reactVirtualizedMocks.duplicateCellRenderMode === 'positioned' && index === 0
+                ? props.cellRenderer({
+                    index,
+                    key: props.keyMapper?.(index) ?? `cell-${index}`,
+                    parent: {},
+                    style: {
+                      left: 0,
+                      position: 'absolute',
+                      top: index * 120,
+                      width: props.width,
+                    },
+                  })
+                : null,
+              reactVirtualizedMocks.duplicateCellRenderMode === 'measurement' && index === 0
+                ? props.cellRenderer({
+                    index,
+                    key: props.keyMapper?.(index) ?? `cell-${index}`,
+                    parent: {},
+                    style: {
+                      width: props.width,
+                    },
+                  })
+                : null,
+            ],
           )}
         </div>
       )
@@ -267,6 +294,7 @@ describe('BookmarksMasonry', () => {
     reactVirtualizedMocks.positionerReset.mockClear()
     reactVirtualizedMocks.createMasonryCellPositioner.mockClear()
     reactVirtualizedMocks.lastMasonryProps = null
+    reactVirtualizedMocks.duplicateCellRenderMode = null
 
     Object.defineProperty(window, 'ResizeObserver', {
       configurable: true,
@@ -408,6 +436,74 @@ describe('BookmarksMasonry', () => {
         items: [items[1], items[0]],
       }),
     )
+  })
+
+  it('renders unique masonry cell keys when duplicate grid ids are present', async () => {
+    const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {})
+    reactVirtualizedMocks.duplicateCellRenderMode = 'measurement'
+    const duplicateItems: GridItem[] = [
+      items[0],
+      {
+        ...items[0],
+      },
+    ]
+
+    render(
+      <BookmarksMasonry
+        columnCount={3}
+        docsById={docsById}
+        immersive={false}
+        items={duplicateItems}
+        onOpen={() => {}}
+        onScrollAnchorApplied={() => {}}
+        scrollAnchorRequest={null}
+      />,
+    )
+
+    await waitFor(() => {
+      expect(document.querySelectorAll('[data-grid-id="tweet-1:0"]').length).toBeGreaterThanOrEqual(
+        2,
+      )
+    })
+
+    expect(
+      consoleError.mock.calls.filter((call) =>
+        call.some((argument) =>
+          String(argument).includes('Encountered two children with the same key'),
+        ),
+      ),
+    ).toHaveLength(0)
+  })
+
+  it('renders unique masonry cell keys when react-virtualized repeats a positioned cell', async () => {
+    const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {})
+    reactVirtualizedMocks.duplicateCellRenderMode = 'positioned'
+
+    render(
+      <BookmarksMasonry
+        columnCount={3}
+        docsById={docsById}
+        immersive={false}
+        items={items}
+        onOpen={() => {}}
+        onScrollAnchorApplied={() => {}}
+        scrollAnchorRequest={null}
+      />,
+    )
+
+    await waitFor(() => {
+      expect(document.querySelectorAll('[data-grid-id="tweet-1:0"]').length).toBeGreaterThanOrEqual(
+        2,
+      )
+    })
+
+    expect(
+      consoleError.mock.calls.filter((call) =>
+        call.some((argument) =>
+          String(argument).includes('Encountered two children with the same key'),
+        ),
+      ),
+    ).toHaveLength(0)
   })
 
   it('prefetches the greater of three viewport-heights or fifty items', async () => {
