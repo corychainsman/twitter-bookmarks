@@ -18,6 +18,7 @@ import {
 import {
   Field,
   FieldDescription,
+  FieldError,
   FieldGroup,
   FieldLabel,
 } from '@/components/ui/field'
@@ -47,6 +48,7 @@ import {
   type ThemeSurfaceTokens,
   type ThemeTypography,
 } from '@/features/theme/model'
+import { cn } from '@/lib/utils'
 
 type NumericFieldDefinition = {
   key: string
@@ -60,6 +62,12 @@ type TextFieldDefinition = {
   key: string
   label: string
 }
+
+const themeStudioControlClass =
+  'border-[var(--app-control-border)] bg-[var(--app-control-surface)] text-[var(--foreground)] rounded-[var(--app-control-radius)] hover:bg-[color-mix(in_srgb,var(--app-control-surface)_88%,var(--foreground)_12%)] focus-visible:border-[var(--ring)]'
+
+const themeStudioPanelClass =
+  'border border-[var(--app-panel-border)] bg-[var(--app-panel-surface)] text-[var(--foreground)] rounded-[var(--app-panel-radius)] ring-0 shadow-none'
 
 function clamp(value: number, min?: number, max?: number): number {
   let next = value
@@ -234,6 +242,27 @@ function slugifyThemeName(name: string): string {
     .replace(/^-+|-+$/g, '') || 'theme'
 }
 
+function formatThemeJsonError(error: unknown): string {
+  if (error instanceof Error && error.message.trim().length > 0) {
+    return `Theme JSON is not valid JSON: ${error.message}`
+  }
+
+  return 'Theme JSON is not valid JSON.'
+}
+
+function getThemeJsonError(source: string): string | null {
+  if (source.trim().length === 0) {
+    return null
+  }
+
+  try {
+    parseThemeDocumentJson(source)
+    return null
+  } catch (error) {
+    return formatThemeJsonError(error)
+  }
+}
+
 function ThemeNumberInput({
   id,
   label,
@@ -399,7 +428,7 @@ function ThemeColorInput({
         <button
           type="button"
           aria-label={`Open color picker for ${label}`}
-          className="app-control size-9 shrink-0 p-1"
+          className={cn('app-control size-9 shrink-0 p-1', themeStudioControlClass)}
           onClick={openPicker}
           onKeyDown={(event) => {
             if (event.key === ' ' || event.key === 'Enter') {
@@ -556,7 +585,7 @@ function ThemeSection({
   children: React.ReactNode
 }) {
   return (
-    <Card className="app-panel">
+    <Card className={themeStudioPanelClass}>
       <CardHeader>
         <CardTitle>{title}</CardTitle>
         {description ? <CardDescription>{description}</CardDescription> : null}
@@ -577,6 +606,12 @@ export function ThemeStudio() {
   const [importError, setImportError] = React.useState<string | null>(null)
   const [importNotice, setImportNotice] = React.useState<string | null>(null)
   const importInputRef = React.useRef<HTMLInputElement | null>(null)
+  const importDraftError = React.useMemo(
+    () => getThemeJsonError(importDraft),
+    [importDraft],
+  )
+  const importFeedbackError = importError ?? importDraftError
+  const canApplyImport = importDraft.trim().length > 0 && importDraftError === null
 
   const updateTheme = (updater: (theme: ThemeDocument) => ThemeDocument) => {
     replaceActiveTheme(updater(activeTheme))
@@ -705,9 +740,9 @@ export function ThemeStudio() {
         setImportDraft(serializeThemeDocument(importedTheme))
         setImportError(null)
         setImportNotice(saveToLibrary ? 'Theme imported and saved.' : 'Theme imported.')
-      } catch {
+      } catch (error) {
         setImportNotice(null)
-        setImportError('Theme JSON could not be parsed.')
+        setImportError(formatThemeJsonError(error))
       }
     },
     [],
@@ -791,13 +826,13 @@ export function ThemeStudio() {
               description="Paste a theme blob or import a saved .theme.json file from another machine."
             >
               <FieldGroup className="gap-4">
-                <Field data-invalid={importError ? true : undefined}>
+                <Field data-invalid={importFeedbackError ? true : undefined}>
                   <FieldLabel htmlFor="theme-import-json">Theme JSON</FieldLabel>
                   <Textarea
                     id="theme-import-json"
                     value={importDraft}
                     placeholder='Paste a theme JSON blob here.'
-                    aria-invalid={importError ? true : undefined}
+                    aria-invalid={importFeedbackError ? true : undefined}
                     spellCheck={false}
                     autoCapitalize="off"
                     autoCorrect="off"
@@ -811,10 +846,8 @@ export function ThemeStudio() {
                       }
                     }}
                   />
-                  {importError ? (
-                    <FieldDescription className="text-destructive">
-                      {importError}
-                    </FieldDescription>
+                  {importFeedbackError ? (
+                    <FieldError>{importFeedbackError}</FieldError>
                   ) : importNotice ? (
                     <FieldDescription>{importNotice}</FieldDescription>
                   ) : (
@@ -842,7 +875,7 @@ export function ThemeStudio() {
                   <Button
                     type="button"
                     variant="outline"
-                    disabled={importDraft.trim().length === 0}
+                    disabled={!canApplyImport}
                     onClick={() => applyImportedTheme(importDraft, false)}
                   >
                     Apply
@@ -850,7 +883,7 @@ export function ThemeStudio() {
                   <Button
                     type="button"
                     variant="outline"
-                    disabled={importDraft.trim().length === 0}
+                    disabled={!canApplyImport}
                     onClick={() => applyImportedTheme(importDraft, true)}
                   >
                     Apply + Save

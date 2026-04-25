@@ -54,6 +54,18 @@ type BookmarksToolbarProps = {
   onZoomReset: () => void
 }
 
+const toolbarChipClass =
+  'border-[var(--app-control-border)] bg-[var(--app-control-surface)] text-[var(--muted-foreground)] rounded-[var(--app-control-radius)]'
+
+const toolbarControlClass =
+  'border-[var(--app-control-border)] bg-[var(--app-control-surface)] text-[var(--foreground)] rounded-[var(--app-control-radius)] hover:bg-[color-mix(in_srgb,var(--app-control-surface)_88%,var(--foreground)_12%)] focus-visible:border-[var(--ring)]'
+
+const toolbarInputControlClass =
+  'border-[var(--app-control-border)] bg-[var(--app-control-surface)] text-[var(--foreground)] rounded-[var(--app-control-radius)] hover:bg-[color-mix(in_srgb,var(--app-control-surface)_88%,var(--foreground)_12%)] hover:[box-shadow:0_0_0_var(--app-toolbar-hover-outline-gap)_var(--app-toolbar-surface),0_0_0_calc(var(--app-toolbar-hover-outline-gap)+var(--app-toolbar-hover-outline-width))_var(--app-tile-hover-outline-color)] focus-visible:border-[var(--app-control-border)] focus-visible:[box-shadow:0_0_0_var(--app-toolbar-hover-outline-gap)_var(--app-toolbar-surface),0_0_0_calc(var(--app-toolbar-hover-outline-gap)+var(--app-toolbar-hover-outline-width))_var(--app-tile-hover-outline-color)]'
+
+const toolbarPopoverPanelClass =
+  'border border-[var(--app-panel-border)] bg-[var(--app-panel-surface)] text-[var(--foreground)] rounded-[var(--app-panel-radius)] ring-0 shadow-none'
+
 function ToolbarStateButton({
   active,
   activeLabel,
@@ -83,6 +95,7 @@ function ToolbarStateButton({
       aria-pressed={active}
       className={cn(
         'app-control shrink-0',
+        toolbarControlClass,
         active
           ? 'border-transparent bg-primary text-primary-foreground hover:bg-primary/90 hover:text-primary-foreground'
           : 'text-muted-foreground',
@@ -170,7 +183,12 @@ export function BookmarksToolbar({
         className="app-toolbar-inner mx-auto flex w-full max-w-[10000px] items-center"
       >
         <div className="hidden shrink-0 items-center gap-2 xl:flex">
-          <div className="app-toolbar-chip px-2.5 py-1 text-[10px] font-medium tracking-[0.28em] uppercase">
+          <div
+            className={cn(
+              'app-toolbar-chip px-2.5 py-1 text-[10px] font-medium tracking-[0.28em] uppercase',
+              toolbarChipClass,
+            )}
+          >
             Bookmarks
           </div>
         </div>
@@ -202,7 +220,7 @@ export function BookmarksToolbar({
                     setIsSearchExpanded(false)
                   }
                 }}
-                className="app-control h-9 pl-9 text-sm"
+                className={cn('app-control h-9 pl-9 text-sm', toolbarInputControlClass)}
               />
             </>
           ) : (
@@ -211,7 +229,7 @@ export function BookmarksToolbar({
               variant="outline"
               size="icon-sm"
               aria-label="Open search"
-              className="app-control size-9"
+              className={cn('app-control size-9', toolbarControlClass)}
               onClick={() => setIsSearchExpanded(true)}
             >
               <SearchIcon />
@@ -223,7 +241,10 @@ export function BookmarksToolbar({
           {!overflowSet.has('count') ? (
             <Badge
               variant="outline"
-              className="app-toolbar-chip h-9 shrink-0 px-3 text-[11px] font-medium tracking-[0.2em] uppercase"
+              className={cn(
+                'app-toolbar-chip h-9 shrink-0 px-3 text-[11px] font-medium tracking-[0.2em] uppercase',
+                toolbarChipClass,
+              )}
             >
               {resultCount}
             </Badge>
@@ -236,7 +257,7 @@ export function BookmarksToolbar({
             >
               <SelectTrigger
                 aria-label="Sort order"
-                className="app-control h-9 min-w-30 shrink-0 sm:min-w-34"
+                className={cn('app-control h-9 min-w-30 shrink-0 sm:min-w-34', toolbarControlClass)}
               >
                 <SelectValue placeholder="Sort order" />
               </SelectTrigger>
@@ -256,7 +277,7 @@ export function BookmarksToolbar({
               variant="outline"
               size="sm"
               aria-label={sortDirectionLabel}
-              className="app-control h-9 shrink-0"
+              className={cn('app-control h-9 shrink-0', toolbarControlClass)}
               onClick={onDirectionToggle}
             >
               <ArrowDownUpIcon data-icon="inline-start" />
@@ -304,7 +325,7 @@ export function BookmarksToolbar({
               variant="outline"
               size="icon-sm"
               aria-label="Rerandomize"
-              className="app-control"
+              className={cn('app-control', toolbarControlClass)}
               onClick={onRerandomize}
             >
               <RefreshCcwIcon />
@@ -357,14 +378,22 @@ export function BookmarksToolbar({
                 variant="outline"
                 size="icon-sm"
                 aria-label="More"
-                className="app-control shrink-0"
+                className={cn('app-control shrink-0', toolbarControlClass)}
               >
                 <MoreHorizontalIcon />
               </Button>
             </PopoverTrigger>
-            <PopoverContent align="end" className="app-panel w-60 p-2.5">
+            <PopoverContent align="end" className={cn('w-60 p-2.5', toolbarPopoverPanelClass)}>
               <div className="flex flex-col gap-2">
-                <Button asChild type="button" variant="outline" className="app-control h-10 w-full justify-start rounded-xl">
+                <Button
+                  asChild
+                  type="button"
+                  variant="outline"
+                  className={cn(
+                    'app-control h-10 w-full justify-start rounded-xl',
+                    toolbarControlClass,
+                  )}
+                >
                   <a href={themeStudioHref} target="_blank" rel="noreferrer">
                     <ExternalLinkIcon data-icon="inline-start" />
                     Open Theme Studio
@@ -384,7 +413,10 @@ export function BookmarksToolbar({
                       >
                         <SelectTrigger
                           aria-label="Sort order"
-                          className="app-control h-10 w-full rounded-xl"
+                          className={cn(
+                            'app-control h-10 w-full rounded-xl',
+                            toolbarControlClass,
+                          )}
                         >
                           <SelectValue placeholder="Sort order" />
                         </SelectTrigger>
@@ -402,7 +434,10 @@ export function BookmarksToolbar({
                   {overflowSet.has('count') ? (
                     <div className="flex items-center justify-between rounded-xl border border-border bg-muted/20 px-3 py-2 text-sm">
                       <span className="text-muted-foreground">Results</span>
-                      <Badge variant="outline" className="app-toolbar-chip bg-transparent">
+                      <Badge
+                        variant="outline"
+                        className={cn('app-toolbar-chip bg-transparent', toolbarChipClass)}
+                      >
                         {resultCount}
                       </Badge>
                     </div>
@@ -412,7 +447,10 @@ export function BookmarksToolbar({
                     <Button
                       type="button"
                       variant="outline"
-                      className="app-control h-10 w-full justify-between rounded-xl"
+                      className={cn(
+                        'app-control h-10 w-full justify-between rounded-xl',
+                        toolbarControlClass,
+                      )}
                       onClick={onDirectionToggle}
                     >
                       <span>Direction</span>
@@ -428,6 +466,7 @@ export function BookmarksToolbar({
                       variant="outline"
                       className={cn(
                         'app-control h-10 w-full justify-between rounded-xl',
+                        toolbarControlClass,
                         queryState.mode === 'one'
                           ? 'border-transparent bg-primary text-primary-foreground hover:bg-primary/90 hover:text-primary-foreground'
                           : '',
@@ -449,6 +488,7 @@ export function BookmarksToolbar({
                       variant="outline"
                       className={cn(
                         'app-control h-10 w-full justify-between rounded-xl',
+                        toolbarControlClass,
                         queryState.immersive
                           ? 'border-transparent bg-primary text-primary-foreground hover:bg-primary/90 hover:text-primary-foreground'
                           : '',
@@ -478,7 +518,10 @@ export function BookmarksToolbar({
                     <Button
                       type="button"
                       variant="outline"
-                      className="app-control h-10 w-full justify-center rounded-xl"
+                      className={cn(
+                        'app-control h-10 w-full justify-center rounded-xl',
+                        toolbarControlClass,
+                      )}
                       onClick={onRerandomize}
                     >
                       <RefreshCcwIcon data-icon="inline-start" />

@@ -1,6 +1,6 @@
 const BASE_TILE_WIDTH = 380
-const MIN_TILE_WIDTH = 160
 const HORIZONTAL_VIEWPORT_PADDING = 48
+const MAX_LAYOUT_VIEWPORT_WIDTH = 1920
 const MIN_AVAILABLE_WIDTH = 320
 export const MAX_BOOKMARKS_COLUMN_COUNT = 50
 
@@ -23,13 +23,10 @@ export function resolveMasonryLayout(input: {
 } {
   const availableWidth = Math.max(
     MIN_AVAILABLE_WIDTH,
-    input.viewportWidth - HORIZONTAL_VIEWPORT_PADDING,
+    Math.min(input.viewportWidth, MAX_LAYOUT_VIEWPORT_WIDTH) - HORIZONTAL_VIEWPORT_PADDING,
   )
   const baseColumnCount = Math.max(1, Math.floor(availableWidth / BASE_TILE_WIDTH))
-  const maxColumnCount = Math.max(
-    baseColumnCount,
-    Math.max(MAX_BOOKMARKS_COLUMN_COUNT, Math.floor(availableWidth / MIN_TILE_WIDTH)),
-  )
+  const maxColumnCount = Math.max(baseColumnCount, MAX_BOOKMARKS_COLUMN_COUNT)
   const zoomLevel = normalizeBookmarksZoom(input.zoom)
   const desiredColumnCount = baseColumnCount - (zoomLevel - DEFAULT_BOOKMARKS_ZOOM)
   const columnCount = Math.max(1, Math.min(maxColumnCount, desiredColumnCount))

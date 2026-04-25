@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react'
+import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, it } from 'vitest'
 
@@ -44,5 +44,38 @@ describe('ThemeStudio', () => {
 
     expect(densityInput).toHaveFocus()
     expect(densityInput).toHaveDisplayValue('2')
+  })
+
+  it('surfaces invalid theme JSON and keeps import actions disabled', async () => {
+    const user = userEvent.setup()
+
+    render(<ThemeStudio />)
+
+    const importInput = screen.getByLabelText('Theme JSON')
+    const importCard = importInput.closest('[data-slot="card"]')
+
+    expect(importCard).not.toBeNull()
+
+    const importControls = within(importCard as HTMLElement)
+    const applyButton = importControls.getByRole('button', { name: /^Apply$/ })
+    const applyAndSaveButton = importControls.getByRole('button', {
+      name: 'Apply + Save',
+    })
+
+    expect(applyButton).toBeDisabled()
+    expect(applyAndSaveButton).toBeDisabled()
+
+    await user.click(importInput)
+    await user.paste('{bad json')
+
+    expect(importInput).toHaveAttribute('aria-invalid', 'true')
+    expect(screen.getByRole('alert')).toHaveTextContent(
+      /Theme JSON is not valid JSON/,
+    )
+    expect(applyButton).toBeDisabled()
+    expect(applyAndSaveButton).toBeDisabled()
+    expect(screen.getByLabelText('Theme Name')).toHaveDisplayValue(
+      'Midnight Contact Sheet',
+    )
   })
 })

@@ -35,7 +35,7 @@ type TweetEmbedSlide = {
   height?: number
 }
 
-const LightboxComponent = Lightbox as unknown as ComponentType<any>
+const LightboxRenderer = Lightbox as unknown as ComponentType<Record<string, unknown>>
 
 export function BookmarksLightbox({
   docsById,
@@ -143,7 +143,7 @@ export function BookmarksLightbox({
               height: media.height,
             },
       ),
-    [tweet?.id, tweet?.media, tweet?.text, tweet?.url],
+    [tweet?.media, tweet?.text, tweet?.url],
   )
   const currentSlide = slides[currentIndex]
   const showNavigation = slides.length > 1
@@ -161,7 +161,7 @@ export function BookmarksLightbox({
   }
 
   return (
-    <LightboxComponent
+    <LightboxRenderer
       key={`${selection.tweetId}:${selection.mediaIndex}`}
       open
       close={onClose}
@@ -214,7 +214,7 @@ export function BookmarksLightbox({
             ref={controlsRef}
             className="pointer-events-none absolute inset-x-0 bottom-0 z-30 flex justify-center p-4"
           >
-            <Card className="app-lightbox-card pointer-events-auto w-full max-w-3xl shadow-2xl">
+            <Card className="pointer-events-auto w-full max-w-3xl border border-[var(--app-lightbox-border)] bg-[var(--app-lightbox-surface)] text-[var(--foreground)] rounded-[var(--app-panel-radius)] ring-0 shadow-none">
               <CardContent className="flex flex-col gap-4 p-4">
                 <div className="flex flex-col gap-3">
                   <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm">
