@@ -20,6 +20,7 @@ import {
 } from 'fieldtheory/dist/paths.js'
 
 import {
+  assignGlobalFolderTimelineSortIndexes,
   FIELDTHEORY_DELAY_MS,
   FIELDTHEORY_FOLDER_NAME,
   FIELDTHEORY_MAX_PAGES,
@@ -32,6 +33,7 @@ type Folder = {
 
 type BookmarkRecord = {
   id: string
+  sortIndex?: string | null
   folderIds?: string[]
   folderNames?: string[]
 }
@@ -217,7 +219,8 @@ async function main() {
         continue
       }
 
-      mergedRecords = applyFolderMirror(mergedRecords, folder, walkResult.records).merged as BookmarkRecord[]
+      const timelineRankedRecords = assignGlobalFolderTimelineSortIndexes(walkResult.records)
+      mergedRecords = applyFolderMirror(mergedRecords, folder, timelineRankedRecords).merged as BookmarkRecord[]
       mergedRecords = retainOnlyTargetFolder(mergedRecords, folder)
       await persistFolderCheckpoint(mergedRecords)
     } catch (error) {

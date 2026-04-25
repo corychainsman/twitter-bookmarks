@@ -4,6 +4,7 @@ import path from 'node:path'
 import { describe, expect, it } from 'vitest'
 
 import {
+  assignGlobalFolderTimelineSortIndexes,
   buildFieldTheoryFolderArgs,
   FIELDTHEORY_FOLDER_NAME,
   FIELDTHEORY_DELAY_MS,
@@ -32,6 +33,21 @@ describe('fieldtheory sync wrapper', () => {
     expect(contract).toEqual({
       folderSyncIsInspoOnly: true,
       folderSyncUsesDedicatedFolderRunner: true,
+      folderSyncNormalizesTimelineSortIndexes: true,
     })
+  })
+
+  it('normalizes folder timeline order to a global bookmark rank', () => {
+    const ranked = assignGlobalFolderTimelineSortIndexes([
+      { id: 'newest', sortIndex: '20' },
+      { id: 'middle', sortIndex: '19' },
+      { id: 'oldest', sortIndex: '20' },
+    ])
+
+    expect(ranked).toEqual([
+      { id: 'newest', sortIndex: '3' },
+      { id: 'middle', sortIndex: '2' },
+      { id: 'oldest', sortIndex: '1' },
+    ])
   })
 })

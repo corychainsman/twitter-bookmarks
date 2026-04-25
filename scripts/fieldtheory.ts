@@ -3,6 +3,11 @@ export const FIELDTHEORY_FOLDER_NAME = 'Inspo'
 export const FIELDTHEORY_MAX_PAGES = 10_000
 export const FIELDTHEORY_DELAY_MS = 600
 
+type TimelineSortableRecord = {
+  id: string
+  sortIndex?: string | null
+}
+
 export function buildFieldTheoryFolderArgs(): string[] {
   return [
     'run',
@@ -16,14 +21,29 @@ export function buildFieldTheoryFolderArgs(): string[] {
   ]
 }
 
+export function assignGlobalFolderTimelineSortIndexes<T extends TimelineSortableRecord>(
+  records: readonly T[],
+): T[] {
+  const totalRecords = records.length
+
+  return records.map((record, index) => ({
+    ...record,
+    sortIndex: String(totalRecords - index),
+  }))
+}
+
 export function parseFieldTheorySourceContract(source: string): {
   folderSyncIsInspoOnly: boolean
   folderSyncUsesDedicatedFolderRunner: boolean
+  folderSyncNormalizesTimelineSortIndexes: boolean
 } {
   return {
     folderSyncIsInspoOnly: source.includes("FIELDTHEORY_FOLDER_NAME = 'Inspo'"),
     folderSyncUsesDedicatedFolderRunner: source.includes(
       "scripts/fieldtheory-folder-sync.ts",
+    ),
+    folderSyncNormalizesTimelineSortIndexes: source.includes(
+      'assignGlobalFolderTimelineSortIndexes',
     ),
   }
 }
