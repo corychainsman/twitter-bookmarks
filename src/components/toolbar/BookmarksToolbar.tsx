@@ -96,9 +96,7 @@ function ToolbarStateButton({
       className={cn(
         'app-control shrink-0',
         toolbarControlClass,
-        active
-          ? 'border-transparent bg-primary text-primary-foreground hover:bg-primary/90 hover:text-primary-foreground'
-          : 'text-muted-foreground',
+        'text-muted-foreground',
         className,
       )}
       onClick={onToggle}
@@ -467,9 +465,6 @@ export function BookmarksToolbar({
                       className={cn(
                         'app-control h-10 w-full justify-between rounded-xl',
                         toolbarControlClass,
-                        queryState.mode === 'one'
-                          ? 'border-transparent bg-primary text-primary-foreground hover:bg-primary/90 hover:text-primary-foreground'
-                          : '',
                       )}
                       onClick={() =>
                         onModeChange(queryState.mode === 'one' ? 'all' : 'one')
@@ -489,9 +484,6 @@ export function BookmarksToolbar({
                       className={cn(
                         'app-control h-10 w-full justify-between rounded-xl',
                         toolbarControlClass,
-                        queryState.immersive
-                          ? 'border-transparent bg-primary text-primary-foreground hover:bg-primary/90 hover:text-primary-foreground'
-                          : '',
                       )}
                       onClick={() => onImmersiveChange(!queryState.immersive)}
                     >
