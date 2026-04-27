@@ -36,6 +36,20 @@ type TweetEmbedSlide = {
 }
 
 const LightboxRenderer = Lightbox as unknown as ComponentType<Record<string, unknown>>
+const BACKDROP_CLICK_MOVEMENT_TOLERANCE_PX = 8
+
+function isPointInsideElement(element: Element | null | undefined, x: number, y: number) {
+  if (!(element instanceof HTMLElement)) {
+    return false
+  }
+
+  const rect = element.getBoundingClientRect()
+  return x >= rect.left && x <= rect.right && y >= rect.top && y <= rect.bottom
+}
+
+function getSlideMediaElement(container: HTMLElement) {
+  return container.querySelector<HTMLElement>('[data-lightbox-media-content], .yarl__slide_image')
+}
 
 export function BookmarksLightbox({
   docsById,
@@ -51,6 +65,12 @@ export function BookmarksLightbox({
   }))
   const controlsRef = useRef<HTMLDivElement | null>(null)
   const tweetStageRef = useRef<HTMLDivElement | null>(null)
+  const backdropPointerRef = useRef<{
+    pointerId: number
+    x: number
+    y: number
+    startedOnBackdrop: boolean
+  } | null>(null)
   const [footerClearance, setFooterClearance] = useState(240)
   const [tweetStageBox, setTweetStageBox] = useState<{ width: number; height: number } | null>(null)
 
@@ -190,23 +210,25 @@ export function BookmarksLightbox({
               ref={slide === currentSlide ? tweetStageRef : undefined}
               className="flex h-full w-full items-center justify-center px-4"
             >
-              <TweetEmbed
-                url={(slide as TweetEmbedSlide).tweetUrl}
-                availableBox={
-                  measuredAvailableBox ??
-                  getAvailableLightboxBox(slide as TweetEmbedSlide, viewport, {
-                    footerClearance,
-                  })
-                }
-                fallbackBox={getContainedBoxWithinBounds(
-                  slide as TweetEmbedSlide,
-                  measuredAvailableBox ??
+              <div data-lightbox-media-content>
+                <TweetEmbed
+                  url={(slide as TweetEmbedSlide).tweetUrl}
+                  availableBox={
+                    measuredAvailableBox ??
                     getAvailableLightboxBox(slide as TweetEmbedSlide, viewport, {
                       footerClearance,
-                    }),
-                )}
-                className="overflow-hidden"
-              />
+                    })
+                  }
+                  fallbackBox={getContainedBoxWithinBounds(
+                    slide as TweetEmbedSlide,
+                    measuredAvailableBox ??
+                      getAvailableLightboxBox(slide as TweetEmbedSlide, viewport, {
+                        footerClearance,
+                      }),
+                  )}
+                  className="overflow-hidden"
+                />
+              </div>
             </div>
           ) : undefined,
         controls: () => (
@@ -275,8 +297,38 @@ export function BookmarksLightbox({
                   ? `${footerClearance}px`
                   : getLightboxMediaPaddingBottom(slide),
             }}
-            onClick={(event) => {
-              if (event.target === event.currentTarget) {
+            onPointerDownCapture={(event) => {
+              const container = event.currentTarget
+              const mediaElement = getSlideMediaElement(container)
+              backdropPointerRef.current = {
+                pointerId: event.pointerId,
+                x: event.clientX,
+                y: event.clientY,
+                startedOnBackdrop:
+                  !isPointInsideElement(mediaElement, event.clientX, event.clientY) &&
+                  !isPointInsideElement(controlsRef.current, event.clientX, event.clientY),
+              }
+            }}
+            onPointerUpCapture={(event) => {
+              const pointer = backdropPointerRef.current
+              backdropPointerRef.current = null
+
+              if (!pointer || pointer.pointerId !== event.pointerId || !pointer.startedOnBackdrop) {
+                return
+              }
+
+              const movement = Math.hypot(event.clientX - pointer.x, event.clientY - pointer.y)
+              if (movement > BACKDROP_CLICK_MOVEMENT_TOLERANCE_PX) {
+                return
+              }
+
+              const container = event.currentTarget
+              const mediaElement = getSlideMediaElement(container)
+              const endedOnBackdrop =
+                !isPointInsideElement(mediaElement, event.clientX, event.clientY) &&
+                !isPointInsideElement(controlsRef.current, event.clientX, event.clientY)
+
+              if (endedOnBackdrop) {
                 onClose()
               }
             }}
