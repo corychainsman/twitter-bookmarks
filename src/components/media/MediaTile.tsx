@@ -1,5 +1,6 @@
 import type { GridItem, TweetDoc } from '@/features/bookmarks/model'
 import { formatPostedDate } from '@/lib/format'
+import { resolveTwitterImageSourceSet } from '@/lib/twitter-media-url'
 import { Badge } from '@/components/ui/badge'
 
 type MediaTileProps = {
@@ -17,6 +18,7 @@ export function MediaTile({ item, tweet, immersive, onOpen }: MediaTileProps) {
     (item.width && item.height && item.width > 0 && item.height > 0
       ? item.width / item.height
       : undefined)
+  const imageSources = resolveTwitterImageSourceSet(isMotion ? previewUrl : item.thumbUrl)
 
   return (
     <article className="app-tile group">
@@ -27,9 +29,11 @@ export function MediaTile({ item, tweet, immersive, onOpen }: MediaTileProps) {
       >
         <div className="relative overflow-hidden bg-black">
           <img
-            src={isMotion ? previewUrl : item.thumbUrl}
+            src={imageSources.src}
+            srcSet={imageSources.srcSet}
+            sizes={imageSources.sizes}
             alt={tweet?.text || 'Bookmarked media'}
-            loading="lazy"
+            decoding="async"
             width={item.width}
             height={item.height}
             style={aspectRatio ? { aspectRatio } : undefined}
