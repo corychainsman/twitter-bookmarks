@@ -240,12 +240,12 @@ export function useBookmarksPageController() {
 
     if (idleWindow.requestIdleCallback) {
       backgroundEmbeddingPreloadRef.current = idleWindow.requestIdleCallback(preload, {
-        timeout: 5000,
+        timeout: 500,
       })
       return
     }
 
-    backgroundEmbeddingPreloadRef.current = window.setTimeout(preload, 1000)
+    backgroundEmbeddingPreloadRef.current = window.setTimeout(preload, 250)
   }
 
   React.useEffect(() => {

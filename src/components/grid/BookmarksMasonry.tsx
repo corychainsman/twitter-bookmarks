@@ -37,7 +37,7 @@ type BookmarksMasonryProps = {
 
 const ANCHOR_RESTORE_ATTEMPTS = 3
 const MINIMUM_PREFETCH_ITEMS = 50
-const MINIMUM_EAGER_ITEMS = 18
+const MINIMUM_EAGER_ITEMS = 36
 const VIEWPORT_PREFETCH_MULTIPLIER = 3
 const noop = () => {}
 
@@ -249,7 +249,7 @@ export function BookmarksMasonry({
   )
   const eagerItemCount = Math.min(
     items.length,
-    Math.max(MINIMUM_EAGER_ITEMS, columnCount * 3),
+    Math.max(MINIMUM_EAGER_ITEMS, columnCount * 6),
   )
 
   React.useEffect(() => {
