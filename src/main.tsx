@@ -7,7 +7,7 @@ import { router } from '@/app/router'
 import './index.css'
 import 'yet-another-react-lightbox/styles.css'
 
-document.documentElement.classList.add('dark')
+document.documentElement.classList.add('antialiased', 'dark')
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>

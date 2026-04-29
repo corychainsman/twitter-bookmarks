@@ -251,7 +251,7 @@ export function BookmarksToolbar({
       className={cn('app-control h-9 shrink-0', toolbarControlClass)}
       onClick={onClearSemanticSource}
     >
-      <span className="text-[11px] font-medium tracking-[0.14em] uppercase">
+      <span className="text-[0.6875rem] font-medium tracking-[0.14em] uppercase">
         {semanticSourceLabel}
       </span>
       <XIcon data-icon="inline-end" />
@@ -261,7 +261,7 @@ export function BookmarksToolbar({
     <Badge
       variant="outline"
       className={cn(
-        'app-toolbar-chip pointer-events-auto absolute top-1/2 left-8 z-20 h-6 max-w-28 -translate-y-1/2 gap-1.5 px-1 pr-0.5 text-[10px] font-medium tracking-[0.12em] uppercase',
+        'app-toolbar-chip pointer-events-auto absolute top-1/2 left-8 z-20 h-6 max-w-28 -translate-y-1/2 gap-1.5 px-1 pr-0.5 text-[0.625rem] font-medium tracking-[0.12em] uppercase',
         toolbarChipClass,
       )}
     >
@@ -300,7 +300,7 @@ export function BookmarksToolbar({
         <Badge
           variant="outline"
           className={cn(
-            'app-toolbar-chip h-9 shrink-0 px-3 text-[11px] font-medium tracking-[0.2em] uppercase',
+            'app-toolbar-chip h-9 shrink-0 px-3 text-[0.6875rem] font-medium tracking-[0.2em] uppercase',
             toolbarChipClass,
           )}
         >
@@ -422,7 +422,7 @@ export function BookmarksToolbar({
           ) : null}
 
           {isRandomSort && !overflowSet.has('seed') ? (
-            <label className="app-toolbar-label flex h-9 shrink-0 items-center gap-2 px-3 text-[11px] font-medium tracking-[0.18em] uppercase">
+            <label className="app-toolbar-label flex h-9 shrink-0 items-center gap-2 px-3 text-[0.6875rem] font-medium tracking-[0.18em] uppercase">
               Seed
               <Switch
                 id="keep-seed"
@@ -465,7 +465,7 @@ export function BookmarksToolbar({
                 size="sm"
                 aria-label="Reset zoom"
                 title="Reset zoom"
-                className="h-7 min-w-8 rounded-full border-transparent px-2 text-[10px] font-medium tracking-[0.16em] uppercase"
+                className="h-7 min-w-8 rounded-full border-transparent px-2 text-[0.625rem] font-medium tracking-[0.16em] uppercase"
                 disabled={!canResetZoom}
                 onClick={onZoomReset}
               >
@@ -676,7 +676,7 @@ export function BookmarksToolbar({
                           size="sm"
                           aria-label="Reset zoom"
                           title="Reset zoom"
-                          className="h-7 min-w-8 rounded-full border-transparent px-2 text-[10px] font-medium tracking-[0.16em] uppercase"
+                          className="h-7 min-w-8 rounded-full border-transparent px-2 text-[0.625rem] font-medium tracking-[0.16em] uppercase"
                           disabled={!canResetZoom}
                           onClick={onZoomReset}
                         >

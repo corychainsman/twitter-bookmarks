@@ -59,12 +59,12 @@ export function MediaTile({
               <div className="flex items-center justify-between gap-2">
                 <Badge
                   variant="secondary"
-                  className="border border-[var(--app-media-badge-border)] bg-[var(--app-media-badge-surface)] text-[var(--foreground)] rounded-[var(--app-control-radius)] text-[10px] font-medium tracking-[0.2em] uppercase"
+                  className="rounded-[var(--app-control-radius)] border border-[var(--app-media-badge-border)] bg-[var(--app-media-badge-surface)] text-[0.625rem] font-medium tracking-[0.2em] text-[var(--foreground)] uppercase"
                 >
                   {item.mediaType.replace('_', ' ')}
                 </Badge>
                 {tweet?.authorHandle ? (
-                  <span className="text-[11px] font-medium text-white/80">@{tweet.authorHandle}</span>
+                  <span className="text-[0.6875rem] font-medium text-white/80">@{tweet.authorHandle}</span>
                 ) : null}
               </div>
             </div>
@@ -72,7 +72,7 @@ export function MediaTile({
         </div>
 
         {!immersive ? (
-          <div className="flex flex-col gap-2.5 px-3 pb-3 pt-2.5">
+          <div className="flex flex-col gap-2.5 px-3 pt-2.5 pb-3">
             <p className="app-tile-copy line-clamp-3">
               {tweet?.text || 'Loading tweet details…'}
             </p>
