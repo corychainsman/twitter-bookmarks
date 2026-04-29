@@ -12,6 +12,7 @@ export function AppShell() {
     loadingError,
     hasLoadedArtifacts,
     isQueryPending,
+    semanticImagePreviewUrl,
     semanticSourceLabel,
     selection,
     visibleItems,
@@ -46,6 +47,7 @@ export function AppShell() {
           currentColumnCount={masonryLayout.columnCount}
           queryState={queryState}
           resultCount={queryResult.total}
+          semanticImagePreviewUrl={semanticImagePreviewUrl}
           semanticSourceLabel={semanticSourceLabel}
           onSearchChange={onSearchChange}
           onSortChange={onSortChange}

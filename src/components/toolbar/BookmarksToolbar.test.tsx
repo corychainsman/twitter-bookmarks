@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react'
+import { fireEvent, render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
 
@@ -28,6 +28,7 @@ describe('BookmarksToolbar', () => {
         currentColumnCount={5}
         queryState={queryState}
         resultCount={42}
+        semanticImagePreviewUrl={null}
         semanticSourceLabel={null}
         onSearchChange={() => {}}
         onSortChange={() => {}}
@@ -63,6 +64,7 @@ describe('BookmarksToolbar', () => {
         currentColumnCount={5}
         queryState={queryState}
         resultCount={42}
+        semanticImagePreviewUrl={null}
         semanticSourceLabel={null}
         onSearchChange={() => {}}
         onSortChange={() => {}}
@@ -82,7 +84,7 @@ describe('BookmarksToolbar', () => {
     await user.click(screen.getByRole('button', { name: 'One image per tweet' }))
     expect(onModeChange).toHaveBeenCalledWith('all')
 
-    await user.click(screen.getByRole('button', { name: 'Show captions' }))
+    await user.click(screen.getByRole('button', { name: 'Hide captions' }))
     expect(onImmersiveChange).toHaveBeenCalledWith(true)
   })
 
@@ -95,6 +97,7 @@ describe('BookmarksToolbar', () => {
         currentColumnCount={5}
         queryState={queryState}
         resultCount={42}
+        semanticImagePreviewUrl={null}
         semanticSourceLabel={null}
         onSearchChange={() => {}}
         onSortChange={() => {}}
@@ -121,6 +124,7 @@ describe('BookmarksToolbar', () => {
         currentColumnCount={5}
         queryState={{ ...queryState, sort: 'random' }}
         resultCount={42}
+        semanticImagePreviewUrl={null}
         semanticSourceLabel={null}
         onSearchChange={() => {}}
         onSortChange={() => {}}
@@ -152,6 +156,7 @@ describe('BookmarksToolbar', () => {
         currentColumnCount={5}
         queryState={{ ...queryState, immersive: true }}
         resultCount={42}
+        semanticImagePreviewUrl={null}
         semanticSourceLabel={null}
         onSearchChange={() => {}}
         onSortChange={() => {}}
@@ -168,7 +173,91 @@ describe('BookmarksToolbar', () => {
       />,
     )
 
-    await user.click(screen.getByRole('button', { name: 'Hide captions' }))
+    await user.click(screen.getByRole('button', { name: 'Show captions' }))
     expect(onImmersiveChange).toHaveBeenCalledWith(false)
+  })
+
+  it('searches by a pasted image in the search box', () => {
+    const onImageSearch = vi.fn()
+    const pastedFile = new File(['image-bytes'], 'pasted.png', {
+      type: 'image/png',
+    })
+    const clipboardItem = {
+      kind: 'file',
+      type: 'image/png',
+      getAsFile: () => pastedFile,
+    }
+
+    render(
+      <BookmarksToolbar
+        canZoomIn
+        canZoomOut
+        canResetZoom={false}
+        currentColumnCount={5}
+        queryState={{ ...queryState, q: 'car' }}
+        resultCount={42}
+        semanticImagePreviewUrl={null}
+        semanticSourceLabel={null}
+        onSearchChange={() => {}}
+        onSortChange={() => {}}
+        onDirectionToggle={() => {}}
+        onModeChange={() => {}}
+        onImmersiveChange={() => {}}
+        onImageSearch={onImageSearch}
+        onClearSemanticSource={() => {}}
+        onKeepSeedChange={() => {}}
+        onRerandomize={() => {}}
+        onZoomIn={() => {}}
+        onZoomOut={() => {}}
+        onZoomReset={() => {}}
+      />,
+    )
+
+    const pasteEvent = fireEvent.paste(screen.getByRole('searchbox', { name: 'Search bookmarks' }), {
+      clipboardData: {
+        items: [clipboardItem],
+      },
+    })
+
+    expect(pasteEvent).toBe(false)
+    expect(onImageSearch).toHaveBeenCalledWith(pastedFile)
+  })
+
+  it('shows an image query badge inside the expanded search box', async () => {
+    const user = userEvent.setup()
+    const onClearSemanticSource = vi.fn()
+
+    const { container } = render(
+      <BookmarksToolbar
+        canZoomIn
+        canZoomOut
+        canResetZoom={false}
+        currentColumnCount={5}
+        queryState={queryState}
+        resultCount={42}
+        semanticImagePreviewUrl="blob:http://localhost/pasted-image"
+        semanticSourceLabel="Image"
+        onSearchChange={() => {}}
+        onSortChange={() => {}}
+        onDirectionToggle={() => {}}
+        onModeChange={() => {}}
+        onImmersiveChange={() => {}}
+        onImageSearch={() => {}}
+        onClearSemanticSource={onClearSemanticSource}
+        onKeepSeedChange={() => {}}
+        onRerandomize={() => {}}
+        onZoomIn={() => {}}
+        onZoomOut={() => {}}
+        onZoomReset={() => {}}
+      />,
+    )
+
+    const image = container.querySelector('img[src="blob:http://localhost/pasted-image"]')
+    expect(image).not.toBeNull()
+    expect(image).toHaveAttribute('src', 'blob:http://localhost/pasted-image')
+    expect(screen.getByText('Image')).toBeInTheDocument()
+
+    await user.click(screen.getByRole('button', { name: 'Clear image search' }))
+    expect(onClearSemanticSource).toHaveBeenCalled()
   })
 })

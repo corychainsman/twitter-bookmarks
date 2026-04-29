@@ -127,6 +127,7 @@ export function useBookmarksPageController() {
   const [semanticQuery, setSemanticQuery] = React.useState<SemanticQuery | null>(null)
   const [semanticQueryKey, setSemanticQueryKey] = React.useState<string | null>(null)
   const [semanticImageQueryName, setSemanticImageQueryName] = React.useState<string | null>(null)
+  const [semanticImagePreviewUrl, setSemanticImagePreviewUrl] = React.useState<string | null>(null)
   const [hasEmbeddingIndex, setHasEmbeddingIndex] = React.useState(false)
   const [isEmbeddingPending, setIsEmbeddingPending] = React.useState(false)
   const [scrollAnchorRequest, setScrollAnchorRequest] =
@@ -557,6 +558,12 @@ export function useBookmarksPageController() {
     setSemanticQuery(null)
     setSemanticQueryKey(null)
     setSemanticImageQueryName(null)
+    setSemanticImagePreviewUrl((current) => {
+      if (current) {
+        URL.revokeObjectURL(current)
+      }
+      return null
+    })
     setIsEmbeddingPending(false)
   }, [])
 
@@ -568,6 +575,12 @@ export function useBookmarksPageController() {
     setSemanticQuery(null)
     setSemanticQueryKey(null)
     setSemanticImageQueryName(file.name)
+    setSemanticImagePreviewUrl((current) => {
+      if (current) {
+        URL.revokeObjectURL(current)
+      }
+      return URL.createObjectURL(file)
+    })
     setIsEmbeddingPending(true)
     patchQueryState({
       q: '',
@@ -663,6 +676,7 @@ export function useBookmarksPageController() {
     hasLoadedArtifacts: artifacts !== null,
     isQueryPending: isQueryPending || isEmbeddingPending,
     semanticImageQueryName,
+    semanticImagePreviewUrl,
     semanticSourceLabel: queryState.similarToGridId
       ? 'Similar'
       : semanticImageQueryName

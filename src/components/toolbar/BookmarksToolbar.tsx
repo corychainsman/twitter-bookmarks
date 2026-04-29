@@ -44,6 +44,7 @@ type BookmarksToolbarProps = {
   currentColumnCount: number
   queryState: QueryState
   resultCount: number
+  semanticImagePreviewUrl: string | null
   semanticSourceLabel: string | null
   onSearchChange: (value: string) => void
   onSortChange: (value: QueryState['sort']) => void
@@ -118,6 +119,7 @@ export function BookmarksToolbar({
   currentColumnCount,
   queryState,
   resultCount,
+  semanticImagePreviewUrl,
   semanticSourceLabel,
   onSearchChange,
   onSortChange,
@@ -137,8 +139,11 @@ export function BookmarksToolbar({
   const themeStudioHref = `${import.meta.env.BASE_URL.replace(/\/+$/, '')}/themes`
   const sortDirectionLabel = queryState.dir === 'desc' ? 'Newest first' : 'Oldest first'
   const hasSearchQuery = queryState.q.trim().length > 0
+  const hasImageSearchQuery = semanticImagePreviewUrl !== null
   const isRandomSort = queryState.sort === 'random'
-  const [isSearchExpanded, setIsSearchExpanded] = React.useState(hasSearchQuery)
+  const [isSearchExpanded, setIsSearchExpanded] = React.useState(
+    hasSearchQuery || hasImageSearchQuery,
+  )
   const [toolbarWidth, setToolbarWidth] = React.useState(0)
 
   React.useEffect(() => {
@@ -170,19 +175,26 @@ export function BookmarksToolbar({
     () =>
       resolveToolbarOverflow({
         containerWidth: toolbarWidth,
-        searchExpanded: isSearchExpanded || hasSearchQuery,
+        searchExpanded: isSearchExpanded || hasSearchQuery || hasImageSearchQuery,
         isRandomSort,
         hasSemanticSource: semanticSourceLabel !== null,
       }),
-    [hasSearchQuery, isRandomSort, isSearchExpanded, semanticSourceLabel, toolbarWidth],
+    [
+      hasImageSearchQuery,
+      hasSearchQuery,
+      isRandomSort,
+      isSearchExpanded,
+      semanticSourceLabel,
+      toolbarWidth,
+    ],
   )
   const overflowSet = React.useMemo(() => new Set(overflowKeys), [overflowKeys])
 
   const collapseSearch = React.useCallback(() => {
-    if (!hasSearchQuery) {
+    if (!hasSearchQuery && !hasImageSearchQuery) {
       setIsSearchExpanded(false)
     }
-  }, [hasSearchQuery])
+  }, [hasImageSearchQuery, hasSearchQuery])
 
   const handleImageInputChange = React.useCallback(
     (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -194,6 +206,23 @@ export function BookmarksToolbar({
       }
 
       onImageSearch(file)
+    },
+    [onImageSearch],
+  )
+
+  const handleSearchPaste = React.useCallback(
+    (event: React.ClipboardEvent<HTMLInputElement>) => {
+      const pastedImage = [...event.clipboardData.items]
+        .filter((item) => item.kind === 'file' && item.type.startsWith('image/'))
+        .map((item) => item.getAsFile())
+        .find((file): file is File => file !== null)
+
+      if (!pastedImage) {
+        return
+      }
+
+      event.preventDefault()
+      onImageSearch(pastedImage)
     },
     [onImageSearch],
   )
@@ -228,6 +257,32 @@ export function BookmarksToolbar({
       <XIcon data-icon="inline-end" />
     </Button>
   ) : null
+  const imageSearchBadge = semanticImagePreviewUrl ? (
+    <Badge
+      variant="outline"
+      className={cn(
+        'app-toolbar-chip pointer-events-auto absolute top-1/2 left-8 z-20 h-6 max-w-28 -translate-y-1/2 gap-1.5 px-1 pr-0.5 text-[10px] font-medium tracking-[0.12em] uppercase',
+        toolbarChipClass,
+      )}
+    >
+      <img
+        src={semanticImagePreviewUrl}
+        alt=""
+        className="size-4 rounded-[calc(var(--app-control-radius)-2px)] object-cover"
+      />
+      <span className="max-w-12 truncate">Image</span>
+      <button
+        type="button"
+        aria-label="Clear image search"
+        title="Clear image search"
+        className="grid size-5 place-items-center rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+        onMouseDown={(event) => event.preventDefault()}
+        onClick={onClearSemanticSource}
+      >
+        <XIcon className="size-3" />
+      </button>
+    </Badge>
+  ) : null
 
   return (
     <div className="app-toolbar sticky top-0 z-40">
@@ -255,10 +310,12 @@ export function BookmarksToolbar({
         <div
           className={cn(
             'relative shrink-0 transition-[width] duration-200 ease-out',
-            isSearchExpanded || hasSearchQuery ? 'w-[clamp(11rem,24vw,22rem)]' : 'w-9',
+            isSearchExpanded || hasSearchQuery || hasImageSearchQuery
+              ? 'w-[clamp(11rem,24vw,22rem)]'
+              : 'w-9',
           )}
         >
-          {isSearchExpanded || hasSearchQuery ? (
+          {isSearchExpanded || hasSearchQuery || hasImageSearchQuery ? (
             <>
               <SearchIcon
                 className="pointer-events-none absolute top-1/2 left-3 z-10 size-4 -translate-y-1/2 text-muted-foreground"
@@ -273,14 +330,20 @@ export function BookmarksToolbar({
                 value={queryState.q}
                 onBlur={collapseSearch}
                 onChange={(event) => onSearchChange(event.target.value)}
+                onPaste={handleSearchPaste}
                 onKeyDown={(event) => {
-                  if (event.key === 'Escape' && !hasSearchQuery) {
+                  if (event.key === 'Escape' && !hasSearchQuery && !hasImageSearchQuery) {
                     event.currentTarget.blur()
                     setIsSearchExpanded(false)
                   }
                 }}
-                className={cn('app-control h-9 pl-9 text-sm', toolbarInputControlClass)}
+                className={cn(
+                  'app-control h-9 text-sm',
+                  hasImageSearchQuery ? 'pl-[8.25rem]' : 'pl-9',
+                  toolbarInputControlClass,
+                )}
               />
+              {imageSearchBadge}
             </>
           ) : (
             <Button
@@ -334,7 +397,7 @@ export function BookmarksToolbar({
 
           {!overflowSet.has('imageSearch') ? imageSearchButton : null}
 
-          {!overflowSet.has('semanticSource') ? semanticSourceButton : null}
+          {!hasImageSearchQuery && !overflowSet.has('semanticSource') ? semanticSourceButton : null}
 
           {!overflowSet.has('mode') ? (
             <ToolbarStateButton
@@ -350,8 +413,8 @@ export function BookmarksToolbar({
           {!overflowSet.has('immersive') ? (
             <ToolbarStateButton
               active={queryState.immersive}
-              activeLabel="Hide captions"
-              inactiveLabel="Show captions"
+              activeLabel="Show captions"
+              inactiveLabel="Hide captions"
               activeIcon={<CaptionsOffIcon />}
               inactiveIcon={<CaptionsIcon />}
               onToggle={() => onImmersiveChange(!queryState.immersive)}
@@ -514,7 +577,7 @@ export function BookmarksToolbar({
                     </Button>
                   ) : null}
 
-                  {overflowSet.has('semanticSource') && semanticSourceButton ? (
+                  {!hasImageSearchQuery && overflowSet.has('semanticSource') && semanticSourceButton ? (
                     <Button
                       type="button"
                       variant="outline"
@@ -559,7 +622,7 @@ export function BookmarksToolbar({
                       onClick={() => onImmersiveChange(!queryState.immersive)}
                     >
                       <span>
-                        {queryState.immersive ? 'Hide captions' : 'Show captions'}
+                        {queryState.immersive ? 'Show captions' : 'Hide captions'}
                       </span>
                       {queryState.immersive ? <CaptionsOffIcon /> : <CaptionsIcon />}
                     </Button>
