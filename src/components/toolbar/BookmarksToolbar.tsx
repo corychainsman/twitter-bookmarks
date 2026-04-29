@@ -64,7 +64,7 @@ const toolbarChipClass =
   'border-[var(--app-control-border)] bg-[var(--app-control-surface)] text-[var(--muted-foreground)] rounded-[var(--app-control-radius)]'
 
 const toolbarControlClass =
-  'border-[var(--app-control-border)] bg-[var(--app-control-surface)] text-[var(--foreground)] rounded-[var(--app-control-radius)] hover:bg-[color-mix(in_srgb,var(--app-control-surface)_88%,var(--foreground)_12%)] focus-visible:border-[var(--ring)]'
+  'border-[var(--app-control-border)] bg-[var(--app-control-surface)] text-[var(--muted-foreground)] rounded-[var(--app-control-radius)] hover:bg-[color-mix(in_srgb,var(--app-control-surface)_88%,var(--foreground)_12%)] hover:text-[var(--foreground)] aria-expanded:text-[var(--foreground)] focus-visible:border-[var(--ring)]'
 
 const toolbarInputControlClass =
   'border-[var(--app-control-border)] bg-[var(--app-control-surface)] text-[var(--foreground)] rounded-[var(--app-control-radius)] hover:bg-[color-mix(in_srgb,var(--app-control-surface)_88%,var(--foreground)_12%)] hover:[box-shadow:0_0_0_var(--app-toolbar-hover-outline-gap)_var(--app-toolbar-surface),0_0_0_calc(var(--app-toolbar-hover-outline-gap)+var(--app-toolbar-hover-outline-width))_var(--app-tile-hover-outline-color)] focus-visible:border-[var(--app-control-border)] focus-visible:[box-shadow:0_0_0_var(--app-toolbar-hover-outline-gap)_var(--app-toolbar-surface),0_0_0_calc(var(--app-toolbar-hover-outline-gap)+var(--app-toolbar-hover-outline-width))_var(--app-tile-hover-outline-color)]'
