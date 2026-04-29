@@ -16,6 +16,7 @@ import { TweetEmbed } from '@/components/media/TweetEmbed'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
+import { withTwitterOriginalJpg } from '@/lib/twitter-media-url'
 
 type LightboxSelection = {
   tweetId: string
@@ -153,7 +154,7 @@ export function BookmarksLightbox({
       (tweet?.media ?? []).map((media) =>
         media.type === 'photo'
           ? {
-              src: media.fullUrl,
+              src: withTwitterOriginalJpg(media.fullUrl),
               width: media.width,
               height: media.height,
               alt: tweet?.text ?? '',

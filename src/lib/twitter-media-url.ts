@@ -27,6 +27,33 @@ export function withTwitterSize(url: string, size: TwitterImageSize): string {
   return parsed.toString()
 }
 
+export function withTwitterOriginalJpg(url: string): string {
+  if (!url) {
+    return url
+  }
+
+  let parsed: URL
+  try {
+    parsed = new URL(url)
+  } catch {
+    return url
+  }
+
+  if (parsed.hostname !== TWITTER_IMAGE_HOST) {
+    return url
+  }
+
+  if (!parsed.pathname.startsWith(TWITTER_RESIZABLE_PATH_PREFIX)) {
+    return url
+  }
+
+  parsed.search = new URLSearchParams({
+    format: 'jpg',
+    name: 'orig',
+  }).toString()
+  return parsed.toString()
+}
+
 export type TwitterImageSourceSet = {
   src: string
   srcSet?: string

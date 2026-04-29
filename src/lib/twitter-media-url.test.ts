@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 
 import {
   resolveTwitterImageSourceSet,
+  withTwitterOriginalJpg,
   withTwitterSize,
 } from '@/lib/twitter-media-url'
 
@@ -39,6 +40,27 @@ describe('withTwitterSize', () => {
 
   it('returns an empty string for empty input', () => {
     expect(withTwitterSize('', 'medium')).toBe('')
+  })
+})
+
+describe('withTwitterOriginalJpg', () => {
+  it('forces pbs media URLs to original jpgs for full-size viewing', () => {
+    expect(withTwitterOriginalJpg('https://pbs.twimg.com/media/abc.png')).toBe(
+      'https://pbs.twimg.com/media/abc.png?format=jpg&name=orig',
+    )
+  })
+
+  it('replaces any existing query string with the lightbox original jpg params', () => {
+    expect(
+      withTwitterOriginalJpg(
+        'https://pbs.twimg.com/media/abc.jpg?name=small&format=png',
+      ),
+    ).toBe('https://pbs.twimg.com/media/abc.jpg?format=jpg&name=orig')
+  })
+
+  it('leaves non-resizable URLs unchanged', () => {
+    const url = 'https://pbs.twimg.com/ext_tw_video_thumb/123/pu/img/poster.jpg'
+    expect(withTwitterOriginalJpg(url)).toBe(url)
   })
 })
 
