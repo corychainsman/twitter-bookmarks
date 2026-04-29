@@ -54,6 +54,20 @@ function getSlideMediaElement(container: HTMLElement) {
   return container.querySelector<HTMLElement>('[data-lightbox-media-content], .yarl__slide_image')
 }
 
+function getViewportSize() {
+  if (typeof window === 'undefined') {
+    return {
+      width: 0,
+      height: 0,
+    }
+  }
+
+  return {
+    width: Math.round(window.visualViewport?.width ?? window.innerWidth),
+    height: Math.round(window.visualViewport?.height ?? window.innerHeight),
+  }
+}
+
 export function BookmarksLightbox({
   docsById,
   selection,
@@ -63,10 +77,7 @@ export function BookmarksLightbox({
   const tweet = selection ? docsById.get(selection.tweetId) : undefined
   const postedDate = tweet ? formatPostedDate(tweet.postedAt) : ''
   const [currentIndex, setCurrentIndex] = useState(selection?.mediaIndex ?? 0)
-  const [viewport, setViewport] = useState(() => ({
-    width: typeof window === 'undefined' ? 0 : window.innerWidth,
-    height: typeof window === 'undefined' ? 0 : window.innerHeight,
-  }))
+  const [viewport, setViewport] = useState(getViewportSize)
   const controlsRef = useRef<HTMLDivElement | null>(null)
   const tweetStageRef = useRef<HTMLDivElement | null>(null)
   const backdropPointerRef = useRef<{
@@ -83,15 +94,18 @@ export function BookmarksLightbox({
       return undefined
     }
 
-    const handleResize = () => {
-      setViewport({
-        width: window.innerWidth,
-        height: window.innerHeight,
-      })
-    }
+    const handleResize = () => setViewport(getViewportSize())
+    const visualViewport = window.visualViewport
 
     window.addEventListener('resize', handleResize)
-    return () => window.removeEventListener('resize', handleResize)
+    visualViewport?.addEventListener('resize', handleResize)
+    visualViewport?.addEventListener('scroll', handleResize)
+
+    return () => {
+      window.removeEventListener('resize', handleResize)
+      visualViewport?.removeEventListener('resize', handleResize)
+      visualViewport?.removeEventListener('scroll', handleResize)
+    }
   }, [])
 
   useEffect(() => {
@@ -238,7 +252,7 @@ export function BookmarksLightbox({
         controls: () => (
           <div
             ref={controlsRef}
-            className="pointer-events-none absolute inset-x-0 bottom-0 z-30 flex justify-center p-4"
+            className="pointer-events-none absolute inset-x-0 bottom-0 z-30 flex justify-center p-4 [padding-bottom:calc(1rem+env(safe-area-inset-bottom))]"
           >
             <Card className="pointer-events-auto w-full max-w-3xl border border-[var(--app-lightbox-border)] bg-[var(--app-lightbox-surface)] text-[var(--foreground)] rounded-[var(--app-panel-radius)] ring-0 shadow-none">
               <CardContent className="flex flex-col gap-4 p-4">
@@ -307,7 +321,7 @@ export function BookmarksLightbox({
         ),
         slideContainer: ({ slide, children }: { slide: { type?: string }; children: unknown }) => (
           <div
-            className="box-border flex h-full w-full items-center justify-center"
+            className="box-border flex h-full w-full touch-pan-y items-center justify-center"
             style={{
               paddingBottom:
                 slide.type === 'tweet-embed'

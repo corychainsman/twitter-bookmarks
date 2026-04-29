@@ -94,6 +94,14 @@ body,
   min-height: 100svh;
 }
 
+html {
+  overflow-x: clip;
+  overscroll-behavior-x: none;
+  overscroll-behavior-y: none;
+  scroll-padding-top: calc(env(safe-area-inset-top) + 4.75rem);
+  -webkit-text-size-adjust: 100%;
+}
+
 body {
   margin: 0;
   color: rgb(244 244 245);
@@ -107,6 +115,10 @@ body {
       var(--app-canvas-bottom) 100%
     );
   background-attachment: fixed;
+  overflow-x: clip;
+  overscroll-behavior-x: none;
+  overscroll-behavior-y: none;
+  touch-action: pan-y;
 }
 
 @theme inline {
@@ -198,6 +210,9 @@ body {
     border-bottom: 1px solid var(--app-toolbar-border);
     background: var(--app-toolbar-surface);
     backdrop-filter: blur(var(--app-toolbar-blur));
+    padding-top: env(safe-area-inset-top);
+    transform: translateZ(0);
+    -webkit-backdrop-filter: blur(var(--app-toolbar-blur));
   }
 
   .app-toolbar-inner {
@@ -209,6 +224,8 @@ body {
   .app-control {
     position: relative;
     overflow: visible;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
   }
 
   .app-control::after,
@@ -226,11 +243,6 @@ body {
     pointer-events: none;
   }
 
-  .app-control:hover::after,
-  .app-toolbar-label:hover::after {
-    opacity: 1;
-  }
-
   .app-control[aria-expanded="true"]::after {
     opacity: 0;
   }
@@ -242,15 +254,19 @@ body {
     background: var(--app-control-surface);
     color: var(--muted-foreground);
     border-radius: var(--app-control-radius);
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
   }
 
   .app-tile {
     position: relative;
     overflow: visible;
+    scroll-margin-top: calc(env(safe-area-inset-top) + 4.75rem);
     border-radius: var(--app-tile-radius);
     border: 1px solid var(--app-tile-border);
     background: var(--app-tile-surface);
     box-shadow: 0 0 0 1px var(--app-tile-shadow-color);
+    -webkit-tap-highlight-color: transparent;
   }
 
   .app-tile::after {
@@ -267,19 +283,16 @@ body {
     pointer-events: none;
   }
 
-  .app-tile:hover {
-    border-color: var(--app-tile-hover-border);
-  }
-
-  .app-tile:hover::after {
-    opacity: 1;
-  }
-
   .app-tile-button {
     display: block;
     width: 100%;
     overflow: hidden;
     border-radius: inherit;
+    touch-action: manipulation;
+  }
+
+  .app-tile-button > * {
+    pointer-events: none;
   }
 
   .app-tile-copy {
@@ -301,8 +314,9 @@ body {
 
   .app-masonry {
     padding-top: var(--app-grid-gap-y);
-    padding-bottom: calc(var(--app-grid-gap-y) * 3.5);
+    padding-bottom: calc((var(--app-grid-gap-y) * 3.5) + env(safe-area-inset-bottom));
     padding-inline: max(calc(var(--app-shell-padding-x) - (var(--app-grid-gap-x) / 2)), 0px);
+    -webkit-overflow-scrolling: touch;
   }
 
   .app-masonry-item {
@@ -321,7 +335,58 @@ body {
 
   .app-studio-shell {
     padding-top: 1.5rem;
-    padding-bottom: 4rem;
+    padding-bottom: calc(4rem + env(safe-area-inset-bottom));
     padding-inline: var(--app-shell-padding-x);
+  }
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .app-control:hover::after,
+  .app-toolbar-label:hover::after {
+    opacity: 1;
+  }
+
+  .app-tile:hover {
+    border-color: var(--app-tile-hover-border);
+  }
+
+  .app-tile:hover::after {
+    opacity: 1;
+  }
+}
+
+@media (pointer: coarse) {
+  [data-slot="button"],
+  [data-slot="select-trigger"],
+  [data-slot="input"],
+  .app-tile-button {
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  [data-slot="button"][data-size^="icon"] {
+    position: relative;
+  }
+
+  [data-slot="button"][data-size^="icon"]::before {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: max(100%, 3rem);
+    height: max(100%, 3rem);
+    pointer-events: none;
+    transform: translate(-50%, -50%);
+  }
+
+  .app-toolbar input[type="search"],
+  .app-toolbar [data-slot="select-trigger"] {
+    font-size: 1rem;
+  }
+}
+
+@supports (-webkit-touch-callout: none) {
+  body {
+    background-attachment: scroll;
   }
 }
