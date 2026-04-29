@@ -3,6 +3,7 @@ import type {
   ExportArtifacts,
   SearchArtifacts,
 } from '@/features/bookmarks/export-artifacts'
+import type { EmbeddingArtifacts } from '@/features/bookmarks/embedding-artifacts'
 import type { GridItem, Manifest, TweetDoc } from '@/features/bookmarks/model'
 import {
   createBookmarksArtifactCache,
@@ -156,4 +157,31 @@ export async function loadSearchArtifacts(
   await cache.setSearch(manifest.buildId, searchArtifacts)
 
   return searchArtifacts
+}
+
+export async function loadEmbeddingArtifacts(
+  manifest: Manifest,
+  options?: DataLoaderOptions,
+): Promise<EmbeddingArtifacts> {
+  if (!manifest.files.embeddings) {
+    throw new Error('Semantic embeddings are not exported. Run bun run data:embeddings.')
+  }
+
+  const fetchJson = getFetchJson(options)
+  const cache = getCache(options)
+  const cached = await cache.getEmbeddings(manifest.buildId)
+
+  if (cached) {
+    return cached
+  }
+
+  const embeddingArtifacts: EmbeddingArtifacts = {
+    embeddingIndex: await fetchJson<EmbeddingArtifacts['embeddingIndex']>(
+      withVersionQuery(resolveArtifactPath(manifest.files.embeddings), manifest.buildId),
+    ),
+  }
+
+  await cache.setEmbeddings(manifest.buildId, embeddingArtifacts)
+
+  return embeddingArtifacts
 }

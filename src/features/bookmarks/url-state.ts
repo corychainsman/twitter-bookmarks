@@ -63,6 +63,7 @@ export function parseQueryState(
   const sort = parseSort(params.get('sort'))
   const keepSeed = parseBooleanFlag(params.get('keepSeed'), DEFAULT_QUERY_STATE.keepSeed)
   const urlSeed = params.get('seed') ?? undefined
+  const similarToGridId = params.get('similar') ?? undefined
 
   let seed = keepSeed ? urlSeed : undefined
   if (sort === 'random') {
@@ -81,6 +82,7 @@ export function parseQueryState(
     mode: parseMode(params.get('mode')),
     immersive: parseBooleanFlag(params.get('immersive'), DEFAULT_QUERY_STATE.immersive),
     preferMotion: parseBooleanFlag(params.get('preferMotion'), DEFAULT_QUERY_STATE.preferMotion),
+    similarToGridId,
     zoom: parseZoom(params.get('zoom')),
     keepSeed,
     seed,
@@ -107,6 +109,9 @@ export function serializeQueryState(state: QueryState): URLSearchParams {
   }
   if (state.preferMotion !== DEFAULT_QUERY_STATE.preferMotion) {
     params.set('preferMotion', state.preferMotion ? '1' : '0')
+  }
+  if (state.similarToGridId) {
+    params.set('similar', state.similarToGridId)
   }
   if (state.zoom !== DEFAULT_QUERY_STATE.zoom) {
     params.set('zoom', String(state.zoom))

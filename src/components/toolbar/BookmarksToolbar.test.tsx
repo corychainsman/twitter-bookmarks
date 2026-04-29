@@ -28,11 +28,14 @@ describe('BookmarksToolbar', () => {
         currentColumnCount={5}
         queryState={queryState}
         resultCount={42}
+        semanticSourceLabel={null}
         onSearchChange={() => {}}
         onSortChange={() => {}}
         onDirectionToggle={() => {}}
         onModeChange={() => {}}
         onImmersiveChange={() => {}}
+        onImageSearch={() => {}}
+        onClearSemanticSource={() => {}}
         onKeepSeedChange={() => {}}
         onRerandomize={() => {}}
         onZoomIn={() => {}}
@@ -60,11 +63,14 @@ describe('BookmarksToolbar', () => {
         currentColumnCount={5}
         queryState={queryState}
         resultCount={42}
+        semanticSourceLabel={null}
         onSearchChange={() => {}}
         onSortChange={() => {}}
         onDirectionToggle={() => {}}
         onModeChange={onModeChange}
         onImmersiveChange={onImmersiveChange}
+        onImageSearch={() => {}}
+        onClearSemanticSource={() => {}}
         onKeepSeedChange={() => {}}
         onRerandomize={() => {}}
         onZoomIn={() => {}}
@@ -89,11 +95,14 @@ describe('BookmarksToolbar', () => {
         currentColumnCount={5}
         queryState={queryState}
         resultCount={42}
+        semanticSourceLabel={null}
         onSearchChange={() => {}}
         onSortChange={() => {}}
         onDirectionToggle={() => {}}
         onModeChange={() => {}}
         onImmersiveChange={() => {}}
+        onImageSearch={() => {}}
+        onClearSemanticSource={() => {}}
         onKeepSeedChange={() => {}}
         onRerandomize={() => {}}
         onZoomIn={() => {}}
@@ -112,11 +121,14 @@ describe('BookmarksToolbar', () => {
         currentColumnCount={5}
         queryState={{ ...queryState, sort: 'random' }}
         resultCount={42}
+        semanticSourceLabel={null}
         onSearchChange={() => {}}
         onSortChange={() => {}}
         onDirectionToggle={() => {}}
         onModeChange={() => {}}
         onImmersiveChange={() => {}}
+        onImageSearch={() => {}}
+        onClearSemanticSource={() => {}}
         onKeepSeedChange={() => {}}
         onRerandomize={() => {}}
         onZoomIn={() => {}}
@@ -140,11 +152,14 @@ describe('BookmarksToolbar', () => {
         currentColumnCount={5}
         queryState={{ ...queryState, immersive: true }}
         resultCount={42}
+        semanticSourceLabel={null}
         onSearchChange={() => {}}
         onSortChange={() => {}}
         onDirectionToggle={() => {}}
         onModeChange={() => {}}
         onImmersiveChange={onImmersiveChange}
+        onImageSearch={() => {}}
+        onClearSemanticSource={() => {}}
         onKeepSeedChange={() => {}}
         onRerandomize={() => {}}
         onZoomIn={() => {}}

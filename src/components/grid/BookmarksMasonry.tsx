@@ -30,6 +30,7 @@ type BookmarksMasonryProps = {
   docsById: Map<string, TweetDoc>
   immersive: boolean
   onOpen: (gridId: string) => void
+  onInitialMediaReady?: () => void
   scrollAnchorRequest: MasonryScrollAnchorRequest | null
   onScrollAnchorApplied: (requestId: number) => void
 }
@@ -37,6 +38,7 @@ type BookmarksMasonryProps = {
 const ANCHOR_RESTORE_ATTEMPTS = 3
 const MINIMUM_PREFETCH_ITEMS = 50
 const VIEWPORT_PREFETCH_MULTIPLIER = 3
+const noop = () => {}
 
 function resolveToolbarBottom(): number {
   const toolbar = document.querySelector<HTMLElement>('.app-toolbar')
@@ -177,6 +179,7 @@ export function BookmarksMasonry({
   docsById,
   immersive,
   onOpen,
+  onInitialMediaReady,
   scrollAnchorRequest,
   onScrollAnchorApplied,
 }: BookmarksMasonryProps) {
@@ -187,6 +190,8 @@ export function BookmarksMasonry({
   const renderedCellKeyAllocatorRef = React.useRef(
     createBookmarksMasonryRenderedCellKeyAllocator(),
   )
+  const hasReportedInitialMediaReadyRef = React.useRef(false)
+  const handleInitialMediaReady = onInitialMediaReady ?? noop
 
   React.useLayoutEffect(() => {
     renderedCellKeyAllocatorRef.current.clear()
@@ -265,6 +270,70 @@ export function BookmarksMasonry({
     frameId = window.requestAnimationFrame(restoreAnchor)
     return () => window.cancelAnimationFrame(frameId)
   }, [onScrollAnchorApplied, scrollAnchorRequest])
+
+  React.useEffect(() => {
+    if (
+      hasReportedInitialMediaReadyRef.current ||
+      !containerElement ||
+      containerWidth <= 0 ||
+      isResettingImmersiveLayout
+    ) {
+      return
+    }
+
+    let frameId = 0
+    const cleanupCallbacks: Array<() => void> = []
+
+    const reportReady = () => {
+      if (hasReportedInitialMediaReadyRef.current) {
+        return
+      }
+
+      hasReportedInitialMediaReadyRef.current = true
+      handleInitialMediaReady()
+    }
+
+    frameId = window.requestAnimationFrame(() => {
+      const images = [...containerElement.querySelectorAll<HTMLImageElement>('img')]
+
+      if (images.length === 0 || images.every((image) => image.complete)) {
+        reportReady()
+        return
+      }
+
+      let remaining = images.filter((image) => !image.complete).length
+      const handleSettled = () => {
+        remaining -= 1
+        if (remaining <= 0) {
+          reportReady()
+        }
+      }
+
+      for (const image of images) {
+        if (image.complete) {
+          continue
+        }
+
+        image.addEventListener('load', handleSettled, { once: true })
+        image.addEventListener('error', handleSettled, { once: true })
+        cleanupCallbacks.push(() => {
+          image.removeEventListener('load', handleSettled)
+          image.removeEventListener('error', handleSettled)
+        })
+      }
+    })
+
+    return () => {
+      window.cancelAnimationFrame(frameId)
+      cleanupCallbacks.forEach((cleanup) => cleanup())
+    }
+  }, [
+    containerElement,
+    containerWidth,
+    isResettingImmersiveLayout,
+    handleInitialMediaReady,
+    masonryRenderKey,
+  ])
 
   const cellRenderer = React.useCallback(
     ({ index, key, parent, style }: MasonryCellProps) => {

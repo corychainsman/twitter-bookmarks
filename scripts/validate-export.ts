@@ -43,6 +43,7 @@ async function main() {
     manifest.files.orderPosted,
     manifest.files.searchIndex,
     manifest.files.searchStore,
+    ...(manifest.files.embeddings ? [manifest.files.embeddings] : []),
   ]) {
     await access(path.join(outputDirectory, fileName))
   }

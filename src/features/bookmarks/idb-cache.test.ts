@@ -14,7 +14,7 @@ describe('bookmarks artifact cache', () => {
     })
   })
 
-  it('stores and retrieves core and search artifacts separately by build id', async () => {
+  it('stores and retrieves core, search, and embedding artifacts separately by build id', async () => {
     const cache = createBookmarksArtifactCache()
 
     await cache.setCore('build-a', {
@@ -44,6 +44,20 @@ describe('bookmarks artifact cache', () => {
         },
       ],
     })
+    await cache.setEmbeddings('build-a', {
+      embeddingIndex: {
+        version: 1,
+        buildId: 'build-a',
+        builtAt: '2026-04-17T19:00:00.000Z',
+        model: {
+          id: 'test-model',
+          dimensions: 2,
+          quantization: 'int8-unit-vector',
+        },
+        records: [],
+        vectors: '',
+      },
+    })
 
     expect(await cache.getCore('build-a')).toEqual({
       docsChunks: [
@@ -72,7 +86,22 @@ describe('bookmarks artifact cache', () => {
         },
       ],
     })
+    expect(await cache.getEmbeddings('build-a')).toEqual({
+      embeddingIndex: {
+        version: 1,
+        buildId: 'build-a',
+        builtAt: '2026-04-17T19:00:00.000Z',
+        model: {
+          id: 'test-model',
+          dimensions: 2,
+          quantization: 'int8-unit-vector',
+        },
+        records: [],
+        vectors: '',
+      },
+    })
     expect(await cache.getCore('missing')).toBeNull()
     expect(await cache.getSearch('missing')).toBeNull()
+    expect(await cache.getEmbeddings('missing')).toBeNull()
   })
 })

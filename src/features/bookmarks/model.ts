@@ -66,6 +66,7 @@ export type Manifest = {
     orderPosted: string
     searchIndex: string
     searchStore: string
+    embeddings?: string
   }
 }
 
@@ -76,6 +77,7 @@ export type QueryState = {
   mode: 'one' | 'all'
   immersive: boolean
   preferMotion: boolean
+  similarToGridId?: string
   zoom: number
   keepSeed: boolean
   seed?: string

@@ -95,4 +95,20 @@ describe('query url state', () => {
       }).toString(),
     )
   })
+
+  it('round-trips similar browsing state', () => {
+    const parsed = parseQueryState(
+      new URLSearchParams('similar=tweet-1%3A0'),
+      {
+        generateSeed: () => 'seed-1234',
+      },
+    )
+
+    expect(parsed.similarToGridId).toBe('tweet-1:0')
+    expect(serializeQueryState(parsed).toString()).toBe(
+      new URLSearchParams({
+        similar: 'tweet-1:0',
+      }).toString(),
+    )
+  })
 })

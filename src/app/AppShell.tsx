@@ -12,6 +12,7 @@ export function AppShell() {
     loadingError,
     hasLoadedArtifacts,
     isQueryPending,
+    semanticSourceLabel,
     selection,
     visibleItems,
     canResetZoom,
@@ -20,8 +21,12 @@ export function AppShell() {
     onDirectionToggle,
     onModeChange,
     onImmersiveChange,
+    onImageSearch,
+    onClearSemanticSource,
+    onInitialMediaReady,
     onKeepSeedChange,
     onRerandomize,
+    onBrowseSimilar,
     onZoomIn,
     onZoomOut,
     onZoomReset,
@@ -41,11 +46,14 @@ export function AppShell() {
           currentColumnCount={masonryLayout.columnCount}
           queryState={queryState}
           resultCount={queryResult.total}
+          semanticSourceLabel={semanticSourceLabel}
           onSearchChange={onSearchChange}
           onSortChange={onSortChange}
           onDirectionToggle={onDirectionToggle}
           onModeChange={onModeChange}
           onImmersiveChange={onImmersiveChange}
+          onImageSearch={onImageSearch}
+          onClearSemanticSource={onClearSemanticSource}
           onKeepSeedChange={onKeepSeedChange}
           onRerandomize={onRerandomize}
           onZoomIn={onZoomIn}
@@ -60,6 +68,7 @@ export function AppShell() {
           isQueryPending={isQueryPending}
           items={visibleItems}
           loadingError={loadingError}
+          onInitialMediaReady={onInitialMediaReady}
           onOpen={onOpenLightbox}
           onScrollAnchorApplied={onScrollAnchorApplied}
           ready={hasLoadedArtifacts}
@@ -71,6 +80,7 @@ export function AppShell() {
         docsById={docsById}
         selection={selection}
         onClose={onCloseLightbox}
+        onBrowseSimilar={onBrowseSimilar}
       />
     </div>
   )

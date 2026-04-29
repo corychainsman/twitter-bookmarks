@@ -6,10 +6,12 @@ import {
   CaptionsOffIcon,
   ExternalLinkIcon,
   ImageIcon,
+  ImageUpIcon,
   ImagesIcon,
   MoreHorizontalIcon,
   RefreshCcwIcon,
   SearchIcon,
+  XIcon,
   ZoomInIcon,
   ZoomOutIcon,
 } from 'lucide-react'
@@ -42,11 +44,14 @@ type BookmarksToolbarProps = {
   currentColumnCount: number
   queryState: QueryState
   resultCount: number
+  semanticSourceLabel: string | null
   onSearchChange: (value: string) => void
   onSortChange: (value: QueryState['sort']) => void
   onDirectionToggle: () => void
   onModeChange: (value: QueryState['mode']) => void
   onImmersiveChange: (value: boolean) => void
+  onImageSearch: (file: File) => void
+  onClearSemanticSource: () => void
   onKeepSeedChange: (value: boolean) => void
   onRerandomize: () => void
   onZoomIn: () => void
@@ -113,11 +118,14 @@ export function BookmarksToolbar({
   currentColumnCount,
   queryState,
   resultCount,
+  semanticSourceLabel,
   onSearchChange,
   onSortChange,
   onDirectionToggle,
   onModeChange,
   onImmersiveChange,
+  onImageSearch,
+  onClearSemanticSource,
   onKeepSeedChange,
   onRerandomize,
   onZoomIn,
@@ -125,6 +133,7 @@ export function BookmarksToolbar({
   onZoomReset,
 }: BookmarksToolbarProps) {
   const toolbarRef = React.useRef<HTMLDivElement | null>(null)
+  const imageInputRef = React.useRef<HTMLInputElement | null>(null)
   const themeStudioHref = `${import.meta.env.BASE_URL.replace(/\/+$/, '')}/themes`
   const sortDirectionLabel = queryState.dir === 'desc' ? 'Newest first' : 'Oldest first'
   const hasSearchQuery = queryState.q.trim().length > 0
@@ -163,8 +172,9 @@ export function BookmarksToolbar({
         containerWidth: toolbarWidth,
         searchExpanded: isSearchExpanded || hasSearchQuery,
         isRandomSort,
+        hasSemanticSource: semanticSourceLabel !== null,
       }),
-    [hasSearchQuery, isRandomSort, isSearchExpanded, toolbarWidth],
+    [hasSearchQuery, isRandomSort, isSearchExpanded, semanticSourceLabel, toolbarWidth],
   )
   const overflowSet = React.useMemo(() => new Set(overflowKeys), [overflowKeys])
 
@@ -174,8 +184,60 @@ export function BookmarksToolbar({
     }
   }, [hasSearchQuery])
 
+  const handleImageInputChange = React.useCallback(
+    (event: React.ChangeEvent<HTMLInputElement>) => {
+      const file = event.target.files?.[0]
+      event.target.value = ''
+
+      if (!file) {
+        return
+      }
+
+      onImageSearch(file)
+    },
+    [onImageSearch],
+  )
+
+  const imageSearchButton = (
+    <Button
+      type="button"
+      variant="outline"
+      size="icon-sm"
+      aria-label="Search by image"
+      title="Search by image"
+      className={cn('app-control shrink-0', toolbarControlClass)}
+      onClick={() => imageInputRef.current?.click()}
+    >
+      <ImageUpIcon />
+    </Button>
+  )
+
+  const semanticSourceButton = semanticSourceLabel ? (
+    <Button
+      type="button"
+      variant="outline"
+      size="sm"
+      aria-label={`Clear ${semanticSourceLabel.toLowerCase()} search`}
+      title={`Clear ${semanticSourceLabel.toLowerCase()} search`}
+      className={cn('app-control h-9 shrink-0', toolbarControlClass)}
+      onClick={onClearSemanticSource}
+    >
+      <span className="text-[11px] font-medium tracking-[0.14em] uppercase">
+        {semanticSourceLabel}
+      </span>
+      <XIcon data-icon="inline-end" />
+    </Button>
+  ) : null
+
   return (
     <div className="app-toolbar sticky top-0 z-40">
+      <input
+        ref={imageInputRef}
+        type="file"
+        accept="image/*"
+        className="hidden"
+        onChange={handleImageInputChange}
+      />
       <div
         ref={toolbarRef}
         className="app-toolbar-inner mx-auto flex w-full max-w-[10000px] items-center"
@@ -282,6 +344,10 @@ export function BookmarksToolbar({
               {queryState.dir === 'desc' ? 'Desc' : 'Asc'}
             </Button>
           ) : null}
+
+          {!overflowSet.has('imageSearch') ? imageSearchButton : null}
+
+          {!overflowSet.has('semanticSource') ? semanticSourceButton : null}
 
           {!overflowSet.has('mode') ? (
             <ToolbarStateButton
@@ -455,6 +521,36 @@ export function BookmarksToolbar({
                       <span className="text-muted-foreground">
                         {queryState.dir === 'desc' ? 'Desc' : 'Asc'}
                       </span>
+                    </Button>
+                  ) : null}
+
+                  {overflowSet.has('imageSearch') ? (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className={cn(
+                        'app-control h-10 w-full justify-between rounded-xl',
+                        toolbarControlClass,
+                      )}
+                      onClick={() => imageInputRef.current?.click()}
+                    >
+                      <span>Image search</span>
+                      <ImageUpIcon />
+                    </Button>
+                  ) : null}
+
+                  {overflowSet.has('semanticSource') && semanticSourceButton ? (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className={cn(
+                        'app-control h-10 w-full justify-between rounded-xl',
+                        toolbarControlClass,
+                      )}
+                      onClick={onClearSemanticSource}
+                    >
+                      <span>{semanticSourceLabel}</span>
+                      <XIcon />
                     </Button>
                   ) : null}
 

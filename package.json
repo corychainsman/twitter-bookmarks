@@ -16,13 +16,16 @@
     "sync:ft:resume": "FT_DATA_DIR=\"$PWD/.data/fieldtheory\" bun run scripts/sync-fieldtheory.ts",
     "sync:ft:full": "FT_DATA_DIR=\"$PWD/.data/fieldtheory\" bun run scripts/sync-fieldtheory.ts",
     "data:export": "bun run scripts/export-fieldtheory.ts",
+    "data:embeddings": "bun run scripts/export-embeddings.ts",
     "data:validate": "bun run scripts/validate-export.ts",
-    "refresh": "bun run sync:ft && bun run data:export && bun run data:validate && bun run build",
-    "refresh:resume": "bun run sync:ft:resume && bun run data:export && bun run data:validate && bun run build",
-    "refresh:full": "bun run sync:ft:full && bun run data:export && bun run data:validate && bun run build"
+    "refresh": "bun run sync:ft && bun run data:export && bun run data:embeddings && bun run data:validate && bun run build",
+    "refresh:resume": "bun run sync:ft:resume && bun run data:export && bun run data:embeddings && bun run data:validate && bun run build",
+    "refresh:full": "bun run sync:ft:full && bun run data:export && bun run data:embeddings && bun run data:validate && bun run build",
+    "refresh:embeddings": "bun run sync:ft && bun run data:export && bun run data:embeddings && bun run data:validate && bun run build"
   },
   "dependencies": {
     "@fontsource-variable/geist": "^5.2.8",
+    "@huggingface/transformers": "^4.2.0",
     "@tanstack/react-router": "^1.168.22",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",

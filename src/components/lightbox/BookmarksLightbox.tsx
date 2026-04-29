@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState, type ComponentType, type ReactNod
 
 import Lightbox from 'yet-another-react-lightbox'
 import { Zoom } from 'yet-another-react-lightbox/plugins'
-import { HeartIcon, MessageCircleIcon, Repeat2Icon } from 'lucide-react'
+import { HeartIcon, MessageCircleIcon, Repeat2Icon, SparklesIcon } from 'lucide-react'
 
 import type { TweetDoc } from '@/features/bookmarks/model'
 import { formatCompactNumber, formatPostedDate } from '@/lib/format'
@@ -14,6 +14,7 @@ import {
 } from '@/components/lightbox/lightbox-layout'
 import { TweetEmbed } from '@/components/media/TweetEmbed'
 import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 
 type LightboxSelection = {
@@ -25,6 +26,7 @@ type BookmarksLightboxProps = {
   docsById: Map<string, TweetDoc>
   selection: LightboxSelection | null
   onClose: () => void
+  onBrowseSimilar: (gridId: string) => void
 }
 
 type TweetEmbedSlide = {
@@ -55,6 +57,7 @@ export function BookmarksLightbox({
   docsById,
   selection,
   onClose,
+  onBrowseSimilar,
 }: BookmarksLightboxProps) {
   const tweet = selection ? docsById.get(selection.tweetId) : undefined
   const postedDate = tweet ? formatPostedDate(tweet.postedAt) : ''
@@ -277,12 +280,25 @@ export function BookmarksLightbox({
                   </div>
                 </div>
 
-                <div className="flex flex-wrap gap-2">
-                  {tweet.folderNames.map((folderName) => (
-                    <Badge key={folderName} variant="secondary">
-                      {folderName}
-                    </Badge>
-                  ))}
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <div className="flex flex-wrap gap-2">
+                    {tweet.folderNames.map((folderName) => (
+                      <Badge key={folderName} variant="secondary">
+                        {folderName}
+                      </Badge>
+                    ))}
+                  </div>
+
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="rounded-[var(--app-control-radius)] border-[var(--app-control-border)] bg-[var(--app-control-surface)] text-[var(--foreground)] hover:bg-[color-mix(in_srgb,var(--app-control-surface)_88%,var(--foreground)_12%)]"
+                    onClick={() => onBrowseSimilar(`${tweet.id}:${currentIndex}`)}
+                  >
+                    <SparklesIcon data-icon="inline-start" />
+                    Similar
+                  </Button>
                 </div>
               </CardContent>
             </Card>

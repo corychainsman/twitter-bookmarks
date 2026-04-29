@@ -16,6 +16,7 @@
     "orderBookmarked": "order/bookmarked.json",
     "orderPosted": "order/posted.json",
     "searchIndex": "search/index.json",
-    "searchStore": "search/store.json"
+    "searchStore": "search/store.json",
+    "embeddings": "embeddings/index.json"
   }
 }

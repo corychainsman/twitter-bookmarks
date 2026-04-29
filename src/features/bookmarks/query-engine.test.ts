@@ -1,9 +1,28 @@
 import { describe, expect, it } from 'vitest'
 
 import { buildExportArtifacts } from '@/features/bookmarks/export-artifacts'
+import {
+  encodeInt8Base64,
+  type EmbeddingIndex,
+} from '@/features/bookmarks/embedding-artifacts'
 import type { RawBookmarkRecord } from '@/features/bookmarks/model'
 import { runBookmarksQuery } from '@/features/bookmarks/query-engine'
 import { DEFAULT_QUERY_STATE } from '@/features/bookmarks/url-state'
+
+function buildTestEmbeddingIndex(records: EmbeddingIndex['records'], vectors: number[][]): EmbeddingIndex {
+  return {
+    version: 1,
+    buildId: 'build-semantic',
+    builtAt: '2026-04-17T19:00:00.000Z',
+    model: {
+      id: 'test-model',
+      dimensions: 2,
+      quantization: 'int8-unit-vector',
+    },
+    records,
+    vectors: encodeInt8Base64(new Int8Array(vectors.flat())),
+  }
+}
 
 describe('runBookmarksQuery', () => {
   it('uses motion representatives in one-item mode when preferMotion is enabled', () => {
@@ -149,125 +168,6 @@ describe('runBookmarksQuery', () => {
     expect(alphaOne.orderedGridIds).not.toEqual(bravo.orderedGridIds)
   })
 
-  it('matches quoted tweet text in search results', () => {
-    const records: RawBookmarkRecord[] = [
-      {
-        id: 'tweet-quoted',
-        tweetId: 'tweet-quoted',
-        sortIndex: '300',
-        postedAt: '2026-03-12T10:00:00.000Z',
-        url: 'https://x.com/alice/status/tweet-quoted',
-        text: 'This bookmark text does not contain the query',
-        quotedTweet: {
-          text: 'Kernel scheduling notes from the quoted tweet',
-        },
-        mediaObjects: [{ type: 'photo', url: 'https://img/quoted.jpg' }],
-      },
-      {
-        id: 'tweet-other',
-        tweetId: 'tweet-other',
-        sortIndex: '200',
-        postedAt: '2026-03-11T10:00:00.000Z',
-        url: 'https://x.com/bob/status/tweet-other',
-        text: 'A different media bookmark',
-        mediaObjects: [{ type: 'photo', url: 'https://img/other.jpg' }],
-      },
-    ]
-
-    const artifacts = buildExportArtifacts(records, {
-      buildId: 'build-search',
-      builtAt: '2026-04-17T19:00:00.000Z',
-    })
-
-    const result = runBookmarksQuery(artifacts, {
-      ...DEFAULT_QUERY_STATE,
-      q: 'kernel',
-    })
-
-    expect(result).toEqual({
-      total: 1,
-      orderedGridIds: ['tweet-quoted:0'],
-    })
-  })
-
-  it('matches substrings anywhere inside indexed tweet fields', () => {
-    const records: RawBookmarkRecord[] = [
-      {
-        id: 'tweet-handle',
-        tweetId: 'tweet-handle',
-        sortIndex: '300',
-        postedAt: '2026-03-12T10:00:00.000Z',
-        url: 'https://x.com/assemblerdaily/status/tweet-handle',
-        text: 'Search should not need word boundaries',
-        authorHandle: 'assemblerdaily',
-        mediaObjects: [{ type: 'photo', url: 'https://img/handle.jpg' }],
-      },
-      {
-        id: 'tweet-other',
-        tweetId: 'tweet-other',
-        sortIndex: '200',
-        postedAt: '2026-03-11T10:00:00.000Z',
-        url: 'https://x.com/other/status/tweet-other',
-        text: 'A different bookmark',
-        authorHandle: 'other',
-        mediaObjects: [{ type: 'photo', url: 'https://img/other.jpg' }],
-      },
-    ]
-
-    const artifacts = buildExportArtifacts(records, {
-      buildId: 'build-substring-search',
-      builtAt: '2026-04-17T19:00:00.000Z',
-    })
-
-    const result = runBookmarksQuery(artifacts, {
-      ...DEFAULT_QUERY_STATE,
-      q: 'mblerdai',
-    })
-
-    expect(result).toEqual({
-      total: 1,
-      orderedGridIds: ['tweet-handle:0'],
-    })
-  })
-
-  it('matches fuzzy misspellings across indexed tweet fields', () => {
-    const records: RawBookmarkRecord[] = [
-      {
-        id: 'tweet-fuzzy',
-        tweetId: 'tweet-fuzzy',
-        sortIndex: '300',
-        postedAt: '2026-03-12T10:00:00.000Z',
-        url: 'https://x.com/alice/status/tweet-fuzzy',
-        text: 'Kernel scheduler notes for media pipelines',
-        mediaObjects: [{ type: 'photo', url: 'https://img/fuzzy.jpg' }],
-      },
-      {
-        id: 'tweet-other',
-        tweetId: 'tweet-other',
-        sortIndex: '200',
-        postedAt: '2026-03-11T10:00:00.000Z',
-        url: 'https://x.com/bob/status/tweet-other',
-        text: 'A different bookmark',
-        mediaObjects: [{ type: 'photo', url: 'https://img/other.jpg' }],
-      },
-    ]
-
-    const artifacts = buildExportArtifacts(records, {
-      buildId: 'build-fuzzy-search',
-      builtAt: '2026-04-17T19:00:00.000Z',
-    })
-
-    const result = runBookmarksQuery(artifacts, {
-      ...DEFAULT_QUERY_STATE,
-      q: 'kernal schedulr',
-    })
-
-    expect(result).toEqual({
-      total: 1,
-      orderedGridIds: ['tweet-fuzzy:0'],
-    })
-  })
-
   it('runs non-search queries without requiring hydrated search artifacts', () => {
     const artifacts = buildExportArtifacts(
       [
@@ -305,7 +205,7 @@ describe('runBookmarksQuery', () => {
     })
   })
 
-  it('throws a dedicated error when search is requested before search artifacts are hydrated', () => {
+  it('throws a dedicated error when text search is requested before embedding artifacts are hydrated', () => {
     const artifacts = buildExportArtifacts(
       [
         {
@@ -339,6 +239,221 @@ describe('runBookmarksQuery', () => {
           q: 'kernel',
         },
       ),
-    ).toThrow('Search artifacts have not been hydrated')
+    ).toThrow('Semantic embedding artifacts have not been hydrated')
+  })
+
+  it('ranks semantic search results using text and media embedding records', () => {
+    const artifacts = buildExportArtifacts(
+      [
+        {
+          id: 'tweet-text',
+          tweetId: 'tweet-text',
+          sortIndex: '100',
+          postedAt: '2026-03-12T10:00:00.000Z',
+          url: 'https://x.com/alice/status/tweet-text',
+          text: 'A sculptural chair',
+          mediaObjects: [{ type: 'photo', url: 'https://img/text.jpg' }],
+        },
+        {
+          id: 'tweet-media',
+          tweetId: 'tweet-media',
+          sortIndex: '200',
+          postedAt: '2026-03-13T10:00:00.000Z',
+          url: 'https://x.com/bob/status/tweet-media',
+          text: 'No matching words here',
+          mediaObjects: [{ type: 'photo', url: 'https://img/media.jpg' }],
+        },
+      ],
+      {
+        buildId: 'build-semantic',
+        builtAt: '2026-04-17T19:00:00.000Z',
+      },
+    )
+
+    const result = runBookmarksQuery(
+      {
+        ...artifacts,
+        embeddingIndex: buildTestEmbeddingIndex(
+          [
+            {
+              id: 'tweet-text:text',
+              tweetId: 'tweet-text',
+              kind: 'tweet-text',
+              label: 'chair',
+            },
+            {
+              id: 'tweet-media:0:visual',
+              tweetId: 'tweet-media',
+              gridId: 'tweet-media:0',
+              mediaIndex: 0,
+              kind: 'media-image',
+              label: 'chair photo',
+            },
+          ],
+          [
+            [127, 0],
+            [100, 80],
+          ],
+        ),
+      },
+      {
+        ...DEFAULT_QUERY_STATE,
+        q: 'furniture inspo',
+        mode: 'one',
+      },
+      {
+        source: 'text',
+        vector: [1, 0],
+      },
+    )
+
+    expect(result.orderedGridIds).toEqual(['tweet-media:0', 'tweet-text:0'])
+  })
+
+  it('uses the strongest matching media item as the one-mode semantic representative', () => {
+    const artifacts = buildExportArtifacts(
+      [
+        {
+          id: 'tweet-gallery',
+          tweetId: 'tweet-gallery',
+          sortIndex: '100',
+          postedAt: '2026-03-12T10:00:00.000Z',
+          url: 'https://x.com/alice/status/tweet-gallery',
+          text: 'A two image gallery',
+          mediaObjects: [
+            { type: 'photo', url: 'https://img/first.jpg' },
+            { type: 'photo', url: 'https://img/second.jpg' },
+          ],
+        },
+      ],
+      {
+        buildId: 'build-semantic-gallery',
+        builtAt: '2026-04-17T19:00:00.000Z',
+      },
+    )
+
+    const result = runBookmarksQuery(
+      {
+        ...artifacts,
+        embeddingIndex: buildTestEmbeddingIndex(
+          [
+            {
+              id: 'tweet-gallery:0:visual',
+              tweetId: 'tweet-gallery',
+              gridId: 'tweet-gallery:0',
+              mediaIndex: 0,
+              kind: 'media-image',
+              label: 'first',
+            },
+            {
+              id: 'tweet-gallery:1:visual',
+              tweetId: 'tweet-gallery',
+              gridId: 'tweet-gallery:1',
+              mediaIndex: 1,
+              kind: 'media-image',
+              label: 'second',
+            },
+          ],
+          [
+            [0, 127],
+            [127, 0],
+          ],
+        ),
+      },
+      {
+        ...DEFAULT_QUERY_STATE,
+        mode: 'one',
+      },
+      {
+        source: 'image',
+        vector: [1, 0],
+      },
+    )
+
+    expect(result.orderedGridIds).toEqual(['tweet-gallery:1'])
+  })
+
+  it('browses by similarity from a selected media item and excludes the source tweet', () => {
+    const artifacts = buildExportArtifacts(
+      [
+        {
+          id: 'tweet-source',
+          tweetId: 'tweet-source',
+          sortIndex: '300',
+          postedAt: '2026-03-14T10:00:00.000Z',
+          url: 'https://x.com/a/status/tweet-source',
+          text: 'Source',
+          mediaObjects: [{ type: 'photo', url: 'https://img/source.jpg' }],
+        },
+        {
+          id: 'tweet-near',
+          tweetId: 'tweet-near',
+          sortIndex: '200',
+          postedAt: '2026-03-13T10:00:00.000Z',
+          url: 'https://x.com/b/status/tweet-near',
+          text: 'Near',
+          mediaObjects: [{ type: 'photo', url: 'https://img/near.jpg' }],
+        },
+        {
+          id: 'tweet-far',
+          tweetId: 'tweet-far',
+          sortIndex: '100',
+          postedAt: '2026-03-12T10:00:00.000Z',
+          url: 'https://x.com/c/status/tweet-far',
+          text: 'Far',
+          mediaObjects: [{ type: 'photo', url: 'https://img/far.jpg' }],
+        },
+      ],
+      {
+        buildId: 'build-semantic-similar',
+        builtAt: '2026-04-17T19:00:00.000Z',
+      },
+    )
+
+    const result = runBookmarksQuery(
+      {
+        ...artifacts,
+        embeddingIndex: buildTestEmbeddingIndex(
+          [
+            {
+              id: 'tweet-source:0:visual',
+              tweetId: 'tweet-source',
+              gridId: 'tweet-source:0',
+              mediaIndex: 0,
+              kind: 'media-image',
+              label: 'source',
+            },
+            {
+              id: 'tweet-near:0:visual',
+              tweetId: 'tweet-near',
+              gridId: 'tweet-near:0',
+              mediaIndex: 0,
+              kind: 'media-image',
+              label: 'near',
+            },
+            {
+              id: 'tweet-far:0:visual',
+              tweetId: 'tweet-far',
+              gridId: 'tweet-far:0',
+              mediaIndex: 0,
+              kind: 'media-image',
+              label: 'far',
+            },
+          ],
+          [
+            [127, 0],
+            [110, 20],
+            [0, 127],
+          ],
+        ),
+      },
+      {
+        ...DEFAULT_QUERY_STATE,
+        similarToGridId: 'tweet-source:0',
+        mode: 'one',
+      },
+    )
+
+    expect(result.orderedGridIds).toEqual(['tweet-near:0', 'tweet-far:0'])
   })
 })

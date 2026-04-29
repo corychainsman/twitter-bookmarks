@@ -4,7 +4,9 @@ import type {
   CoreArtifacts,
   SearchArtifacts,
 } from '@/features/bookmarks/export-artifacts'
+import type { EmbeddingArtifacts } from '@/features/bookmarks/embedding-artifacts'
 import {
+  loadEmbeddingArtifacts,
   loadCoreArtifacts,
   loadSearchArtifacts,
   type JsonFetcher,
@@ -26,6 +28,7 @@ const manifest: Manifest = {
     orderPosted: 'order/posted.json',
     searchIndex: 'search/index.json',
     searchStore: 'search/store.json',
+    embeddings: 'embeddings/index.json',
   },
 }
 
@@ -72,6 +75,8 @@ describe('data loader', () => {
       setCore: vi.fn(async () => undefined),
       getSearch: vi.fn(async () => null),
       setSearch: vi.fn(async () => undefined),
+      getEmbeddings: vi.fn(async () => null),
+      setEmbeddings: vi.fn(async () => undefined),
     }
 
     const artifacts = await loadCoreArtifacts({ fetchJson, cache })
@@ -116,6 +121,8 @@ describe('data loader', () => {
       setSearch: vi.fn(async (_buildId: string, value: SearchArtifacts) => {
         cachedSearch = value
       }),
+      getEmbeddings: vi.fn(async (): Promise<EmbeddingArtifacts | null> => null),
+      setEmbeddings: vi.fn(async () => undefined),
     }
 
     const first = await loadSearchArtifacts(manifest, { fetchJson, cache })
@@ -127,5 +134,52 @@ describe('data loader', () => {
       'data/search/index.json?v=build-1',
       'data/search/store.json?v=build-1',
     ])
+  })
+
+  it('loads embedding artifacts on demand and reuses the cache on repeat calls', async () => {
+    const requestedPaths: string[] = []
+    const embeddingArtifacts: EmbeddingArtifacts = {
+      embeddingIndex: {
+        version: 1,
+        buildId: 'build-1',
+        builtAt: '2026-04-17T19:00:00.000Z',
+        model: {
+          id: 'test-model',
+          dimensions: 2,
+          quantization: 'int8-unit-vector',
+        },
+        records: [],
+        vectors: '',
+      },
+    }
+    let cachedEmbeddings: EmbeddingArtifacts | null = null
+
+    const fetchJson: JsonFetcher = async <T,>(path: string): Promise<T> => {
+      requestedPaths.push(path)
+
+      if (path === 'data/embeddings/index.json?v=build-1') {
+        return embeddingArtifacts.embeddingIndex as T
+      }
+
+      throw new Error(`Unexpected path ${path}`)
+    }
+
+    const cache = {
+      getCore: vi.fn(async (): Promise<CoreArtifacts | null> => null),
+      setCore: vi.fn(async () => undefined),
+      getSearch: vi.fn(async (): Promise<SearchArtifacts | null> => null),
+      setSearch: vi.fn(async () => undefined),
+      getEmbeddings: vi.fn(async () => cachedEmbeddings),
+      setEmbeddings: vi.fn(async (_buildId: string, value: EmbeddingArtifacts) => {
+        cachedEmbeddings = value
+      }),
+    }
+
+    const first = await loadEmbeddingArtifacts(manifest, { fetchJson, cache })
+    const second = await loadEmbeddingArtifacts(manifest, { fetchJson, cache })
+
+    expect(first).toEqual(embeddingArtifacts)
+    expect(second).toEqual(embeddingArtifacts)
+    expect(requestedPaths).toEqual(['data/embeddings/index.json?v=build-1'])
   })
 })

@@ -10,6 +10,7 @@ type BookmarksPageContentProps = {
   isQueryPending: boolean
   items: GridItem[]
   loadingError: string | null
+  onInitialMediaReady: () => void
   onOpen: (gridId: string) => void
   onScrollAnchorApplied: (requestId: number) => void
   ready: boolean
@@ -42,6 +43,7 @@ export function BookmarksPageContent({
   isQueryPending,
   items,
   loadingError,
+  onInitialMediaReady,
   onOpen,
   onScrollAnchorApplied,
   ready,
@@ -66,6 +68,7 @@ export function BookmarksPageContent({
       items={items}
       docsById={docsById}
       immersive={immersive}
+      onInitialMediaReady={onInitialMediaReady}
       onOpen={onOpen}
       onScrollAnchorApplied={onScrollAnchorApplied}
       scrollAnchorRequest={scrollAnchorRequest}

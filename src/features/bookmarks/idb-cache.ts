@@ -2,26 +2,31 @@ import type {
   CoreArtifacts,
   SearchArtifacts,
 } from '@/features/bookmarks/export-artifacts'
+import type { EmbeddingArtifacts } from '@/features/bookmarks/embedding-artifacts'
 
 export type BookmarksArtifactCache = {
   getCore(buildId: string): Promise<Omit<CoreArtifacts, 'manifest'> | null>
   setCore(buildId: string, value: Omit<CoreArtifacts, 'manifest'>): Promise<void>
   getSearch(buildId: string): Promise<SearchArtifacts | null>
   setSearch(buildId: string, value: SearchArtifacts): Promise<void>
+  getEmbeddings(buildId: string): Promise<EmbeddingArtifacts | null>
+  setEmbeddings(buildId: string, value: EmbeddingArtifacts): Promise<void>
 }
 
 const DB_NAME = 'twitter-bookmarks-cache'
-const DB_VERSION = 1
+const DB_VERSION = 2
 const CORE_STORE = 'core-artifacts'
 const SEARCH_STORE = 'search-artifacts'
+const EMBEDDINGS_STORE = 'embedding-artifacts'
 
-type StoreName = typeof CORE_STORE | typeof SEARCH_STORE
+type StoreName = typeof CORE_STORE | typeof SEARCH_STORE | typeof EMBEDDINGS_STORE
 
 let databasePromise: Promise<IDBDatabase> | null = null
 
 function createMemoryCache(): BookmarksArtifactCache {
   const core = new Map<string, Omit<CoreArtifacts, 'manifest'>>()
   const search = new Map<string, SearchArtifacts>()
+  const embeddings = new Map<string, EmbeddingArtifacts>()
 
   return {
     async getCore(buildId) {
@@ -35,6 +40,12 @@ function createMemoryCache(): BookmarksArtifactCache {
     },
     async setSearch(buildId, value) {
       search.set(buildId, value)
+    },
+    async getEmbeddings(buildId) {
+      return embeddings.get(buildId) ?? null
+    },
+    async setEmbeddings(buildId, value) {
+      embeddings.set(buildId, value)
     },
   }
 }
@@ -54,6 +65,9 @@ function openDatabase(): Promise<IDBDatabase> {
       }
       if (!database.objectStoreNames.contains(SEARCH_STORE)) {
         database.createObjectStore(SEARCH_STORE)
+      }
+      if (!database.objectStoreNames.contains(EMBEDDINGS_STORE)) {
+        database.createObjectStore(EMBEDDINGS_STORE)
       }
     }
 
@@ -107,6 +121,12 @@ export function createBookmarksArtifactCache(): BookmarksArtifactCache {
     },
     async setSearch(buildId, value) {
       await writeToStore(SEARCH_STORE, buildId, value)
+    },
+    async getEmbeddings(buildId) {
+      return readFromStore<EmbeddingArtifacts>(EMBEDDINGS_STORE, buildId)
+    },
+    async setEmbeddings(buildId, value) {
+      await writeToStore(EMBEDDINGS_STORE, buildId, value)
     },
   }
 }
