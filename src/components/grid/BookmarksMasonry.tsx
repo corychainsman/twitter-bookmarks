@@ -37,6 +37,7 @@ type BookmarksMasonryProps = {
 
 const ANCHOR_RESTORE_ATTEMPTS = 3
 const MINIMUM_PREFETCH_ITEMS = 50
+const MINIMUM_EAGER_ITEMS = 18
 const VIEWPORT_PREFETCH_MULTIPLIER = 3
 const noop = () => {}
 
@@ -246,6 +247,10 @@ export function BookmarksMasonry({
       }),
     [columnCount, columnWidth, items, renderedImmersive],
   )
+  const eagerItemCount = Math.min(
+    items.length,
+    Math.max(MINIMUM_EAGER_ITEMS, columnCount * 3),
+  )
 
   React.useEffect(() => {
     if (!scrollAnchorRequest) {
@@ -294,7 +299,11 @@ export function BookmarksMasonry({
     }
 
     frameId = window.requestAnimationFrame(() => {
-      const images = [...containerElement.querySelectorAll<HTMLImageElement>('img')]
+      const images = [
+        ...containerElement.querySelectorAll<HTMLImageElement>(
+          'img[data-initial-media="true"]',
+        ),
+      ]
 
       if (images.length === 0 || images.every((image) => image.complete)) {
         reportReady()
@@ -357,13 +366,16 @@ export function BookmarksMasonry({
               item={item}
               tweet={docsById.get(item.tweetId)}
               immersive={renderedImmersive}
+              loading={index < eagerItemCount ? 'eager' : 'lazy'}
+              fetchPriority={index < eagerItemCount ? 'high' : 'low'}
+              initialMedia={index < eagerItemCount}
               onOpen={() => onOpen(item.gridId)}
             />
           </div>
         </MeasuredMasonryCell>
       )
     },
-    [cellMeasurerCache, docsById, items, onOpen, renderedImmersive],
+    [cellMeasurerCache, docsById, eagerItemCount, items, onOpen, renderedImmersive],
   )
 
   if (items.length === 0) {

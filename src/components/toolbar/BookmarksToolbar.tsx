@@ -242,16 +242,15 @@ export function BookmarksToolbar({
         ref={toolbarRef}
         className="app-toolbar-inner mx-auto flex w-full max-w-[10000px] items-center"
       >
-        <div className="hidden shrink-0 items-center gap-2 xl:flex">
-          <div
-            className={cn(
-              'app-toolbar-chip px-2.5 py-1 text-[10px] font-medium tracking-[0.28em] uppercase',
-              toolbarChipClass,
-            )}
-          >
-            Bookmarks
-          </div>
-        </div>
+        <Badge
+          variant="outline"
+          className={cn(
+            'app-toolbar-chip h-9 shrink-0 px-3 text-[11px] font-medium tracking-[0.2em] uppercase',
+            toolbarChipClass,
+          )}
+        >
+          {resultCount}
+        </Badge>
 
         <div
           className={cn(
@@ -298,18 +297,6 @@ export function BookmarksToolbar({
         </div>
 
         <div className="flex min-w-0 flex-1 items-center justify-end gap-2">
-          {!overflowSet.has('count') ? (
-            <Badge
-              variant="outline"
-              className={cn(
-                'app-toolbar-chip h-9 shrink-0 px-3 text-[11px] font-medium tracking-[0.2em] uppercase',
-                toolbarChipClass,
-              )}
-            >
-              {resultCount}
-            </Badge>
-          ) : null}
-
           {!overflowSet.has('sort') ? (
             <Select
               value={queryState.sort}
@@ -492,18 +479,6 @@ export function BookmarksToolbar({
                           </SelectGroup>
                         </SelectContent>
                       </Select>
-                    </div>
-                  ) : null}
-
-                  {overflowSet.has('count') ? (
-                    <div className="flex items-center justify-between rounded-xl border border-border bg-muted/20 px-3 py-2 text-sm">
-                      <span className="text-muted-foreground">Results</span>
-                      <Badge
-                        variant="outline"
-                        className={cn('app-toolbar-chip bg-transparent', toolbarChipClass)}
-                      >
-                        {resultCount}
-                      </Badge>
                     </div>
                   ) : null}
 

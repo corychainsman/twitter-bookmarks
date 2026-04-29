@@ -74,4 +74,23 @@ describe('MediaTile', () => {
     expect(screen.queryByText(formatPostedDate(tweet.postedAt))).not.toBeInTheDocument()
     expect(screen.queryByText('Inspo')).not.toBeInTheDocument()
   })
+
+  it('passes image loading priority through to the rendered media', () => {
+    render(
+      <MediaTile
+        item={item}
+        tweet={tweet}
+        immersive
+        loading="eager"
+        fetchPriority="high"
+        initialMedia
+        onOpen={() => {}}
+      />,
+    )
+
+    const image = screen.getByRole('img', { name: tweet.text })
+    expect(image).toHaveAttribute('loading', 'eager')
+    expect(image).toHaveAttribute('fetchpriority', 'high')
+    expect(image).toHaveAttribute('data-initial-media', 'true')
+  })
 })

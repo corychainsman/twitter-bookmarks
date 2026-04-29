@@ -7,10 +7,21 @@ type MediaTileProps = {
   item: GridItem
   tweet: TweetDoc | undefined
   immersive: boolean
+  loading?: 'eager' | 'lazy'
+  fetchPriority?: 'high' | 'low' | 'auto'
+  initialMedia?: boolean
   onOpen: () => void
 }
 
-export function MediaTile({ item, tweet, immersive, onOpen }: MediaTileProps) {
+export function MediaTile({
+  item,
+  tweet,
+  immersive,
+  loading = 'lazy',
+  fetchPriority = 'auto',
+  initialMedia = false,
+  onOpen,
+}: MediaTileProps) {
   const isMotion = item.mediaType === 'video' || item.mediaType === 'animated_gif'
   const previewUrl = item.posterUrl ?? item.thumbUrl
   const aspectRatio =
@@ -34,6 +45,9 @@ export function MediaTile({ item, tweet, immersive, onOpen }: MediaTileProps) {
             sizes={imageSources.sizes}
             alt={tweet?.text || 'Bookmarked media'}
             decoding="async"
+            fetchPriority={fetchPriority}
+            loading={loading}
+            data-initial-media={initialMedia ? 'true' : undefined}
             width={item.width}
             height={item.height}
             style={aspectRatio ? { aspectRatio } : undefined}

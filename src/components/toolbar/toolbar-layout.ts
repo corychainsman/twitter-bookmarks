@@ -2,7 +2,6 @@ export type ToolbarOverflowKey =
   | 'sort'
   | 'mode'
   | 'immersive'
-  | 'count'
   | 'direction'
   | 'imageSearch'
   | 'semanticSource'
@@ -15,7 +14,6 @@ const CONTROL_WIDTH: Record<ToolbarOverflowKey | 'search' | 'more', number> = {
   sort: 136,
   mode: 36,
   immersive: 36,
-  count: 34,
   direction: 96,
   imageSearch: 36,
   semanticSource: 72,
@@ -29,7 +27,6 @@ const CONTROL_GAP = 8
 const HIDE_PRIORITY: ToolbarOverflowKey[] = [
   'zoom',
   'seed',
-  'count',
   'rerandomize',
   'direction',
   'immersive',
@@ -54,7 +51,6 @@ export function resolveToolbarOverflow(input: {
     : 36
 
   const visibleControls: ToolbarOverflowKey[] = [
-    'count',
     'sort',
     'direction',
     'imageSearch',
