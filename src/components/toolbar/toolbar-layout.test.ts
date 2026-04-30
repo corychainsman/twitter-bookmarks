@@ -17,7 +17,7 @@ describe('resolveToolbarOverflow', () => {
     ).toEqual([])
   })
 
-  it('keeps the streamlined control rail visible as the search expands', () => {
+  it('keeps the expanded search comfortable by moving secondary controls into more', () => {
     expect(
       resolveToolbarOverflow({
         containerWidth: 820,
@@ -25,10 +25,10 @@ describe('resolveToolbarOverflow', () => {
         isRandomSort: false,
         hasSemanticSource: false,
       }),
-    ).toEqual([])
+    ).toEqual(['zoom', 'direction'])
   })
 
-  it('also collapses rerandomize when random sort would overflow', () => {
+  it('also collapses random controls when expanded search needs room', () => {
     expect(
       resolveToolbarOverflow({
         containerWidth: 760,
@@ -36,7 +36,7 @@ describe('resolveToolbarOverflow', () => {
         isRandomSort: true,
         hasSemanticSource: false,
       }),
-    ).toEqual(['zoom', 'seed'])
+    ).toEqual(['zoom', 'seed', 'rerandomize', 'direction'])
   })
 
   it('falls back to the compact essentials on very narrow widths', () => {
@@ -47,18 +47,25 @@ describe('resolveToolbarOverflow', () => {
         isRandomSort: false,
         hasSemanticSource: false,
       }),
-    ).toEqual(['zoom', 'direction', 'immersive'])
+    ).toEqual([
+      'zoom',
+      'direction',
+      'immersive',
+      'mode',
+      'imageSearch',
+      'sort',
+    ])
   })
 
   it('collapses the mode switch into the overflow menu when space gets tight enough', () => {
     expect(
       resolveToolbarOverflow({
-        containerWidth: 400,
+        containerWidth: 610,
         searchExpanded: true,
         isRandomSort: false,
         hasSemanticSource: false,
       }),
-    ).toEqual(['zoom', 'direction', 'immersive', 'mode', 'imageSearch', 'sort'])
+    ).toEqual(['zoom', 'direction', 'immersive', 'mode', 'imageSearch'])
   })
 
   it('keeps shrinking to the ellipsis menu instead of clipping on extremely narrow widths', () => {
@@ -79,7 +86,7 @@ describe('resolveToolbarOverflow', () => {
     ])
   })
 
-  it('auto-expands search only when the expanded toolbar still fits', () => {
+  it('auto-expands search when sort can remain visible after secondary controls move', () => {
     expect(
       shouldAutoExpandToolbarSearch({
         containerWidth: 820,
@@ -97,13 +104,13 @@ describe('resolveToolbarOverflow', () => {
     ).toBe(false)
   })
 
-  it('keeps search compact when random controls need the available space', () => {
+  it('can auto-expand search in random sort by moving random controls into more', () => {
     expect(
       shouldAutoExpandToolbarSearch({
         containerWidth: 760,
         isRandomSort: true,
         hasSemanticSource: false,
       }),
-    ).toBe(false)
+    ).toBe(true)
   })
 })

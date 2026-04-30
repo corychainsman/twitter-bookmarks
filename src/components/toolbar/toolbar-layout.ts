@@ -25,6 +25,7 @@ const CONTROL_WIDTH: Record<ToolbarOverflowKey | 'count' | 'search' | 'more', nu
 }
 
 const CONTROL_GAP = 8
+const EXPANDED_SEARCH_COMFORT_SPACE = 155
 const HIDE_PRIORITY: ToolbarOverflowKey[] = [
   'zoom',
   'seed',
@@ -77,7 +78,8 @@ export function resolveToolbarOverflow(input: {
 
     return (
       itemWidths.reduce((total, width) => total + width, 0) +
-      Math.max(0, itemWidths.length - 1) * CONTROL_GAP
+      Math.max(0, itemWidths.length - 1) * CONTROL_GAP +
+      (input.searchExpanded ? EXPANDED_SEARCH_COMFORT_SPACE : 0)
     )
   }
 
@@ -106,9 +108,9 @@ export function shouldAutoExpandToolbarSearch(input: {
   }
 
   return (
-    resolveToolbarOverflow({
+    !resolveToolbarOverflow({
       ...input,
       searchExpanded: true,
-    }).length === 0
+    }).includes('sort')
   )
 }
