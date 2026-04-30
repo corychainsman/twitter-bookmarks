@@ -223,6 +223,57 @@ describe('BookmarksToolbar', () => {
     expect(onImageSearch).toHaveBeenCalledWith(pastedFile)
   })
 
+  it('does not focus the search box when it expands because the toolbar has room', async () => {
+    const originalClientWidth = Object.getOwnPropertyDescriptor(
+      HTMLElement.prototype,
+      'clientWidth',
+    )
+
+    try {
+      Object.defineProperty(HTMLElement.prototype, 'clientWidth', {
+        configurable: true,
+        value: 920,
+      })
+
+      render(
+        <BookmarksToolbar
+          canZoomIn
+          canZoomOut
+          canResetZoom={false}
+          currentColumnCount={5}
+          queryState={queryState}
+          resultCount={42}
+          semanticImagePreviewUrl={null}
+          semanticSourceLabel={null}
+          onSearchChange={() => {}}
+          onSortChange={() => {}}
+          onDirectionToggle={() => {}}
+          onModeChange={() => {}}
+          onImmersiveChange={() => {}}
+          onImageSearch={() => {}}
+          onClearSemanticSource={() => {}}
+          onKeepSeedChange={() => {}}
+          onRerandomize={() => {}}
+          onZoomIn={() => {}}
+          onZoomOut={() => {}}
+          onZoomReset={() => {}}
+        />,
+      )
+
+      const searchbox = await screen.findByRole('searchbox', {
+        name: 'Search bookmarks',
+      })
+
+      expect(searchbox).not.toHaveFocus()
+    } finally {
+      if (originalClientWidth) {
+        Object.defineProperty(HTMLElement.prototype, 'clientWidth', originalClientWidth)
+      } else {
+        delete (HTMLElement.prototype as { clientWidth?: number }).clientWidth
+      }
+    }
+  })
+
   it('shows an image query badge inside the expanded search box', async () => {
     const user = userEvent.setup()
     const onClearSemanticSource = vi.fn()

@@ -9,7 +9,8 @@ export type ToolbarOverflowKey =
   | 'rerandomize'
   | 'zoom'
 
-const CONTROL_WIDTH: Record<ToolbarOverflowKey | 'search' | 'more', number> = {
+const CONTROL_WIDTH: Record<ToolbarOverflowKey | 'count' | 'search' | 'more', number> = {
+  count: 72,
   search: 0,
   sort: 136,
   mode: 36,
@@ -66,6 +67,7 @@ export function resolveToolbarOverflow(input: {
   const getTotalWidth = () => {
     const hiddenSet = new Set(hidden)
     const itemWidths = [
+      CONTROL_WIDTH.count,
       searchWidth,
       ...visibleControls
         .filter((key) => !hiddenSet.has(key))
@@ -92,4 +94,21 @@ export function resolveToolbarOverflow(input: {
   }
 
   return hidden
+}
+
+export function shouldAutoExpandToolbarSearch(input: {
+  containerWidth: number
+  isRandomSort: boolean
+  hasSemanticSource: boolean
+}): boolean {
+  if (input.containerWidth <= 0) {
+    return false
+  }
+
+  return (
+    resolveToolbarOverflow({
+      ...input,
+      searchExpanded: true,
+    }).length === 0
+  )
 }

@@ -17,7 +17,10 @@ import {
 } from 'lucide-react'
 
 import type { QueryState } from '@/features/bookmarks/model'
-import { resolveToolbarOverflow } from '@/components/toolbar/toolbar-layout'
+import {
+  resolveToolbarOverflow,
+  shouldAutoExpandToolbarSearch,
+} from '@/components/toolbar/toolbar-layout'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -145,6 +148,15 @@ export function BookmarksToolbar({
     hasSearchQuery || hasImageSearchQuery,
   )
   const [toolbarWidth, setToolbarWidth] = React.useState(0)
+  const shouldShowSearchInput =
+    isSearchExpanded ||
+    hasSearchQuery ||
+    hasImageSearchQuery ||
+    shouldAutoExpandToolbarSearch({
+      containerWidth: toolbarWidth,
+      isRandomSort,
+      hasSemanticSource: semanticSourceLabel !== null,
+    })
 
   React.useEffect(() => {
     const node = toolbarRef.current
@@ -175,16 +187,14 @@ export function BookmarksToolbar({
     () =>
       resolveToolbarOverflow({
         containerWidth: toolbarWidth,
-        searchExpanded: isSearchExpanded || hasSearchQuery || hasImageSearchQuery,
+        searchExpanded: shouldShowSearchInput,
         isRandomSort,
         hasSemanticSource: semanticSourceLabel !== null,
       }),
     [
-      hasImageSearchQuery,
-      hasSearchQuery,
       isRandomSort,
-      isSearchExpanded,
       semanticSourceLabel,
+      shouldShowSearchInput,
       toolbarWidth,
     ],
   )
@@ -310,12 +320,12 @@ export function BookmarksToolbar({
         <div
           className={cn(
             'relative shrink-0 transition-[width] duration-200 ease-out',
-            isSearchExpanded || hasSearchQuery || hasImageSearchQuery
+            shouldShowSearchInput
               ? 'w-[clamp(11rem,24vw,22rem)]'
               : 'w-9',
           )}
         >
-          {isSearchExpanded || hasSearchQuery || hasImageSearchQuery ? (
+          {shouldShowSearchInput ? (
             <>
               <SearchIcon
                 className="pointer-events-none absolute top-1/2 left-3 z-10 size-4 -translate-y-1/2 text-muted-foreground"
@@ -326,7 +336,7 @@ export function BookmarksToolbar({
                 type="search"
                 aria-label="Search bookmarks"
                 placeholder="Search"
-                autoFocus
+                autoFocus={isSearchExpanded}
                 value={queryState.q}
                 onBlur={collapseSearch}
                 onChange={(event) => onSearchChange(event.target.value)}
