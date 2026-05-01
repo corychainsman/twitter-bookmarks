@@ -261,6 +261,20 @@ const docsById = new Map<string, TweetDoc>(
   ]),
 )
 
+function createItems(count: number): GridItem[] {
+  return Array.from({ length: count }, (_, index) => ({
+    gridId: `tweet-${index + 1}:0`,
+    tweetId: `tweet-${index + 1}`,
+    mediaIndex: 0,
+    mediaType: 'photo',
+    thumbUrl: `https://img.example.com/${index + 1}.jpg`,
+    fullUrl: `https://img.example.com/${index + 1}-full.jpg`,
+    width: 1200,
+    height: 800,
+    aspectRatio: 1.5,
+  }))
+}
+
 let measuredWidth = 960
 
 function triggerResize() {
@@ -546,6 +560,39 @@ describe('BookmarksMasonry', () => {
         overscanByPixels: 2700,
       })
     })
+  })
+
+  it('starts loading virtualized overscan images before they enter the viewport', async () => {
+    render(
+      <BookmarksMasonry
+        columnCount={3}
+        docsById={new Map()}
+        immersive
+        items={createItems(40)}
+        onOpen={() => {}}
+        onScrollAnchorApplied={() => {}}
+        scrollAnchorRequest={null}
+      />,
+    )
+
+    await waitFor(() => {
+      expect(document.querySelectorAll('img')).toHaveLength(40)
+    })
+
+    const initialImage = document.querySelector<HTMLImageElement>(
+      'img[src="https://img.example.com/1.jpg"]',
+    )
+    const overscanImage = document.querySelector<HTMLImageElement>(
+      'img[src="https://img.example.com/40.jpg"]',
+    )
+
+    expect(initialImage).toHaveAttribute('loading', 'eager')
+    expect(initialImage).toHaveAttribute('fetchpriority', 'high')
+    expect(initialImage).toHaveAttribute('data-initial-media', 'true')
+
+    expect(overscanImage).toHaveAttribute('loading', 'eager')
+    expect(overscanImage).toHaveAttribute('fetchpriority', 'low')
+    expect(overscanImage).not.toHaveAttribute('data-initial-media')
   })
 
   it('restores the anchored item near its previous viewport position after zoom relayout', async () => {

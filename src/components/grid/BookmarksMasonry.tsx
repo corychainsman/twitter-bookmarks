@@ -366,7 +366,7 @@ export function BookmarksMasonry({
               item={item}
               tweet={docsById.get(item.tweetId)}
               immersive={renderedImmersive}
-              loading={index < eagerItemCount ? 'eager' : 'lazy'}
+              loading="eager"
               fetchPriority={index < eagerItemCount ? 'high' : 'low'}
               initialMedia={index < eagerItemCount}
               onOpen={() => onOpen(item.gridId)}
