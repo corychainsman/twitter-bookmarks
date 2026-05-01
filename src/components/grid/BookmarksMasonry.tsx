@@ -19,6 +19,7 @@ import {
   estimateBookmarksMasonryHeight,
   resolveBookmarksMasonryColumnWidth,
 } from '@/components/grid/masonry-estimates'
+import { BOOKMARKS_ZOOM_STEP } from '@/components/grid/masonry-layout'
 import { MeasuredMasonryCell } from '@/components/grid/MeasuredMasonryCell'
 import { resolveBookmarksMasonryRenderKey } from '@/components/grid/masonry-render-key'
 import { resolveBookmarksMasonryCellStyle } from '@/components/grid/masonry-cell-style'
@@ -34,6 +35,7 @@ type BookmarksMasonryProps = {
   docsById: Map<string, TweetDoc>
   immersive: boolean
   onOpen: (gridId: string) => void
+  onPinchZoom: (deltaColumns: number) => void
   onInitialMediaReady?: () => void
   scrollAnchorRequest: MasonryScrollAnchorRequest | null
   onScrollAnchorApplied: (requestId: number) => void
@@ -42,6 +44,8 @@ type BookmarksMasonryProps = {
 const ANCHOR_RESTORE_ATTEMPTS = 3
 const MINIMUM_PREFETCH_ITEMS = 50
 const MINIMUM_EAGER_ITEMS = 36
+const MINIMUM_PINCH_DISTANCE_PX = 16
+const PINCH_ZOOM_STEP_RATIO = 1.16
 const VIEWPORT_PREFETCH_MULTIPLIER = 5
 const noop = () => {}
 
@@ -184,6 +188,7 @@ export function BookmarksMasonry({
   docsById,
   immersive,
   onOpen,
+  onPinchZoom,
   onInitialMediaReady,
   scrollAnchorRequest,
   onScrollAnchorApplied,
@@ -202,6 +207,87 @@ export function BookmarksMasonry({
     scrollTop: 0,
   })
   const handleInitialMediaReady = onInitialMediaReady ?? noop
+
+  React.useEffect(() => {
+    if (!containerElement) {
+      return undefined
+    }
+
+    let lastPinchDistance = 0
+
+    const resolveTouchDistance = (touches: TouchList) => {
+      if (touches.length !== 2) {
+        return 0
+      }
+
+      const firstTouch = touches[0]
+      const secondTouch = touches[1]
+      return Math.hypot(
+        secondTouch.clientX - firstTouch.clientX,
+        secondTouch.clientY - firstTouch.clientY,
+      )
+    }
+
+    const resetPinch = () => {
+      lastPinchDistance = 0
+    }
+
+    const handleTouchStart = (event: TouchEvent) => {
+      if (event.touches.length !== 2) {
+        resetPinch()
+        return
+      }
+
+      lastPinchDistance = resolveTouchDistance(event.touches)
+    }
+
+    const handleTouchMove = (event: TouchEvent) => {
+      if (event.touches.length !== 2) {
+        resetPinch()
+        return
+      }
+
+      const currentDistance = resolveTouchDistance(event.touches)
+      if (
+        currentDistance < MINIMUM_PINCH_DISTANCE_PX ||
+        lastPinchDistance < MINIMUM_PINCH_DISTANCE_PX
+      ) {
+        lastPinchDistance = currentDistance
+        return
+      }
+
+      event.preventDefault()
+
+      const pinchRatio = currentDistance / lastPinchDistance
+      if (pinchRatio >= PINCH_ZOOM_STEP_RATIO) {
+        onPinchZoom(BOOKMARKS_ZOOM_STEP)
+        lastPinchDistance = currentDistance
+      } else if (pinchRatio <= 1 / PINCH_ZOOM_STEP_RATIO) {
+        onPinchZoom(-BOOKMARKS_ZOOM_STEP)
+        lastPinchDistance = currentDistance
+      }
+    }
+
+    const handleTouchEnd = (event: TouchEvent) => {
+      if (event.touches.length < 2) {
+        resetPinch()
+      } else {
+        lastPinchDistance = resolveTouchDistance(event.touches)
+      }
+    }
+
+    containerElement.addEventListener('touchstart', handleTouchStart, { passive: true })
+    containerElement.addEventListener('touchmove', handleTouchMove, { passive: false })
+    containerElement.addEventListener('touchend', handleTouchEnd, { passive: true })
+    containerElement.addEventListener('touchcancel', resetPinch, { passive: true })
+
+    return () => {
+      containerElement.removeEventListener('touchstart', handleTouchStart)
+      containerElement.removeEventListener('touchmove', handleTouchMove)
+      containerElement.removeEventListener('touchend', handleTouchEnd)
+      containerElement.removeEventListener('touchcancel', resetPinch)
+    }
+  }, [containerElement, onPinchZoom])
 
   React.useLayoutEffect(() => {
     renderedCellKeyAllocatorRef.current.clear()

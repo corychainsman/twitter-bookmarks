@@ -301,6 +301,23 @@ function setRect(element: HTMLElement, top: number, height = 120) {
   })
 }
 
+function dispatchTouchEvent(
+  element: Element,
+  type: 'touchstart' | 'touchmove' | 'touchend',
+  touches: Array<{ clientX: number; clientY: number }>,
+) {
+  const event = new Event(type, {
+    bubbles: true,
+    cancelable: type === 'touchmove',
+  })
+  Object.defineProperty(event, 'touches', {
+    configurable: true,
+    value: touches,
+  })
+  element.dispatchEvent(event)
+  return event
+}
+
 describe('BookmarksMasonry', () => {
   beforeEach(() => {
     measuredWidth = 960
@@ -353,6 +370,7 @@ describe('BookmarksMasonry', () => {
         immersive={false}
         items={items}
         onOpen={() => {}}
+        onPinchZoom={() => {}}
         onScrollAnchorApplied={() => {}}
         scrollAnchorRequest={null}
       />,
@@ -385,6 +403,7 @@ describe('BookmarksMasonry', () => {
         immersive
         items={items}
         onOpen={() => {}}
+        onPinchZoom={() => {}}
         onScrollAnchorApplied={() => {}}
         scrollAnchorRequest={null}
       />,
@@ -405,6 +424,7 @@ describe('BookmarksMasonry', () => {
         immersive
         items={[items[1], items[0]]}
         onOpen={() => {}}
+        onPinchZoom={() => {}}
         onScrollAnchorApplied={() => {}}
         scrollAnchorRequest={null}
       />,
@@ -472,6 +492,7 @@ describe('BookmarksMasonry', () => {
         immersive={false}
         items={duplicateItems}
         onOpen={() => {}}
+        onPinchZoom={() => {}}
         onScrollAnchorApplied={() => {}}
         scrollAnchorRequest={null}
       />,
@@ -503,6 +524,7 @@ describe('BookmarksMasonry', () => {
         immersive={false}
         items={items}
         onOpen={() => {}}
+        onPinchZoom={() => {}}
         onScrollAnchorApplied={() => {}}
         scrollAnchorRequest={null}
       />,
@@ -531,6 +553,7 @@ describe('BookmarksMasonry', () => {
         immersive={false}
         items={items}
         onOpen={() => {}}
+        onPinchZoom={() => {}}
         onScrollAnchorApplied={() => {}}
         scrollAnchorRequest={null}
       />,
@@ -552,6 +575,7 @@ describe('BookmarksMasonry', () => {
         immersive={false}
         items={items}
         onOpen={() => {}}
+        onPinchZoom={() => {}}
         onScrollAnchorApplied={() => {}}
         scrollAnchorRequest={null}
       />,
@@ -579,6 +603,7 @@ describe('BookmarksMasonry', () => {
         immersive
         items={createItems(40)}
         onOpen={() => {}}
+        onPinchZoom={() => {}}
         onScrollAnchorApplied={() => {}}
         scrollAnchorRequest={null}
       />,
@@ -618,6 +643,7 @@ describe('BookmarksMasonry', () => {
         immersive
         items={createItems(80)}
         onOpen={() => {}}
+        onPinchZoom={() => {}}
         onScrollAnchorApplied={() => {}}
         scrollAnchorRequest={null}
       />,
@@ -652,6 +678,7 @@ describe('BookmarksMasonry', () => {
         immersive
         items={createItems(2)}
         onOpen={() => {}}
+        onPinchZoom={() => {}}
         onScrollAnchorApplied={() => {}}
         scrollAnchorRequest={null}
       />,
@@ -734,6 +761,7 @@ describe('BookmarksMasonry', () => {
         immersive={false}
         items={items}
         onOpen={() => {}}
+        onPinchZoom={() => {}}
         onScrollAnchorApplied={onScrollAnchorApplied}
         scrollAnchorRequest={null}
       />,
@@ -750,6 +778,7 @@ describe('BookmarksMasonry', () => {
         immersive={false}
         items={items}
         onOpen={() => {}}
+        onPinchZoom={() => {}}
         onScrollAnchorApplied={onScrollAnchorApplied}
         scrollAnchorRequest={{
           gridId: 'tweet-2:0',
@@ -776,5 +805,46 @@ describe('BookmarksMasonry', () => {
       behavior: 'auto',
       top: 740,
     })
+  })
+
+  it('maps two-finger pinch gestures to zoom in and zoom out steps', async () => {
+    const onPinchZoom = vi.fn()
+
+    const { container } = render(
+      <BookmarksMasonry
+        columnCount={3}
+        docsById={docsById}
+        immersive={false}
+        items={items}
+        onOpen={() => {}}
+        onPinchZoom={onPinchZoom}
+        onScrollAnchorApplied={() => {}}
+        scrollAnchorRequest={null}
+      />,
+    )
+
+    await waitFor(() => {
+      expect(container.querySelector('.app-masonry > div')).not.toBeNull()
+    })
+
+    const touchTarget = container.querySelector('.app-masonry > div') as Element
+
+    dispatchTouchEvent(touchTarget, 'touchstart', [
+      { clientX: 0, clientY: 0 },
+      { clientX: 100, clientY: 0 },
+    ])
+    const zoomInEvent = dispatchTouchEvent(touchTarget, 'touchmove', [
+      { clientX: 0, clientY: 0 },
+      { clientX: 120, clientY: 0 },
+    ])
+
+    dispatchTouchEvent(touchTarget, 'touchmove', [
+      { clientX: 0, clientY: 0 },
+      { clientX: 100, clientY: 0 },
+    ])
+
+    expect(onPinchZoom).toHaveBeenNthCalledWith(1, 1)
+    expect(onPinchZoom).toHaveBeenNthCalledWith(2, -1)
+    expect(zoomInEvent.defaultPrevented).toBe(true)
   })
 })

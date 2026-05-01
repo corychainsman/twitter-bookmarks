@@ -12,6 +12,7 @@ type BookmarksPageContentProps = {
   loadingError: string | null
   onInitialMediaReady: () => void
   onOpen: (gridId: string) => void
+  onPinchZoom: (deltaColumns: number) => void
   onScrollAnchorApplied: (requestId: number) => void
   ready: boolean
   scrollAnchorRequest: MasonryScrollAnchorRequest | null
@@ -45,6 +46,7 @@ export function BookmarksPageContent({
   loadingError,
   onInitialMediaReady,
   onOpen,
+  onPinchZoom,
   onScrollAnchorApplied,
   ready,
   scrollAnchorRequest,
@@ -70,6 +72,7 @@ export function BookmarksPageContent({
       immersive={immersive}
       onInitialMediaReady={onInitialMediaReady}
       onOpen={onOpen}
+      onPinchZoom={onPinchZoom}
       onScrollAnchorApplied={onScrollAnchorApplied}
       scrollAnchorRequest={scrollAnchorRequest}
     />

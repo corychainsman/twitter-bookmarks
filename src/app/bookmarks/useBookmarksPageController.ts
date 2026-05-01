@@ -736,6 +736,7 @@ export function useBookmarksPageController() {
     onRerandomize,
     onZoomIn: () => onZoomChange(BOOKMARKS_ZOOM_STEP),
     onZoomOut: () => onZoomChange(-BOOKMARKS_ZOOM_STEP),
+    onPinchZoom: onZoomChange,
     onZoomReset: () => updateZoom(() => DEFAULT_QUERY_STATE.zoom),
     onOpenLightbox: (gridId: string) => setSelectedGridId(gridId),
     onCloseLightbox: () => setSelectedGridId(null),

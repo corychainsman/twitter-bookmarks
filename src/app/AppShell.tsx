@@ -30,6 +30,7 @@ export function AppShell() {
     onBrowseSimilar,
     onZoomIn,
     onZoomOut,
+    onPinchZoom,
     onZoomReset,
     onOpenLightbox,
     onCloseLightbox,
@@ -72,6 +73,7 @@ export function AppShell() {
           loadingError={loadingError}
           onInitialMediaReady={onInitialMediaReady}
           onOpen={onOpenLightbox}
+          onPinchZoom={onPinchZoom}
           onScrollAnchorApplied={onScrollAnchorApplied}
           ready={hasLoadedArtifacts}
           scrollAnchorRequest={scrollAnchorRequest}
