@@ -9,6 +9,7 @@ import {
   FIELDTHEORY_FOLDER_NAME,
   FIELDTHEORY_DELAY_MS,
   FIELDTHEORY_MAX_PAGES,
+  FIELDTHEORY_PAGE_SIZE,
   parseFieldTheorySourceContract,
 } from '../scripts/fieldtheory'
 
@@ -23,6 +24,8 @@ describe('fieldtheory sync wrapper', () => {
       String(FIELDTHEORY_MAX_PAGES),
       '--delay-ms',
       String(FIELDTHEORY_DELAY_MS),
+      '--page-size',
+      String(FIELDTHEORY_PAGE_SIZE),
     ])
   })
 

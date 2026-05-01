@@ -49,12 +49,14 @@ type SyncOptions = {
   firefoxProfileDir?: string
   delayMs: number
   maxPages: number
+  pageSize: number
 }
 
 function parseArgs(argv: string[]): SyncOptions {
   const options: SyncOptions = {
     delayMs: FIELDTHEORY_DELAY_MS,
     maxPages: FIELDTHEORY_MAX_PAGES,
+    pageSize: 100,
   }
 
   for (let index = 0; index < argv.length; index += 1) {
@@ -104,6 +106,12 @@ function parseArgs(argv: string[]): SyncOptions {
       index += 1
       continue
     }
+
+    if (value === '--page-size' && next) {
+      options.pageSize = Number(next)
+      index += 1
+      continue
+    }
   }
 
   if (!Number.isFinite(options.delayMs) || options.delayMs < 0) {
@@ -112,6 +120,10 @@ function parseArgs(argv: string[]): SyncOptions {
 
   if (!Number.isFinite(options.maxPages) || options.maxPages < 1) {
     throw new Error(`Invalid --max-pages value: ${options.maxPages}`)
+  }
+
+  if (!Number.isFinite(options.pageSize) || options.pageSize < 1 || options.pageSize > 100) {
+    throw new Error(`Invalid --page-size value: ${options.pageSize}`)
   }
 
   return options
@@ -205,10 +217,15 @@ async function main() {
     console.error(`  -> ${folder.name}...`)
 
     try {
-      const walkResult = await walkFolderTimeline(csrfToken, folder.id, {
+      const walkOptions = {
         cookieHeader,
         delayMs: options.delayMs,
         maxPages: options.maxPages,
+        pageSize: options.pageSize,
+      }
+
+      const walkResult = await walkFolderTimeline(csrfToken, folder.id, {
+        ...walkOptions,
       })
 
       if (!walkResult.complete) {

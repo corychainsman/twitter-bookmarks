@@ -2,6 +2,7 @@ export const FIELDTHEORY_VERSION = '1.3.9'
 export const FIELDTHEORY_FOLDER_NAME = 'Inspo'
 export const FIELDTHEORY_MAX_PAGES = 10_000
 export const FIELDTHEORY_DELAY_MS = 600
+export const FIELDTHEORY_PAGE_SIZE = 100
 
 type TimelineSortableRecord = {
   id: string
@@ -18,6 +19,8 @@ export function buildFieldTheoryFolderArgs(): string[] {
     String(FIELDTHEORY_MAX_PAGES),
     '--delay-ms',
     String(FIELDTHEORY_DELAY_MS),
+    '--page-size',
+    String(FIELDTHEORY_PAGE_SIZE),
   ]
 }
 
