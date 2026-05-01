@@ -78,6 +78,63 @@ describe('resolveTwitterImageSourceSet', () => {
     )
   })
 
+  it('can cap source candidates and use a precise rendered size hint', () => {
+    const result = resolveTwitterImageSourceSet(
+      'https://pbs.twimg.com/media/abc.jpg',
+      {
+        maxSize: 'medium',
+        sizes: '342px',
+      },
+    )
+
+    expect(result).toEqual({
+      src: 'https://pbs.twimg.com/media/abc.jpg?name=medium',
+      srcSet:
+        'https://pbs.twimg.com/media/abc.jpg?name=small 680w, https://pbs.twimg.com/media/abc.jpg?name=medium 1200w',
+      sizes: '342px',
+    })
+  })
+
+  it('selects source candidates from rendered width and device pixel ratio', () => {
+    expect(
+      resolveTwitterImageSourceSet('https://pbs.twimg.com/media/abc.jpg', {
+        devicePixelRatio: 2,
+        renderedWidth: 320,
+        sizes: '320px',
+      }),
+    ).toEqual({
+      src: 'https://pbs.twimg.com/media/abc.jpg?name=small',
+      srcSet: 'https://pbs.twimg.com/media/abc.jpg?name=small 680w',
+      sizes: '320px',
+    })
+
+    expect(
+      resolveTwitterImageSourceSet('https://pbs.twimg.com/media/abc.jpg', {
+        devicePixelRatio: 3,
+        renderedWidth: 360,
+        sizes: '360px',
+      }),
+    ).toEqual({
+      src: 'https://pbs.twimg.com/media/abc.jpg?name=medium',
+      srcSet:
+        'https://pbs.twimg.com/media/abc.jpg?name=small 680w, https://pbs.twimg.com/media/abc.jpg?name=medium 1200w',
+      sizes: '360px',
+    })
+
+    expect(
+      resolveTwitterImageSourceSet('https://pbs.twimg.com/media/abc.jpg', {
+        devicePixelRatio: 3,
+        renderedWidth: 700,
+        sizes: '700px',
+      }),
+    ).toEqual({
+      src: 'https://pbs.twimg.com/media/abc.jpg?name=large',
+      srcSet:
+        'https://pbs.twimg.com/media/abc.jpg?name=small 680w, https://pbs.twimg.com/media/abc.jpg?name=medium 1200w, https://pbs.twimg.com/media/abc.jpg?name=large 2048w',
+      sizes: '700px',
+    })
+  })
+
   it('returns only src for non-resizable URLs', () => {
     const url = 'https://img.example.com/thumb.jpg'
     expect(resolveTwitterImageSourceSet(url)).toEqual({ src: url })

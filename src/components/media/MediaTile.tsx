@@ -10,6 +10,9 @@ type MediaTileProps = {
   loading?: 'eager' | 'lazy'
   fetchPriority?: 'high' | 'low' | 'auto'
   initialMedia?: boolean
+  imageDevicePixelRatio?: number
+  imageRenderedWidth?: number
+  imageSizes?: string
   onOpen: () => void
 }
 
@@ -20,6 +23,9 @@ export function MediaTile({
   loading = 'lazy',
   fetchPriority = 'auto',
   initialMedia = false,
+  imageDevicePixelRatio,
+  imageRenderedWidth,
+  imageSizes,
   onOpen,
 }: MediaTileProps) {
   const isMotion = item.mediaType === 'video' || item.mediaType === 'animated_gif'
@@ -29,7 +35,11 @@ export function MediaTile({
     (item.width && item.height && item.width > 0 && item.height > 0
       ? item.width / item.height
       : undefined)
-  const imageSources = resolveTwitterImageSourceSet(isMotion ? previewUrl : item.thumbUrl)
+  const imageSources = resolveTwitterImageSourceSet(isMotion ? previewUrl : item.thumbUrl, {
+    devicePixelRatio: imageDevicePixelRatio,
+    renderedWidth: imageRenderedWidth,
+    sizes: imageSizes,
+  })
 
   return (
     <article className="app-tile group">

@@ -45,6 +45,8 @@ import type {
 
 type HydratedArtifacts = CoreArtifacts
 
+const SEARCH_QUERY_COMMIT_DELAY_MS = 180
+
 function resolveDataUrl(path: string): string {
   const appBase = new URL(import.meta.env.BASE_URL, window.location.origin)
   return new URL(path.replace(/^\//, ''), appBase).toString()
@@ -124,6 +126,7 @@ export function useBookmarksPageController() {
     initialSessionState.selectedGridId,
   )
   const [queryState, setQueryState] = React.useState<QueryState>(initialQueryState)
+  const [searchInputValue, setSearchInputValue] = React.useState(initialQueryState.q)
   const [semanticQuery, setSemanticQuery] = React.useState<SemanticQuery | null>(null)
   const [semanticQueryKey, setSemanticQueryKey] = React.useState<string | null>(null)
   const [semanticImageQueryName, setSemanticImageQueryName] = React.useState<string | null>(null)
@@ -355,6 +358,10 @@ export function useBookmarksPageController() {
   }, [queryState])
 
   React.useEffect(() => {
+    setSearchInputValue(queryState.q)
+  }, [queryState.q])
+
+  React.useEffect(() => {
     updateUrlFromState(queryState)
   }, [queryState])
 
@@ -542,6 +549,13 @@ export function useBookmarksPageController() {
         .filter((item): item is GridItem => item !== undefined),
     [gridById, queryResult.orderedGridIds],
   )
+  const displayedQueryState = React.useMemo(
+    () => ({
+      ...queryState,
+      q: searchInputValue,
+    }),
+    [queryState, searchInputValue],
+  )
 
   const selection = React.useMemo(() => parseGridSelection(selectedGridId), [selectedGridId])
 
@@ -566,6 +580,22 @@ export function useBookmarksPageController() {
     })
     setIsEmbeddingPending(false)
   }, [])
+
+  React.useEffect(() => {
+    if (searchInputValue === queryState.q) {
+      return
+    }
+
+    const timeoutId = window.setTimeout(() => {
+      clearSemanticQueryVector()
+      patchQueryState({
+        q: searchInputValue,
+        similarToGridId: undefined,
+      })
+    }, SEARCH_QUERY_COMMIT_DELAY_MS)
+
+    return () => window.clearTimeout(timeoutId)
+  }, [clearSemanticQueryVector, patchQueryState, queryState.q, searchInputValue])
 
   const requestImageSemanticQuery = (file: File) => {
     const requestKey = `image:${file.name}:${file.size}:${file.lastModified}`
@@ -671,7 +701,7 @@ export function useBookmarksPageController() {
     docsById,
     masonryLayout,
     queryResult,
-    queryState,
+    queryState: displayedQueryState,
     loadingError,
     hasLoadedArtifacts: artifacts !== null,
     isQueryPending: isQueryPending || isEmbeddingPending,
@@ -691,8 +721,7 @@ export function useBookmarksPageController() {
     visibleItems,
     canResetZoom: queryState.zoom !== DEFAULT_QUERY_STATE.zoom,
     onSearchChange: (value: string) => {
-      clearSemanticQueryVector()
-      patchQueryState({ q: value, similarToGridId: undefined })
+      setSearchInputValue(value)
     },
     onSortChange: (value: QueryState['sort']) => patchQueryState({ sort: value }),
     onDirectionToggle: () =>

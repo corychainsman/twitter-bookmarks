@@ -93,4 +93,29 @@ describe('MediaTile', () => {
     expect(image).toHaveAttribute('fetchpriority', 'high')
     expect(image).toHaveAttribute('data-initial-media', 'true')
   })
+
+  it('selects grid thumbnail candidates from rendered width and pixel density', () => {
+    render(
+      <MediaTile
+        item={{
+          ...item,
+          thumbUrl: 'https://pbs.twimg.com/media/thumb.jpg',
+        }}
+        tweet={tweet}
+        immersive
+        imageDevicePixelRatio={3}
+        imageRenderedWidth={342}
+        imageSizes="342px"
+        onOpen={() => {}}
+      />,
+    )
+
+    const image = screen.getByRole('img', { name: tweet.text })
+    expect(image).toHaveAttribute('src', 'https://pbs.twimg.com/media/thumb.jpg?name=medium')
+    expect(image).toHaveAttribute(
+      'srcset',
+      'https://pbs.twimg.com/media/thumb.jpg?name=small 680w, https://pbs.twimg.com/media/thumb.jpg?name=medium 1200w',
+    )
+    expect(image).toHaveAttribute('sizes', '342px')
+  })
 })

@@ -251,6 +251,8 @@ export function BookmarksMasonry({
     items.length,
     Math.max(MINIMUM_EAGER_ITEMS, columnCount * 6),
   )
+  const imageDevicePixelRatio =
+    typeof window === 'undefined' ? 1 : Math.max(1, window.devicePixelRatio || 1)
 
   React.useEffect(() => {
     if (!scrollAnchorRequest) {
@@ -369,6 +371,9 @@ export function BookmarksMasonry({
               loading="eager"
               fetchPriority={index < eagerItemCount ? 'high' : 'low'}
               initialMedia={index < eagerItemCount}
+              imageDevicePixelRatio={imageDevicePixelRatio}
+              imageRenderedWidth={columnWidth}
+              imageSizes={`${columnWidth}px`}
               onOpen={() => onOpen(item.gridId)}
             />
           </div>
