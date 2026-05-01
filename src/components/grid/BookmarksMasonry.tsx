@@ -23,6 +23,10 @@ import { MeasuredMasonryCell } from '@/components/grid/MeasuredMasonryCell'
 import { resolveBookmarksMasonryRenderKey } from '@/components/grid/masonry-render-key'
 import { resolveBookmarksMasonryCellStyle } from '@/components/grid/masonry-cell-style'
 import { resolveMasonryViewportTopInset } from '@/components/grid/masonry-viewport'
+import {
+  resolveBookmarksMasonryImageLoadingStrategy,
+  type MasonryScrollDirection,
+} from '@/components/grid/masonry-image-loading'
 
 type BookmarksMasonryProps = {
   items: GridItem[]
@@ -38,7 +42,7 @@ type BookmarksMasonryProps = {
 const ANCHOR_RESTORE_ATTEMPTS = 3
 const MINIMUM_PREFETCH_ITEMS = 50
 const MINIMUM_EAGER_ITEMS = 36
-const VIEWPORT_PREFETCH_MULTIPLIER = 3
+const VIEWPORT_PREFETCH_MULTIPLIER = 5
 const noop = () => {}
 
 function resolveToolbarBottom(): number {
@@ -192,6 +196,11 @@ export function BookmarksMasonry({
     createBookmarksMasonryRenderedCellKeyAllocator(),
   )
   const hasReportedInitialMediaReadyRef = React.useRef(false)
+  const viewportRef = React.useRef({
+    height: 0,
+    scrollDirection: 'none' as MasonryScrollDirection,
+    scrollTop: 0,
+  })
   const handleInitialMediaReady = onInitialMediaReady ?? noop
 
   React.useLayoutEffect(() => {
@@ -353,6 +362,16 @@ export function BookmarksMasonry({
         return null
       }
       const cellStyle = resolveBookmarksMasonryCellStyle(style)
+      const imageLoadingStrategy = resolveBookmarksMasonryImageLoadingStrategy({
+        cellHeight: cellMeasurerCache.getHeight(index),
+        cellTop: style?.top,
+        eagerItemCount,
+        index,
+        isPositioned: style?.position === 'absolute',
+        scrollDirection: viewportRef.current.scrollDirection,
+        viewportHeight: viewportRef.current.height,
+        viewportScrollTop: viewportRef.current.scrollTop,
+      })
 
       return (
         <MeasuredMasonryCell
@@ -368,9 +387,9 @@ export function BookmarksMasonry({
               item={item}
               tweet={docsById.get(item.tweetId)}
               immersive={renderedImmersive}
-              loading="eager"
-              fetchPriority={index < eagerItemCount ? 'high' : 'low'}
-              initialMedia={index < eagerItemCount}
+              loading={imageLoadingStrategy.loading}
+              fetchPriority={imageLoadingStrategy.fetchPriority}
+              initialMedia={imageLoadingStrategy.initialMedia}
               imageDevicePixelRatio={imageDevicePixelRatio}
               imageRenderedWidth={columnWidth}
               imageSizes={`${columnWidth}px`}
@@ -380,7 +399,16 @@ export function BookmarksMasonry({
         </MeasuredMasonryCell>
       )
     },
-    [cellMeasurerCache, docsById, eagerItemCount, items, onOpen, renderedImmersive],
+    [
+      cellMeasurerCache,
+      columnWidth,
+      docsById,
+      eagerItemCount,
+      imageDevicePixelRatio,
+      items,
+      onOpen,
+      renderedImmersive,
+    ],
   )
 
   if (items.length === 0) {
@@ -417,6 +445,18 @@ export function BookmarksMasonry({
                     : 0
                 const effectiveHeight = Math.max(0, height - viewportTopInset)
                 const effectiveScrollTop = scrollTop + viewportTopInset
+                const previousScrollTop = viewportRef.current.scrollTop
+                const scrollDirection =
+                  effectiveScrollTop > previousScrollTop
+                    ? 'down'
+                    : effectiveScrollTop < previousScrollTop
+                      ? 'up'
+                      : viewportRef.current.scrollDirection
+                viewportRef.current = {
+                  height: effectiveHeight,
+                  scrollDirection,
+                  scrollTop: effectiveScrollTop,
+                }
                 const overscanByPixels = resolveBookmarksMasonryOverscanPx({
                   columnCount,
                   columnWidth,

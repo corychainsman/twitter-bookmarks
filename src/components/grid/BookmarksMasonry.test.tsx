@@ -3,6 +3,9 @@ import { render, waitFor } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { BookmarksMasonry } from '@/components/grid/BookmarksMasonry'
+import {
+  resolveBookmarksMasonryImageLoadingStrategy,
+} from '@/components/grid/masonry-image-loading'
 import { resolveBookmarksMasonryRenderKey } from '@/components/grid/masonry-render-key'
 import type { GridItem, TweetDoc } from '@/features/bookmarks/model'
 
@@ -520,7 +523,7 @@ describe('BookmarksMasonry', () => {
     ).toHaveLength(0)
   })
 
-  it('prefetches the greater of three viewport-heights or fifty items', async () => {
+  it('prefetches the greater of five viewport-heights or fifty items beyond the viewport', async () => {
     const { rerender } = render(
       <BookmarksMasonry
         columnCount={3}
@@ -557,12 +560,18 @@ describe('BookmarksMasonry', () => {
     await waitFor(() => {
       expect(reactVirtualizedMocks.lastMasonryProps).toMatchObject({
         height: 900,
-        overscanByPixels: 2700,
+        overscanByPixels: 4500,
       })
     })
   })
 
-  it('starts loading virtualized overscan images before they enter the viewport', async () => {
+  it('starts loading initial and nearby virtualized images before they enter the viewport', async () => {
+    Object.defineProperty(window, 'scrollY', {
+      configurable: true,
+      value: 0,
+      writable: true,
+    })
+
     render(
       <BookmarksMasonry
         columnCount={3}
@@ -590,9 +599,116 @@ describe('BookmarksMasonry', () => {
     expect(initialImage).toHaveAttribute('fetchpriority', 'high')
     expect(initialImage).toHaveAttribute('data-initial-media', 'true')
 
-    expect(overscanImage).toHaveAttribute('loading', 'eager')
+    expect(overscanImage).toHaveAttribute('loading', 'lazy')
     expect(overscanImage).toHaveAttribute('fetchpriority', 'low')
     expect(overscanImage).not.toHaveAttribute('data-initial-media')
+  })
+
+  it('prioritizes the current scroll viewport instead of the first dataset batch', async () => {
+    Object.defineProperty(window, 'scrollY', {
+      configurable: true,
+      value: 4800,
+      writable: true,
+    })
+
+    render(
+      <BookmarksMasonry
+        columnCount={3}
+        docsById={new Map()}
+        immersive
+        items={createItems(80)}
+        onOpen={() => {}}
+        onScrollAnchorApplied={() => {}}
+        scrollAnchorRequest={null}
+      />,
+    )
+
+    await waitFor(() => {
+      expect(document.querySelectorAll('img')).toHaveLength(80)
+    })
+
+    const offscreenInitialImage = document.querySelector<HTMLImageElement>(
+      'img[src="https://img.example.com/1.jpg"]',
+    )
+    const viewportImage = document.querySelector<HTMLImageElement>(
+      'img[src="https://img.example.com/46.jpg"]',
+    )
+
+    expect(offscreenInitialImage).toHaveAttribute('loading', 'lazy')
+    expect(offscreenInitialImage).toHaveAttribute('fetchpriority', 'low')
+    expect(offscreenInitialImage).not.toHaveAttribute('data-initial-media')
+
+    expect(viewportImage).toHaveAttribute('loading', 'eager')
+    expect(viewportImage).toHaveAttribute('fetchpriority', 'high')
+  })
+
+  it('keeps hidden measurement cells out of the eager image queue', async () => {
+    reactVirtualizedMocks.duplicateCellRenderMode = 'measurement'
+
+    render(
+      <BookmarksMasonry
+        columnCount={3}
+        docsById={new Map()}
+        immersive
+        items={createItems(2)}
+        onOpen={() => {}}
+        onScrollAnchorApplied={() => {}}
+        scrollAnchorRequest={null}
+      />,
+    )
+
+    await waitFor(() => {
+      expect(document.querySelectorAll('img[src="https://img.example.com/1.jpg"]')).toHaveLength(2)
+    })
+
+    const repeatedImages = [
+      ...document.querySelectorAll<HTMLImageElement>('img[src="https://img.example.com/1.jpg"]'),
+    ]
+
+    expect(
+      repeatedImages.some(
+        (image) =>
+          image.getAttribute('loading') === 'lazy' &&
+          image.getAttribute('fetchpriority') === 'low' &&
+          !image.hasAttribute('data-initial-media'),
+      ),
+    ).toBe(true)
+  })
+
+  it('resolves image loading strategy from viewport position', () => {
+    expect(
+      resolveBookmarksMasonryImageLoadingStrategy({
+        cellHeight: 300,
+        cellTop: 0,
+        eagerItemCount: 36,
+        index: 0,
+        isPositioned: false,
+        scrollDirection: 'none',
+        viewportHeight: 900,
+        viewportScrollTop: 0,
+      }),
+    ).toEqual({
+      fetchPriority: 'low',
+      initialMedia: false,
+      loading: 'lazy',
+    })
+
+    expect(
+      resolveBookmarksMasonryImageLoadingStrategy({
+        cellHeight: 300,
+        cellTop: 5400,
+        eagerItemCount: 36,
+        index: 45,
+        isPositioned: true,
+        scrollDirection: 'down',
+        viewportHeight: 900,
+        viewportScrollTop: 4800,
+      }),
+    ).toEqual({
+      fetchPriority: 'high',
+      initialMedia: false,
+      loading: 'eager',
+    })
   })
 
   it('restores the anchored item near its previous viewport position after zoom relayout', async () => {

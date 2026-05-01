@@ -61,7 +61,7 @@ export function MediaTile({
             width={item.width}
             height={item.height}
             style={aspectRatio ? { aspectRatio } : undefined}
-            className="block h-auto w-full"
+            className="app-media-image block h-auto w-full"
           />
 
           {!immersive ? (

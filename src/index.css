@@ -312,6 +312,14 @@ body {
     background: linear-gradient(to top, var(--app-media-scrim), transparent 68%);
   }
 
+  .app-media-image {
+    display: block;
+    overflow: hidden;
+    object-fit: cover;
+    color: transparent;
+    text-indent: -9999px;
+  }
+
   .app-masonry {
     padding-top: var(--app-grid-gap-y);
     padding-bottom: calc((var(--app-grid-gap-y) * 3.5) + env(safe-area-inset-bottom));
