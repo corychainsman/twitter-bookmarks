@@ -22,7 +22,7 @@ function createTweet(overrides: Partial<TweetDoc>): TweetDoc {
 }
 
 describe('createBookmarksLightboxSlides', () => {
-  it('renders photos as full-size image slides', () => {
+  it('renders photos as responsive image slides', () => {
     const slides = createBookmarksLightboxSlides(
       createTweet({
         media: [
@@ -39,7 +39,29 @@ describe('createBookmarksLightboxSlides', () => {
 
     expect(slides).toEqual([
       {
-        src: 'https://pbs.twimg.com/media/example.jpg?format=jpg&name=orig',
+        src: 'https://pbs.twimg.com/media/example.jpg?name=large',
+        srcSet: [
+          {
+            src: 'https://pbs.twimg.com/media/example.jpg?name=small',
+            width: 680,
+            height: 453,
+          },
+          {
+            src: 'https://pbs.twimg.com/media/example.jpg?name=medium',
+            width: 1200,
+            height: 800,
+          },
+          {
+            src: 'https://pbs.twimg.com/media/example.jpg?name=large',
+            width: 1200,
+            height: 800,
+          },
+          {
+            src: 'https://pbs.twimg.com/media/example.jpg?format=jpg&name=orig',
+            width: 1200,
+            height: 800,
+          },
+        ],
         width: 1200,
         height: 800,
         alt: 'Example tweet',
@@ -134,11 +156,11 @@ describe('createBookmarksLightboxSlides', () => {
       },
       {
         kind: 'image',
-        url: 'https://pbs.twimg.com/media/three.jpg?format=jpg&name=orig',
+        url: 'https://pbs.twimg.com/media/three.jpg?name=large',
       },
       {
         kind: 'image',
-        url: 'https://pbs.twimg.com/media/one.jpg?format=jpg&name=orig',
+        url: 'https://pbs.twimg.com/media/one.jpg?name=large',
       },
     ])
   })

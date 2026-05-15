@@ -1,3 +1,5 @@
+import { warmMediaCache } from '@/lib/media-cache'
+
 export type MediaPreloadKind = 'image' | 'video'
 
 export type MediaPreloadCandidate = {
@@ -65,6 +67,8 @@ export function preloadMediaCandidates(
 
     preloader.preloadImage(candidate.url)
   }
+
+  warmMediaCache(loadedUrls)
 
   return loadedUrls
 }
