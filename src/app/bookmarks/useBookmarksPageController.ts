@@ -11,6 +11,10 @@ import type {
 } from '@/features/bookmarks/model'
 import { loadCoreArtifacts } from '@/features/bookmarks/data-loader'
 import {
+  resolveBookmarksQueryRequest,
+  semanticTextQueryKey,
+} from '@/features/bookmarks/query-request'
+import {
   readBookmarksSessionState,
   writeBookmarksScrollSnapshot,
   writeBookmarksSelectedGridId,
@@ -412,42 +416,29 @@ export function useBookmarksPageController() {
       return
     }
 
-    const trimmedSemanticText = queryRequestState.q.trim()
-    const expectedTextQueryKey = `text:${trimmedSemanticText}`
-    const semanticQueryForRequest =
-      !queryRequestState.similarToGridId
-        ? trimmedSemanticText.length > 0
-          ? semanticQueryKey === expectedTextQueryKey
-            ? semanticQuery
-            : null
-          : semanticImageQueryName && semanticQuery?.source === 'image'
-            ? semanticQuery
-            : null
-        : null
-    const isWaitingForSemanticQuery =
-      !queryRequestState.similarToGridId &&
-      (trimmedSemanticText.length > 0 || semanticImageQueryName !== null) &&
-      !semanticQueryForRequest
+    const queryRequest = resolveBookmarksQueryRequest({
+      state: queryRequestState,
+      hasEmbeddingIndex,
+      semanticQuery,
+      semanticQueryKey,
+      semanticImageQueryName,
+    })
 
-    if (isWaitingForSemanticQuery) {
+    if (queryRequest.type === 'needs-semantic-query') {
+      void ensureEmbeddingArtifacts()
+      return
+    }
+
+    if (queryRequest.type === 'needs-embeddings') {
       void ensureEmbeddingArtifacts()
       return
     }
 
     postWorkerMessage({
       type: 'query',
-      state: queryRequestState,
-      semanticQuery: semanticQueryForRequest ?? undefined,
+      state: queryRequest.state,
+      semanticQuery: queryRequest.semanticQuery,
     })
-
-    if (
-      (trimmedSemanticText.length > 0 ||
-        queryRequestState.similarToGridId ||
-        semanticQueryForRequest) &&
-      !hasEmbeddingIndex
-    ) {
-      void ensureEmbeddingArtifacts()
-    }
   }, [
     artifacts,
     hasEmbeddingIndex,
@@ -468,7 +459,7 @@ export function useBookmarksPageController() {
       return
     }
 
-    const requestKey = `text:${trimmedSemanticText}`
+    const requestKey = semanticTextQueryKey(trimmedSemanticText)
     if (semanticQueryKey === requestKey || embeddingRequestKeyRef.current === requestKey) {
       return
     }
