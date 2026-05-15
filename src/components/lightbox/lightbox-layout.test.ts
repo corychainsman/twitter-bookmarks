@@ -2,6 +2,8 @@ import { describe, expect, it } from 'vitest'
 
 import {
   LIGHTBOX_FOOTER_MEDIA_PADDING,
+  LIGHTBOX_DETAILS_PANEL_MAX_WIDTH,
+  LIGHTBOX_DETAILS_PANEL_MIN_WIDTH,
   LIGHTBOX_IMAGE_NATIVE_SIZE_MARGIN,
   LIGHTBOX_TWEET_EMBED_EXTRA_HEIGHT,
   LIGHTBOX_TWEET_EMBED_MARGIN,
@@ -9,6 +11,7 @@ import {
   getAvailableLightboxBox,
   getContainedBoxWithinBounds,
   getContainedLightboxBox,
+  getLightboxDetailsPanelWidth,
   getLightboxMediaPaddingBottom,
   isImageLightboxSlide,
   isLightboxImageRenderedAtNativeSize,
@@ -70,6 +73,16 @@ describe('isLightboxImageRenderedAtNativeSize', () => {
           height: 400,
         },
         { width: 1200, height: 900 },
+      ),
+    ).toBe(false)
+  })
+
+  it('accounts for a desktop details panel when checking native image fit', () => {
+    expect(
+      isLightboxImageRenderedAtNativeSize(
+        { type: 'image', width: 900, height: 400 },
+        { width: 1200, height: 900 },
+        { sidePanelWidth: 360, footerClearance: 0 },
       ),
     ).toBe(false)
   })
@@ -145,6 +158,19 @@ describe('getContainedLightboxBox', () => {
       height: 900 - LIGHTBOX_TWEET_EMBED_MARGIN * 2 - 300,
     })
   })
+
+  it('uses the provided side panel width when supplied', () => {
+    expect(
+      getContainedLightboxBox(
+        { type: 'tweet-embed', width: 1600, height: 900 },
+        { width: 1200, height: 900 },
+        { footerClearance: 0, embedExtraHeight: 0, sidePanelWidth: 400 },
+      ),
+    ).toEqual({
+      width: 800 - LIGHTBOX_TWEET_EMBED_MARGIN * 2,
+      height: (800 - LIGHTBOX_TWEET_EMBED_MARGIN * 2) / (1600 / 900),
+    })
+  })
 })
 
 describe('getContainedBoxWithinBounds', () => {
@@ -173,5 +199,33 @@ describe('getAvailableLightboxBox', () => {
       width: 1200 - LIGHTBOX_TWEET_EMBED_MARGIN * 2,
       height: 900 - LIGHTBOX_TWEET_EMBED_MARGIN * 2 - 300,
     })
+  })
+
+  it('returns raw available bounds beside a desktop details panel', () => {
+    expect(
+      getAvailableLightboxBox(
+        { type: 'tweet-embed' },
+        { width: 1200, height: 900 },
+        { footerClearance: 0, embedExtraHeight: 0, sidePanelWidth: 400 },
+      ),
+    ).toEqual({
+      width: 1200 - 400 - LIGHTBOX_TWEET_EMBED_MARGIN * 2,
+      height: 900 - LIGHTBOX_TWEET_EMBED_MARGIN * 2,
+    })
+  })
+})
+
+describe('getLightboxDetailsPanelWidth', () => {
+  it('hides the details panel below the desktop breakpoint', () => {
+    expect(getLightboxDetailsPanelWidth({ width: 900, height: 700 })).toBe(0)
+  })
+
+  it('clamps the desktop panel width to the configured range', () => {
+    expect(getLightboxDetailsPanelWidth({ width: 1200, height: 900 })).toBe(
+      LIGHTBOX_DETAILS_PANEL_MIN_WIDTH,
+    )
+    expect(getLightboxDetailsPanelWidth({ width: 2000, height: 1200 })).toBe(
+      LIGHTBOX_DETAILS_PANEL_MAX_WIDTH,
+    )
   })
 })

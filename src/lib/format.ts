@@ -23,3 +23,24 @@ export function formatPostedDate(value?: string | null): string {
     dateStyle: 'medium',
   }).format(date)
 }
+
+export function formatPostedDateTime(value?: string | null): string {
+  if (!value) {
+    return 'Unknown date'
+  }
+
+  const date = new Date(value)
+  if (Number.isNaN(date.getTime())) {
+    return value
+  }
+
+  const time = new Intl.DateTimeFormat('en-US', {
+    hour: 'numeric',
+    minute: '2-digit',
+  }).format(date)
+  const day = new Intl.DateTimeFormat('en-US', {
+    dateStyle: 'medium',
+  }).format(date)
+
+  return `${time} · ${day}`
+}

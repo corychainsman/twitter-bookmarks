@@ -28,6 +28,8 @@ import {
   resolveBookmarksMasonryImageLoadingStrategy,
   type MasonryScrollDirection,
 } from '@/components/grid/masonry-image-loading'
+import { createMasonryMediaPreloadCandidates } from '@/components/grid/masonry-media-preload'
+import { preloadMediaCandidates } from '@/lib/media-preload'
 
 type BookmarksMasonryProps = {
   items: GridItem[]
@@ -44,6 +46,8 @@ type BookmarksMasonryProps = {
 const ANCHOR_RESTORE_ATTEMPTS = 3
 const MINIMUM_PREFETCH_ITEMS = 50
 const MINIMUM_EAGER_ITEMS = 36
+const IDLE_PRELOAD_ITEM_COUNT = 72
+const IDLE_PRELOAD_CONCURRENCY = 18
 const MINIMUM_PINCH_DISTANCE_PX = 16
 const PINCH_ZOOM_STEP_RATIO = 1.16
 const VIEWPORT_PREFETCH_MULTIPLIER = 5
@@ -201,6 +205,8 @@ export function BookmarksMasonry({
     createBookmarksMasonryRenderedCellKeyAllocator(),
   )
   const hasReportedInitialMediaReadyRef = React.useRef(false)
+  const preloadedMediaUrlsRef = React.useRef(new Set<string>())
+  const [initialMediaReady, setInitialMediaReady] = React.useState(false)
   const viewportRef = React.useRef({
     height: 0,
     scrollDirection: 'none' as MasonryScrollDirection,
@@ -392,6 +398,7 @@ export function BookmarksMasonry({
       }
 
       hasReportedInitialMediaReadyRef.current = true
+      setInitialMediaReady(true)
       handleInitialMediaReady()
     }
 
@@ -496,6 +503,44 @@ export function BookmarksMasonry({
       renderedImmersive,
     ],
   )
+
+  React.useEffect(() => {
+    if (!initialMediaReady || columnWidth <= 0 || items.length === 0) {
+      return undefined
+    }
+
+    const preload = () => {
+      preloadMediaCandidates(
+        createMasonryMediaPreloadCandidates({
+          devicePixelRatio: imageDevicePixelRatio,
+          items,
+          renderedWidth: columnWidth,
+          startIndex: 0,
+          take: Math.min(items.length, eagerItemCount + IDLE_PRELOAD_ITEM_COUNT),
+        }),
+        {
+          concurrency: IDLE_PRELOAD_CONCURRENCY,
+          seen: preloadedMediaUrlsRef.current,
+        },
+      )
+    }
+
+    const idleWindow = window as Window & {
+      requestIdleCallback?: (
+        callback: IdleRequestCallback,
+        options?: IdleRequestOptions,
+      ) => number
+      cancelIdleCallback?: (handle: number) => void
+    }
+
+    if (idleWindow.requestIdleCallback) {
+      const idleId = idleWindow.requestIdleCallback(preload, { timeout: 1200 })
+      return () => idleWindow.cancelIdleCallback?.(idleId)
+    }
+
+    const timeoutId = window.setTimeout(preload, 350)
+    return () => window.clearTimeout(timeoutId)
+  }, [columnWidth, eagerItemCount, imageDevicePixelRatio, initialMediaReady, items])
 
   if (items.length === 0) {
     return (

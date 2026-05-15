@@ -9,6 +9,10 @@ export const LIGHTBOX_VIDEO_CONTROLS_MEDIA_PADDING = 'min(19rem, 34vh)'
 export const LIGHTBOX_IMAGE_NATIVE_SIZE_MARGIN = 32
 export const LIGHTBOX_TWEET_EMBED_MARGIN = 16
 export const LIGHTBOX_TWEET_EMBED_EXTRA_HEIGHT = 0
+export const LIGHTBOX_DESKTOP_BREAKPOINT = 1024
+export const LIGHTBOX_DETAILS_PANEL_MAX_WIDTH = 472
+export const LIGHTBOX_DETAILS_PANEL_MIN_WIDTH = 384
+export const LIGHTBOX_DETAILS_PANEL_VIEWPORT_RATIO = 0.32
 
 export function isVideoLightboxSlide(slide: LightboxSlideLike): boolean {
   return slide.type === 'video'
@@ -37,6 +41,10 @@ type LightboxBoxLike = {
 export function isLightboxImageRenderedAtNativeSize(
   slide: LightboxSlideLike,
   viewport: LightboxViewportLike,
+  options?: {
+    sidePanelWidth?: number
+    footerClearance?: number
+  },
 ): boolean {
   if (
     !isImageLightboxSlide(slide) ||
@@ -48,10 +56,16 @@ export function isLightboxImageRenderedAtNativeSize(
     return false
   }
 
-  const availableWidth = Math.max(0, viewport.width - LIGHTBOX_IMAGE_NATIVE_SIZE_MARGIN * 2)
+  const sidePanelWidth = options?.sidePanelWidth ?? 0
+  const availableWidth = Math.max(
+    0,
+    viewport.width - sidePanelWidth - LIGHTBOX_IMAGE_NATIVE_SIZE_MARGIN * 2,
+  )
   const availableHeight = Math.max(
     0,
-    viewport.height - LIGHTBOX_IMAGE_NATIVE_SIZE_MARGIN * 2 - estimateFooterClearance(slide),
+    viewport.height -
+      LIGHTBOX_IMAGE_NATIVE_SIZE_MARGIN * 2 -
+      (options?.footerClearance ?? estimateFooterClearance(slide)),
   )
 
   return slide.width <= availableWidth && slide.height <= availableHeight
@@ -63,6 +77,7 @@ export function getContainedLightboxBox(
   options?: {
     footerClearance?: number
     embedExtraHeight?: number
+    sidePanelWidth?: number
   },
 ): { width: number; height: number } {
   return getContainedBoxWithinBounds(
@@ -127,13 +142,15 @@ export function getAvailableLightboxBox(
   options?: {
     footerClearance?: number
     embedExtraHeight?: number
+    sidePanelWidth?: number
   },
 ): { width: number; height: number } {
   const footerClearance = options?.footerClearance ?? estimateFooterClearance(slide)
   const embedExtraHeight = options?.embedExtraHeight ?? estimateEmbedExtraHeight(slide)
+  const sidePanelWidth = options?.sidePanelWidth ?? 0
 
   return {
-    width: Math.max(0, viewport.width - LIGHTBOX_TWEET_EMBED_MARGIN * 2),
+    width: Math.max(0, viewport.width - sidePanelWidth - LIGHTBOX_TWEET_EMBED_MARGIN * 2),
     height: Math.max(
       0,
       viewport.height -
@@ -142,6 +159,20 @@ export function getAvailableLightboxBox(
         embedExtraHeight,
     ),
   }
+}
+
+export function getLightboxDetailsPanelWidth(viewport: LightboxViewportLike): number {
+  if (viewport.width < LIGHTBOX_DESKTOP_BREAKPOINT) {
+    return 0
+  }
+
+  return Math.min(
+    LIGHTBOX_DETAILS_PANEL_MAX_WIDTH,
+    Math.max(
+      LIGHTBOX_DETAILS_PANEL_MIN_WIDTH,
+      Math.round(viewport.width * LIGHTBOX_DETAILS_PANEL_VIEWPORT_RATIO),
+    ),
+  )
 }
 
 function estimateFooterClearance(slide: LightboxSlideLike): number {

@@ -1,9 +1,10 @@
 import type { CSSProperties } from 'react'
 
-const VIEWPORT_HIGH_PRIORITY_LOOKAHEAD_MULTIPLIER = 1.25
+const VIEWPORT_HIGH_PRIORITY_LOOKAHEAD_MULTIPLIER = 0.25
 const VIEWPORT_EAGER_LOOKAHEAD_MULTIPLIER = 2
-const VIEWPORT_SCROLL_AHEAD_HIGH_PRIORITY_MULTIPLIER = 2
+const VIEWPORT_SCROLL_AHEAD_HIGH_PRIORITY_MULTIPLIER = 1
 const VIEWPORT_SCROLL_AHEAD_EAGER_MULTIPLIER = 4
+const INITIAL_HIGH_PRIORITY_ITEM_COUNT = 12
 
 export type MasonryScrollDirection = 'down' | 'none' | 'up'
 
@@ -47,12 +48,14 @@ export function resolveBookmarksMasonryImageLoadingStrategy(input: {
   const initialMedia =
     input.index < input.eagerItemCount &&
     input.viewportScrollTop <= Math.max(1, input.viewportHeight)
+  const initialHighPriority =
+    initialMedia && input.index < Math.min(input.eagerItemCount, INITIAL_HIGH_PRIORITY_ITEM_COUNT)
   const cellTop = resolveCssPixelValue(input.cellTop)
   const cellHeight = Math.max(1, input.cellHeight)
 
   if (cellTop === null || input.viewportHeight <= 0) {
     return {
-      fetchPriority: initialMedia ? 'high' : 'low',
+      fetchPriority: initialHighPriority ? 'high' : 'low',
       initialMedia,
       loading: initialMedia ? 'eager' : 'lazy',
     }
@@ -82,9 +85,9 @@ export function resolveBookmarksMasonryImageLoadingStrategy(input: {
   const eagerTop = Math.max(0, viewportTop - input.viewportHeight * eagerBeforeMultiplier)
   const eagerBottom = viewportBottom + input.viewportHeight * eagerAfterMultiplier
   const isHighPriority =
-    initialMedia || (cellBottom >= highPriorityTop && cellTop <= highPriorityBottom)
+    initialHighPriority || (cellBottom >= highPriorityTop && cellTop <= highPriorityBottom)
   const isEager =
-    isHighPriority || (cellBottom >= eagerTop && cellTop <= eagerBottom)
+    initialMedia || isHighPriority || (cellBottom >= eagerTop && cellTop <= eagerBottom)
 
   return {
     fetchPriority: isHighPriority ? 'high' : 'low',

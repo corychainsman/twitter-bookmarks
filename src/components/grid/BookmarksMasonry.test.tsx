@@ -738,6 +738,25 @@ describe('BookmarksMasonry', () => {
     })
   })
 
+  it('keeps later initial images eager without marking all of them high priority', () => {
+    expect(
+      resolveBookmarksMasonryImageLoadingStrategy({
+        cellHeight: 300,
+        cellTop: 4000,
+        eagerItemCount: 36,
+        index: 20,
+        isPositioned: true,
+        scrollDirection: 'none',
+        viewportHeight: 900,
+        viewportScrollTop: 0,
+      }),
+    ).toEqual({
+      fetchPriority: 'low',
+      initialMedia: true,
+      loading: 'eager',
+    })
+  })
+
   it('restores the anchored item near its previous viewport position after zoom relayout', async () => {
     const onScrollAnchorApplied = vi.fn()
     const scrollTo = vi.fn()
