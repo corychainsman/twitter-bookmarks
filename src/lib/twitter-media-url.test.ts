@@ -140,3 +140,55 @@ describe('resolveTwitterImageSourceSet', () => {
     expect(resolveTwitterImageSourceSet(url)).toEqual({ src: url })
   })
 })
+
+describe('mirrored media URLs', () => {
+  const mirroredUrl = 'https://tbmedia.corychainsman.com/pbs/media/abc.jpg'
+
+  it('maps twitter sizes onto mirrored AVIF variants', () => {
+    expect(withTwitterSize(mirroredUrl, 'small')).toBe(
+      'https://tbmedia.corychainsman.com/pbs/media/abc/w680.avif',
+    )
+    expect(withTwitterSize(mirroredUrl, 'medium')).toBe(
+      'https://tbmedia.corychainsman.com/pbs/media/abc/w1280.avif',
+    )
+    expect(withTwitterSize(mirroredUrl, 'large')).toBe(
+      'https://tbmedia.corychainsman.com/pbs/media/abc/w1280.avif',
+    )
+    expect(withTwitterSize(mirroredUrl, 'orig')).toBe(mirroredUrl)
+  })
+
+  it('treats the mirrored URL as the original image', () => {
+    expect(withTwitterOriginalJpg(mirroredUrl)).toBe(mirroredUrl)
+  })
+
+  it('builds a full AVIF source set for mirrored URLs', () => {
+    expect(
+      resolveTwitterImageSourceSet(mirroredUrl, {
+        devicePixelRatio: 2,
+        renderedWidth: 300,
+        sizes: '300px',
+      }),
+    ).toEqual({
+      src: 'https://tbmedia.corychainsman.com/pbs/media/abc/w680.avif',
+      srcSet:
+        'https://tbmedia.corychainsman.com/pbs/media/abc/w320.avif 320w, https://tbmedia.corychainsman.com/pbs/media/abc/w680.avif 680w, https://tbmedia.corychainsman.com/pbs/media/abc/w1280.avif 1280w',
+      sizes: '300px',
+    })
+  })
+
+  it('does not treat twimg or app URLs as mirrored', () => {
+    expect(withTwitterSize('https://pbs.twimg.com/media/abc.jpg', 'small')).toBe(
+      'https://pbs.twimg.com/media/abc.jpg?name=small',
+    )
+    expect(resolveTwitterImageSourceSet('https://img.example.com/pbs.jpg')).toEqual({
+      src: 'https://img.example.com/pbs.jpg',
+    })
+  })
+
+  it('handles mirrored video poster paths', () => {
+    const posterUrl = 'https://tbmedia.corychainsman.com/pbs/ext_tw_video_thumb/123/pu/img/x.jpg'
+    expect(withTwitterSize(posterUrl, 'medium')).toBe(
+      'https://tbmedia.corychainsman.com/pbs/ext_tw_video_thumb/123/pu/img/x/w1280.avif',
+    )
+  })
+})

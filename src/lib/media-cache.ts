@@ -1,4 +1,9 @@
-const CACHEABLE_MEDIA_HOSTS = new Set(['pbs.twimg.com', 'video.twimg.com'])
+// Keep in sync with CACHEABLE_MEDIA_HOSTS in public/media-cache-sw.js.
+const CACHEABLE_MEDIA_HOSTS = new Set([
+  'pbs.twimg.com',
+  'video.twimg.com',
+  'tbmedia.corychainsman.com',
+])
 const warmedMediaUrls = new Set<string>()
 
 type MediaCacheMessage = {

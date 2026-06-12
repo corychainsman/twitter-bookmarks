@@ -62,8 +62,19 @@ async function main() {
     'found a non-media tweet in the exported docs',
   )
 
+  const mediaUrls = flattenedDocs.flatMap((doc) =>
+    doc.media.flatMap((media) => [media.thumbUrl, media.fullUrl, media.posterUrl ?? '']),
+  )
+  const presentUrls = mediaUrls.filter((url) => url.length > 0)
+  const twimgUrls = presentUrls.filter((url) => url.includes('.twimg.com'))
+  const coverage = presentUrls.length - twimgUrls.length
+
   console.log(
     `Validated export: ${manifest.tweetCount} tweets, ${manifest.gridItemCountAll} media tiles.`,
+  )
+  console.log(
+    `Mirror coverage: ${coverage}/${presentUrls.length} media URLs self-hosted` +
+      (twimgUrls.length > 0 ? ` (${twimgUrls.length} still on twimg.com).` : '.'),
   )
 }
 

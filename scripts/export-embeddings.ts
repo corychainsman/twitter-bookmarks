@@ -72,6 +72,23 @@ function mediaSourceUrl(media: MediaItem): string {
   return media.posterUrl ?? media.thumbUrl ?? media.fullUrl
 }
 
+const mirrorAssetsRoot = path.join(projectRoot, '.data/media/assets')
+
+// Mirrored URLs (<base>/pbs/... or <base>/vid/...) map 1:1 onto the local
+// archive, so embedding never needs the media CDN to be reachable.
+function readableMediaSource(url: string): string {
+  try {
+    const pathname = new URL(url).pathname
+    if (pathname.startsWith('/pbs/') || pathname.startsWith('/vid/')) {
+      return path.join(mirrorAssetsRoot, decodeURIComponent(pathname.slice(1)))
+    }
+  } catch {
+    // Fall through to the original URL.
+  }
+
+  return url
+}
+
 function mediaRecordKind(media: MediaItem): EmbeddingRecord['kind'] {
   return media.type === 'photo' ? 'media-image' : 'media-video'
 }
@@ -181,7 +198,7 @@ async function main() {
         try {
           return {
             candidate,
-            image: await RawImage.read(candidate.url),
+            image: await RawImage.read(readableMediaSource(candidate.url)),
           }
         } catch (error) {
           skippedMediaCount += 1

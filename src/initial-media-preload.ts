@@ -37,6 +37,30 @@ function withTwitterSize(url: string, size: (typeof CANDIDATES)[number]['size'])
   }
 }
 
+const MIRROR_IMAGE_PATH_PREFIX = '/pbs/'
+const MIRROR_WIDTHS = [320, 680, 1280]
+
+function withMirrorWidth(url: string, targetWidth: number): string | null {
+  try {
+    const parsed = new URL(url)
+    if (
+      !parsed.pathname.startsWith(MIRROR_IMAGE_PATH_PREFIX) ||
+      !/\.[a-z0-9]+$/i.test(parsed.pathname)
+    ) {
+      return null
+    }
+
+    const width =
+      MIRROR_WIDTHS.find((candidate) => candidate >= targetWidth) ||
+      MIRROR_WIDTHS[MIRROR_WIDTHS.length - 1]
+    parsed.pathname = `${parsed.pathname.replace(/\.[a-z0-9]+$/i, '')}/w${width}.avif`
+    parsed.search = ''
+    return parsed.toString()
+  } catch {
+    return null
+  }
+}
+
 function resolveImageUrl(item: InitialGridItem): string | null {
   const sourceUrl =
     item.mediaType === 'photo' ? item.thumbUrl : item.posterUrl || item.thumbUrl
@@ -49,6 +73,12 @@ function resolveImageUrl(item: InitialGridItem): string | null {
     Math.min(520, Math.ceil(window.innerWidth / (window.innerWidth >= 1200 ? 4 : 2))),
   )
   const targetWidth = columnWidth * Math.max(1, window.devicePixelRatio || 1)
+
+  const mirroredUrl = withMirrorWidth(sourceUrl, targetWidth)
+  if (mirroredUrl) {
+    return mirroredUrl
+  }
+
   const candidate =
     CANDIDATES.find(({ width }) => width >= targetWidth) || CANDIDATES[CANDIDATES.length - 1]
 

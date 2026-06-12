@@ -11,6 +11,8 @@ export type MediaItem = {
   thumbUrl: string
   fullUrl: string
   posterUrl?: string
+  /** Original twimg URL when fullUrl has been rewritten to the self-hosted mirror. */
+  originUrl?: string
   width?: number
   height?: number
   aspectRatio?: number
@@ -49,6 +51,8 @@ export type GridItem = {
   width?: number
   height?: number
   aspectRatio?: number
+  /** Base64 ThumbHash of the tile image, present for mirrored assets. */
+  thumbhash?: string
 }
 
 export type Manifest = {
@@ -58,6 +62,8 @@ export type Manifest = {
   gridItemCountOne: number
   gridItemCountAll: number
   chunkSize: number
+  /** Origin serving self-hosted media, e.g. https://tbmedia.corychainsman.com */
+  mediaBaseUrl?: string
   files: {
     docs: string[]
     gridOne: string

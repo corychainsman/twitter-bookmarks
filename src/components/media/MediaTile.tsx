@@ -1,5 +1,6 @@
 import type { GridItem, TweetDoc } from '@/features/bookmarks/model'
 import { formatPostedDate } from '@/lib/format'
+import { thumbhashToDataUrl } from '@/lib/thumbhash-placeholder'
 import { resolveTwitterImageSourceSet } from '@/lib/twitter-media-url'
 import { Badge } from '@/components/ui/badge'
 
@@ -40,6 +41,7 @@ export function MediaTile({
     renderedWidth: imageRenderedWidth,
     sizes: imageSizes,
   })
+  const placeholderUrl = thumbhashToDataUrl(item.thumbhash)
 
   return (
     <article className="app-tile group">
@@ -60,7 +62,16 @@ export function MediaTile({
             data-initial-media={initialMedia ? 'true' : undefined}
             width={item.width}
             height={item.height}
-            style={aspectRatio ? { aspectRatio } : undefined}
+            style={{
+              ...(aspectRatio ? { aspectRatio } : undefined),
+              ...(placeholderUrl
+                ? {
+                    backgroundImage: `url(${placeholderUrl})`,
+                    backgroundSize: 'cover',
+                    backgroundPosition: 'center',
+                  }
+                : undefined),
+            }}
             className="app-media-image block h-auto w-full"
           />
 

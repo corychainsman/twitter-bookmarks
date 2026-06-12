@@ -7,6 +7,9 @@ Live demo: [corychainsman.github.io/twitter-bookmarks](https://corychainsman.git
 ## What It Ships
 
 - Real exported bookmark media data committed into `public/data`
+- Self-hosted media: all tweet photos/videos are archived and served from
+  Cloudflare R2 at `tbmedia.corychainsman.com` (no twimg.com dependency),
+  with pre-generated AVIF tiers and ThumbHash placeholders
 - Fast client-side search, folder filtering, sort controls, and URL-backed state
 - Static CLIP embedding index for concept search across tweet text, images, and video poster frames
 - Text search, image search, and “Similar” browsing with no backend
@@ -45,6 +48,8 @@ Typical refresh flow:
 
 ```bash
 bun run sync:ft
+bun run data:mirror    # download new media + AVIF variants + thumbhashes
+bun run mirror:sync    # upload archive to R2 + Google Drive backup
 bun run data:export
 bun run data:embeddings
 bun run data:validate
@@ -63,6 +68,12 @@ bun run refresh:embeddings
 Notes:
 
 - `sync:ft` depends on a real local Field Theory/X session.
+- `data:mirror` archives originals to `.data/media/assets/` (gitignored) and
+  tracks status in `.data/media/mirror-manifest.json`; `data:export` rewrites
+  media URLs to the mirror for confirmed assets. See
+  [docs/runbooks/media-mirror.md](./docs/runbooks/media-mirror.md).
+- `mirror:sync` pulls R2 credentials from 1Password (`op environment read`),
+  so the 1Password app's CLI integration must be unlocked.
 - The exported app dataset is media-only; non-media bookmarks are not included in the shipped browsing surface.
 - `data:embeddings` precomputes a compact static CLIP vector index into `public/data/embeddings/index.json`.
 - Semantic search runs entirely in the browser: GitHub Pages serves the vector index, and Transformers.js loads the same CLIP model client-side to embed typed text or uploaded query images.
@@ -77,6 +88,8 @@ Notes:
 - `bun run build`: build the static app
 - `bun run preview`: preview the production build locally
 - `bun run sync:ft`: sync bookmark data from Field Theory
+- `bun run data:mirror`: download/mirror tweet media into the local archive
+- `bun run mirror:sync`: sync the media archive to Cloudflare R2 + Google Drive
 - `bun run data:export`: build static artifacts into `public/data`
 - `bun run data:embeddings`: build static semantic embedding artifacts into `public/data`
 - `bun run data:validate`: validate exported artifacts
@@ -97,6 +110,7 @@ src/components/           Toolbar, grid, lightbox, media, UI primitives
 src/features/bookmarks/   Query state, loaders, export contracts, caching
 src/features/theme/       Theme model, runtime variables, persistence
 src/workers/              Query worker
-scripts/                  Field Theory sync and export pipeline
+scripts/                  Field Theory sync, media mirror, and export pipeline
 public/data/              Shipped static bookmark artifacts
+.data/media/              Local media archive + mirror manifest (gitignored)
 ```

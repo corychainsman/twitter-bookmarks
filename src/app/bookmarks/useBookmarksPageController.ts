@@ -10,6 +10,7 @@ import type {
   TweetDoc,
 } from '@/features/bookmarks/model'
 import { loadCoreArtifacts } from '@/features/bookmarks/data-loader'
+import { startGridThumbPrecache } from '@/lib/media-precache'
 import {
   readBookmarksSessionState,
   writeBookmarksScrollSnapshot,
@@ -406,6 +407,12 @@ export function useBookmarksPageController() {
       cancelled = true
     }
   }, [])
+
+  React.useEffect(() => {
+    if (artifacts?.gridAll) {
+      startGridThumbPrecache(artifacts.gridAll)
+    }
+  }, [artifacts])
 
   React.useEffect(() => {
     if (!artifacts || !workerRef.current) {

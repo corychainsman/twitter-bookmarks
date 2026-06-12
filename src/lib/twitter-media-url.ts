@@ -3,9 +3,55 @@ export type TwitterImageSize = 'small' | 'medium' | 'large' | 'orig'
 const TWITTER_IMAGE_HOST = 'pbs.twimg.com'
 const TWITTER_RESIZABLE_PATH_PREFIX = '/media/'
 
+// Self-hosted mirror images live at <base>/pbs/<twimg-path>; resized AVIF
+// variants always exist at <base>/pbs/<path-without-extension>/w{N}.avif.
+const MIRROR_IMAGE_PATH_PREFIX = '/pbs/'
+export const MIRROR_IMAGE_WIDTHS = [320, 680, 1280] as const
+
+export function isMirroredImageUrl(url: string): boolean {
+  if (!url) {
+    return false
+  }
+
+  let parsed: URL
+  try {
+    parsed = new URL(url)
+  } catch {
+    return false
+  }
+
+  return (
+    parsed.pathname.startsWith(MIRROR_IMAGE_PATH_PREFIX) && /\.[a-z0-9]+$/i.test(parsed.pathname)
+  )
+}
+
+export function mirroredVariantUrl(url: string, width: number): string {
+  let parsed: URL
+  try {
+    parsed = new URL(url)
+  } catch {
+    return url
+  }
+
+  const stem = parsed.pathname.replace(/\.[a-z0-9]+$/i, '')
+  parsed.pathname = `${stem}/w${width}.avif`
+  parsed.search = ''
+  return parsed.toString()
+}
+
+const MIRROR_SIZE_WIDTHS: Record<Exclude<TwitterImageSize, 'orig'>, number> = {
+  small: 680,
+  medium: 1280,
+  large: 1280,
+}
+
 export function withTwitterSize(url: string, size: TwitterImageSize): string {
   if (!url) {
     return url
+  }
+
+  if (isMirroredImageUrl(url)) {
+    return size === 'orig' ? url : mirroredVariantUrl(url, MIRROR_SIZE_WIDTHS[size])
   }
 
   let parsed: URL
@@ -29,6 +75,11 @@ export function withTwitterSize(url: string, size: TwitterImageSize): string {
 
 export function withTwitterOriginalJpg(url: string): string {
   if (!url) {
+    return url
+  }
+
+  if (isMirroredImageUrl(url)) {
+    // Mirrored URLs already point at the archived original bytes.
     return url
   }
 
@@ -110,10 +161,41 @@ function hasRenderedWidthOption(options: TwitterImageSourceSetOptions): boolean 
   )
 }
 
+function resolveMirroredImageSourceSet(
+  url: string,
+  options: TwitterImageSourceSetOptions,
+): TwitterImageSourceSet {
+  const candidates = MIRROR_IMAGE_WIDTHS.map((width) => ({
+    width,
+    url: mirroredVariantUrl(url, width),
+  }))
+
+  const devicePixelRatio =
+    Number.isFinite(options.devicePixelRatio) && options.devicePixelRatio && options.devicePixelRatio > 0
+      ? options.devicePixelRatio
+      : 1
+  const renderedWidth = hasRenderedWidthOption(options) ? options.renderedWidth : undefined
+  const targetPixelWidth = renderedWidth
+    ? Math.ceil(renderedWidth * devicePixelRatio)
+    : MIRROR_SIZE_WIDTHS[options.maxSize ?? 'medium']
+  const selected =
+    candidates.find(({ width }) => width >= targetPixelWidth) ?? candidates[candidates.length - 1]
+
+  return {
+    src: selected.url,
+    srcSet: candidates.map((candidate) => `${candidate.url} ${candidate.width}w`).join(', '),
+    sizes: options.sizes ?? RESPONSIVE_SIZES,
+  }
+}
+
 export function resolveTwitterImageSourceSet(
   url: string,
   options: TwitterImageSourceSetOptions = {},
 ): TwitterImageSourceSet {
+  if (isMirroredImageUrl(url)) {
+    return resolveMirroredImageSourceSet(url, options)
+  }
+
   const small = withTwitterSize(url, 'small')
   const medium = withTwitterSize(url, 'medium')
   const large = withTwitterSize(url, 'large')

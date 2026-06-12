@@ -1,0 +1,105 @@
+import type { ExportArtifacts } from '../src/features/bookmarks/export-artifacts'
+import type { GridItem, MediaItem } from '../src/features/bookmarks/model'
+import type { MirrorAssetRecord, MirrorManifest } from './mirror-lib'
+
+export const DEFAULT_MEDIA_BASE_URL = 'https://tbmedia.corychainsman.com'
+
+export type MirrorRewriteStats = {
+  totalUrls: number
+  rewrittenUrls: number
+  thumbhashedGridItems: number
+}
+
+type MirrorLookup = {
+  urlFor(sourceUrl: string | undefined): string | undefined
+  recordFor(sourceUrl: string | undefined): MirrorAssetRecord | undefined
+}
+
+function createMirrorLookup(manifest: MirrorManifest, baseUrl: string): MirrorLookup {
+  const normalizedBase = baseUrl.replace(/\/+$/, '')
+
+  function recordFor(sourceUrl: string | undefined): MirrorAssetRecord | undefined {
+    if (!sourceUrl) {
+      return undefined
+    }
+    const record = manifest.assets[sourceUrl]
+    return record?.status === 'ok' ? record : undefined
+  }
+
+  return {
+    recordFor,
+    urlFor(sourceUrl) {
+      const record = recordFor(sourceUrl)
+      return record ? `${normalizedBase}/${record.key}` : undefined
+    },
+  }
+}
+
+function rewriteMediaItem(media: MediaItem, lookup: MirrorLookup, stats: MirrorRewriteStats): void {
+  const originalFullUrl = media.fullUrl
+
+  for (const field of ['thumbUrl', 'fullUrl', 'posterUrl'] as const) {
+    const sourceUrl = media[field]
+    if (!sourceUrl) {
+      continue
+    }
+    stats.totalUrls += 1
+    const mirroredUrl = lookup.urlFor(sourceUrl)
+    if (mirroredUrl) {
+      media[field] = mirroredUrl
+      stats.rewrittenUrls += 1
+    }
+  }
+
+  if (media.fullUrl !== originalFullUrl) {
+    media.originUrl = originalFullUrl
+  }
+}
+
+function rewriteGridItem(item: GridItem, lookup: MirrorLookup, stats: MirrorRewriteStats): void {
+  // The tile image is thumbUrl for photos and the poster for motion media; grab
+  // its thumbhash before the URLs are rewritten away from the manifest keys.
+  const tileRecord = lookup.recordFor(item.thumbUrl) ?? lookup.recordFor(item.posterUrl)
+  if (tileRecord?.thumbhash) {
+    item.thumbhash = tileRecord.thumbhash
+    stats.thumbhashedGridItems += 1
+  }
+
+  for (const field of ['thumbUrl', 'fullUrl', 'posterUrl'] as const) {
+    const sourceUrl = item[field]
+    if (!sourceUrl) {
+      continue
+    }
+    stats.totalUrls += 1
+    const mirroredUrl = lookup.urlFor(sourceUrl)
+    if (mirroredUrl) {
+      item[field] = mirroredUrl
+      stats.rewrittenUrls += 1
+    }
+  }
+}
+
+export function applyMirrorRewrite(
+  artifacts: ExportArtifacts,
+  manifest: MirrorManifest,
+  baseUrl: string = DEFAULT_MEDIA_BASE_URL,
+): MirrorRewriteStats {
+  const lookup = createMirrorLookup(manifest, baseUrl)
+  const stats: MirrorRewriteStats = { totalUrls: 0, rewrittenUrls: 0, thumbhashedGridItems: 0 }
+
+  for (const chunk of artifacts.docsChunks) {
+    for (const doc of chunk.docs) {
+      for (const media of doc.media) {
+        rewriteMediaItem(media, lookup, stats)
+      }
+    }
+  }
+
+  for (const item of [...artifacts.gridOne, ...artifacts.gridAll]) {
+    rewriteGridItem(item, lookup, stats)
+  }
+
+  artifacts.manifest.mediaBaseUrl = baseUrl.replace(/\/+$/, '')
+
+  return stats
+}

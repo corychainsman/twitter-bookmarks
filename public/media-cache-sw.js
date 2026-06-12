@@ -1,6 +1,12 @@
-const MEDIA_CACHE_NAME = 'twitter-bookmarks-media-v1'
-const CACHEABLE_MEDIA_HOSTS = new Set(['pbs.twimg.com', 'video.twimg.com'])
-const MAX_MEDIA_CACHE_ENTRIES = 900
+const MEDIA_CACHE_NAME = 'twitter-bookmarks-media-v2'
+// Keep in sync with CACHEABLE_MEDIA_HOSTS in src/lib/media-cache.ts.
+const CACHEABLE_MEDIA_HOSTS = new Set([
+  'pbs.twimg.com',
+  'video.twimg.com',
+  'tbmedia.corychainsman.com',
+])
+// High enough to hold the full mirrored thumb tier (~3k tiles) plus overflow.
+const MAX_MEDIA_CACHE_ENTRIES = 4500
 const WARM_BATCH_SIZE = 8
 
 function isCacheableMediaUrl(url) {

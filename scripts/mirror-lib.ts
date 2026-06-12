@@ -1,0 +1,180 @@
+import { mkdir, readFile, rename, writeFile } from 'node:fs/promises'
+import path from 'node:path'
+
+export type MirrorAssetKind = 'image' | 'video'
+
+export type MirrorVariant = {
+  key: string
+  width: number
+}
+
+export type MirrorAssetRecord = {
+  status: 'ok' | 'failed'
+  kind: MirrorAssetKind
+  key: string
+  bytes?: number
+  contentType?: string
+  width?: number
+  height?: number
+  variants?: MirrorVariant[]
+  thumbhash?: string
+  fetchedAt?: string
+  attempts: number
+  error?: string
+}
+
+export type MirrorManifest = {
+  version: 1
+  assets: Record<string, MirrorAssetRecord>
+}
+
+const MIRROR_HOST_PREFIXES: Record<string, string> = {
+  'pbs.twimg.com': 'pbs',
+  'video.twimg.com': 'vid',
+}
+
+export const MIRROR_VARIANT_WIDTHS = [320, 680, 1280] as const
+
+export function mirrorKeyForUrl(sourceUrl: string): string | null {
+  let parsed: URL
+  try {
+    parsed = new URL(sourceUrl)
+  } catch {
+    return null
+  }
+
+  const prefix = MIRROR_HOST_PREFIXES[parsed.hostname]
+  if (!prefix) {
+    return null
+  }
+
+  return `${prefix}${parsed.pathname}`
+}
+
+export function mirrorVariantKey(originalKey: string, width: number): string {
+  const extension = path.extname(originalKey)
+  const stem = extension ? originalKey.slice(0, -extension.length) : originalKey
+  return `${stem}/w${width}.avif`
+}
+
+// Every image gets all three tiers (withoutEnlargement caps the actual pixels)
+// so the app can derive variant URLs from the original URL by convention alone.
+export function mirrorVariantWidths(): number[] {
+  return [...MIRROR_VARIANT_WIDTHS]
+}
+
+export function imageDownloadUrl(sourceUrl: string): string {
+  let parsed: URL
+  try {
+    parsed = new URL(sourceUrl)
+  } catch {
+    return sourceUrl
+  }
+
+  if (parsed.hostname !== 'pbs.twimg.com') {
+    return sourceUrl
+  }
+
+  parsed.searchParams.set('name', 'orig')
+  return parsed.toString()
+}
+
+export async function readMirrorManifest(manifestPath: string): Promise<MirrorManifest> {
+  try {
+    const contents = await readFile(manifestPath, 'utf8')
+    const parsed = JSON.parse(contents) as MirrorManifest
+    if (parsed.version === 1 && parsed.assets && typeof parsed.assets === 'object') {
+      return parsed
+    }
+  } catch {
+    // Fall through to a fresh manifest.
+  }
+
+  return { version: 1, assets: {} }
+}
+
+export async function writeMirrorManifest(
+  manifestPath: string,
+  manifest: MirrorManifest,
+): Promise<void> {
+  await mkdir(path.dirname(manifestPath), { recursive: true })
+  const temporaryPath = `${manifestPath}.tmp`
+  await writeFile(temporaryPath, `${JSON.stringify(manifest, null, 2)}\n`, 'utf8')
+  await rename(temporaryPath, manifestPath)
+}
+
+export type FetchAssetResult = {
+  buffer: Buffer
+  contentType?: string
+}
+
+export async function fetchAsset(
+  url: string,
+  options: { attempts?: number; timeoutMs?: number } = {},
+): Promise<FetchAssetResult> {
+  const attempts = options.attempts ?? 3
+  const timeoutMs = options.timeoutMs ?? 60_000
+  let lastError: unknown
+
+  for (let attempt = 1; attempt <= attempts; attempt += 1) {
+    try {
+      const response = await fetch(url, {
+        signal: AbortSignal.timeout(timeoutMs),
+        redirect: 'follow',
+      })
+
+      if (response.status === 404 || response.status === 403) {
+        throw new PermanentFetchError(`${response.status} ${response.statusText}`)
+      }
+
+      if (!response.ok) {
+        throw new Error(`${response.status} ${response.statusText}`)
+      }
+
+      const buffer = Buffer.from(await response.arrayBuffer())
+      if (buffer.byteLength === 0) {
+        throw new Error('empty response body')
+      }
+
+      return {
+        buffer,
+        contentType: response.headers.get('content-type') ?? undefined,
+      }
+    } catch (error) {
+      lastError = error
+      if (error instanceof PermanentFetchError || attempt === attempts) {
+        break
+      }
+      await sleep(attempt * 1500)
+    }
+  }
+
+  throw lastError instanceof Error ? lastError : new Error('download failed')
+}
+
+export class PermanentFetchError extends Error {}
+
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms))
+}
+
+export async function runWithConcurrency<T>(
+  items: T[],
+  limit: number,
+  worker: (item: T, index: number) => Promise<void>,
+): Promise<void> {
+  let nextIndex = 0
+
+  async function runLane(): Promise<void> {
+    while (nextIndex < items.length) {
+      const index = nextIndex
+      nextIndex += 1
+      await worker(items[index], index)
+    }
+  }
+
+  const lanes = Array.from({ length: Math.max(1, Math.min(limit, items.length)) }, () =>
+    runLane(),
+  )
+  await Promise.all(lanes)
+}

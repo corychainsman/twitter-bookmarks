@@ -57,7 +57,7 @@ export function createBookmarksLightboxSlides(tweet: TweetDoc | undefined) {
       : {
           type: 'video' as const,
           src: media.fullUrl,
-          poster: media.posterUrl ?? media.thumbUrl,
+          poster: withTwitterSize(media.posterUrl ?? media.thumbUrl, 'medium'),
           width: media.width,
           height: media.height,
           loop: media.type === 'animated_gif',

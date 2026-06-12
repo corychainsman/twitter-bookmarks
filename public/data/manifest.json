@@ -1,9 +1,9 @@
 {
-  "buildId": "2026-05-15T00-46-59.890Z",
-  "builtAt": "2026-05-15T00:46:59.890Z",
-  "tweetCount": 1514,
-  "gridItemCountOne": 1514,
-  "gridItemCountAll": 2938,
+  "buildId": "2026-06-12T21-53-17.124Z",
+  "builtAt": "2026-06-12T21:53:17.124Z",
+  "tweetCount": 1579,
+  "gridItemCountOne": 1579,
+  "gridItemCountAll": 3065,
   "chunkSize": 500,
   "files": {
     "docs": [
@@ -19,5 +19,6 @@
     "searchIndex": "search/index.json",
     "searchStore": "search/store.json",
     "embeddings": "embeddings/index.json"
-  }
+  },
+  "mediaBaseUrl": "https://tbmedia.corychainsman.com"
 }
