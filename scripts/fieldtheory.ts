@@ -1,5 +1,5 @@
 export const FIELDTHEORY_VERSION = '1.3.9'
-export const FIELDTHEORY_FOLDER_NAME = 'Inspo'
+export const FIELDTHEORY_FOLDER_SUBSTRING = 'inspo'
 export const FIELDTHEORY_MAX_PAGES = 10_000
 export const FIELDTHEORY_DELAY_MS = 600
 export const FIELDTHEORY_PAGE_SIZE = 100
@@ -13,8 +13,8 @@ export function buildFieldTheoryFolderArgs(): string[] {
   return [
     'run',
     'scripts/fieldtheory-folder-sync.ts',
-    '--folder',
-    FIELDTHEORY_FOLDER_NAME,
+    '--folder-contains',
+    FIELDTHEORY_FOLDER_SUBSTRING,
     '--max-pages',
     String(FIELDTHEORY_MAX_PAGES),
     '--delay-ms',
@@ -41,7 +41,7 @@ export function parseFieldTheorySourceContract(source: string): {
   folderSyncNormalizesTimelineSortIndexes: boolean
 } {
   return {
-    folderSyncIsInspoOnly: source.includes("FIELDTHEORY_FOLDER_NAME = 'Inspo'"),
+    folderSyncIsInspoOnly: source.includes("FIELDTHEORY_FOLDER_SUBSTRING = 'inspo'"),
     folderSyncUsesDedicatedFolderRunner: source.includes(
       "scripts/fieldtheory-folder-sync.ts",
     ),

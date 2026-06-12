@@ -22,7 +22,7 @@ import {
 import {
   assignGlobalFolderTimelineSortIndexes,
   FIELDTHEORY_DELAY_MS,
-  FIELDTHEORY_FOLDER_NAME,
+  FIELDTHEORY_FOLDER_SUBSTRING,
   FIELDTHEORY_MAX_PAGES,
 } from './fieldtheory'
 
@@ -63,9 +63,9 @@ function parseArgs(argv: string[]): SyncOptions {
     const value = argv[index]
     const next = argv[index + 1]
 
-    if (value === '--folder' && next) {
-      if (next.trim() !== FIELDTHEORY_FOLDER_NAME) {
-        throw new Error(`Only the "${FIELDTHEORY_FOLDER_NAME}" folder is supported.`)
+    if (value === '--folder-contains' && next) {
+      if (next.trim().toLowerCase() !== FIELDTHEORY_FOLDER_SUBSTRING.toLowerCase()) {
+        throw new Error(`Only the "${FIELDTHEORY_FOLDER_SUBSTRING}" folder substring is supported.`)
       }
       index += 1
       continue
@@ -148,37 +148,34 @@ async function resolveFolderSyncCookies(options: SyncOptions): Promise<{
 }
 
 function resolveTargetFolders(allFolders: Folder[]): Folder[] {
-  const lower = FIELDTHEORY_FOLDER_NAME.trim().toLowerCase()
-  const exact = allFolders.find((folder) => folder.name.trim().toLowerCase() === lower)
-  const prefix = allFolders.filter((folder) =>
-    folder.name.trim().toLowerCase().startsWith(lower),
+  const lower = FIELDTHEORY_FOLDER_SUBSTRING.trim().toLowerCase()
+  const matches = allFolders.filter((folder) =>
+    folder.name.trim().toLowerCase().includes(lower),
   )
-  const resolved = exact ?? (prefix.length === 1 ? prefix[0] : undefined)
 
-  if (!resolved) {
-    const hint =
-      prefix.length > 1
-        ? `Multiple matches: ${prefix.map((folder) => folder.name).join(', ')}. Be more specific.`
-        : `Available: ${allFolders.map((folder) => folder.name).join(', ') || '(none)'}`
-
-    throw new Error(`No folder matches "${FIELDTHEORY_FOLDER_NAME}". ${hint}`)
+  if (matches.length === 0) {
+    throw new Error(
+      `No folders contain "${FIELDTHEORY_FOLDER_SUBSTRING}". Available: ${allFolders.map((folder) => folder.name).join(', ') || '(none)'}`,
+    )
   }
 
-  return [resolved]
+  return matches
 }
 
-function retainOnlyTargetFolder(
+function retainOnlyTargetFolders(
   records: BookmarkRecord[],
-  targetFolder: Folder,
+  targetFolders: Folder[],
 ): BookmarkRecord[] {
-  return records.filter((record) => {
-    const folderIdMatch = (record.folderIds ?? []).includes(targetFolder.id)
-    const folderNameMatch = (record.folderNames ?? []).some(
-      (folderName) => folderName.trim().toLowerCase() === targetFolder.name.trim().toLowerCase(),
-    )
+  return records.filter((record) =>
+    targetFolders.some((targetFolder) => {
+      const folderIdMatch = (record.folderIds ?? []).includes(targetFolder.id)
+      const folderNameMatch = (record.folderNames ?? []).some(
+        (folderName) => folderName.trim().toLowerCase() === targetFolder.name.trim().toLowerCase(),
+      )
 
-    return folderIdMatch || folderNameMatch
-  })
+      return folderIdMatch || folderNameMatch
+    }),
+  )
 }
 
 async function persistFolderCheckpoint(records: BookmarkRecord[]): Promise<void> {
@@ -208,7 +205,7 @@ async function main() {
   const existingRecords = await readJsonLines<BookmarkRecord>(cachePath)
   const allFolders = await fetchBookmarkFolders(csrfToken, cookieHeader)
   const targetFolders = resolveTargetFolders(allFolders)
-  let mergedRecords = retainOnlyTargetFolder(existingRecords, targetFolders[0])
+  let mergedRecords = retainOnlyTargetFolders(existingRecords, targetFolders)
   const skippedFolders: Array<{ folder: Folder; reason: string }> = []
 
   await persistFolderCheckpoint(mergedRecords)
@@ -238,7 +235,7 @@ async function main() {
 
       const timelineRankedRecords = assignGlobalFolderTimelineSortIndexes(walkResult.records)
       mergedRecords = applyFolderMirror(mergedRecords, folder, timelineRankedRecords).merged as BookmarkRecord[]
-      mergedRecords = retainOnlyTargetFolder(mergedRecords, folder)
+      mergedRecords = retainOnlyTargetFolders(mergedRecords, targetFolders)
       await persistFolderCheckpoint(mergedRecords)
     } catch (error) {
       skippedFolders.push({
@@ -258,8 +255,9 @@ async function main() {
     )
   }
 
+  const folderNames = targetFolders.map((folder) => folder.name).join(', ')
   console.log(
-    `Folder sync complete: ${targetFolders[0].name} mirrored with max-pages=${options.maxPages}.`,
+    `Folder sync complete: ${folderNames} mirrored with max-pages=${options.maxPages}.`,
   )
 }
 

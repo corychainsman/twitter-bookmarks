@@ -6,7 +6,7 @@ import { describe, expect, it } from 'vitest'
 import {
   assignGlobalFolderTimelineSortIndexes,
   buildFieldTheoryFolderArgs,
-  FIELDTHEORY_FOLDER_NAME,
+  FIELDTHEORY_FOLDER_SUBSTRING,
   FIELDTHEORY_DELAY_MS,
   FIELDTHEORY_MAX_PAGES,
   FIELDTHEORY_PAGE_SIZE,
@@ -14,12 +14,12 @@ import {
 } from '../scripts/fieldtheory'
 
 describe('fieldtheory sync wrapper', () => {
-  it('builds a folder-only sync command for Inspo', () => {
+  it('builds a folder-contains sync command for inspo', () => {
     expect(buildFieldTheoryFolderArgs()).toEqual([
       'run',
       'scripts/fieldtheory-folder-sync.ts',
-      '--folder',
-      FIELDTHEORY_FOLDER_NAME,
+      '--folder-contains',
+      FIELDTHEORY_FOLDER_SUBSTRING,
       '--max-pages',
       String(FIELDTHEORY_MAX_PAGES),
       '--delay-ms',
