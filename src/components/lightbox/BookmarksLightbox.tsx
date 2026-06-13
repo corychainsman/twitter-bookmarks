@@ -345,7 +345,7 @@ export function BookmarksLightbox({
                 controls
                 playsInline
                 preload="metadata"
-                autoPlay={(slide as DirectVideoSlide).muted}
+                autoPlay
                 loop={(slide as DirectVideoSlide).loop}
                 muted={(slide as DirectVideoSlide).muted}
                 className="max-h-full max-w-full bg-black object-contain"

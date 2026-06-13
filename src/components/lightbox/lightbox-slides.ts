@@ -61,7 +61,7 @@ export function createBookmarksLightboxSlides(tweet: TweetDoc | undefined) {
           width: media.width,
           height: media.height,
           loop: media.type === 'animated_gif',
-          muted: media.type === 'animated_gif',
+          muted: true,
         },
   )
 }

@@ -81,6 +81,30 @@ bun run data:export && bun run data:embeddings && bun run data:validate
 bun run build                # then deploy as usual
 ```
 
+## Video playback
+
+Videos and animated GIFs play directly from the mirrored MP4 files on R2.
+
+**Grid tiles** (`VideoGridTile` in `MediaTile.tsx`): videos autoplay muted and
+looping when ≥35% visible in the viewport. An `AutoplayCoordinator` limits
+concurrent playback to 2 tiles (nearest to viewport center win). Videos use
+`preload="none"` so no data loads until a tile enters the active band;
+above-the-fold initial tiles use `preload="metadata"`. The poster image (AVIF
+w680 variant of the poster/thumb) shows while the video is not playing.
+
+**Lightbox**: all video slides (both regular video and animated GIF) autoplay
+muted via the HTML `autoPlay` attribute. `muted` is required for iOS Safari
+autoplay policy. The native controls are shown so the user can unmute, pause,
+and seek.
+
+**Future option — grid preview clips**: if R2 video bandwidth becomes a
+concern, generate a 5–10 second 360p preview clip per video with ffmpeg
+(`-t 10 -vf scale=360:-2 -b:v 400k`) and store it at
+`vid/<twimg-path>/preview.mp4`. Update `GridItem` with a `previewUrl` field
+and `mirror-rewrite.ts` to populate it; use `previewUrl ?? fullUrl` as the
+video `src` in `VideoGridTile`. No change to the R2 sync pipeline beyond
+running the generator script once.
+
 ## Failure handling
 
 Dead twimg URLs (deleted tweets) are recorded as `failed` in the manifest and

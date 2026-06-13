@@ -1,8 +1,16 @@
+import { useEffect, useRef, useState } from 'react'
+
 import type { GridItem, TweetDoc } from '@/features/bookmarks/model'
 import { formatPostedDate } from '@/lib/format'
 import { thumbhashToDataUrl } from '@/lib/thumbhash-placeholder'
 import { resolveTwitterImageSourceSet } from '@/lib/twitter-media-url'
 import { Badge } from '@/components/ui/badge'
+import {
+  candidateFromEntry,
+  getAutoplayCoordinator,
+  AUTOPLAY_ROOT_MARGIN,
+  AUTOPLAY_THRESHOLD,
+} from '@/components/media/autoplay'
 
 type MediaTileProps = {
   item: GridItem
@@ -15,6 +23,79 @@ type MediaTileProps = {
   imageRenderedWidth?: number
   imageSizes?: string
   onOpen: () => void
+}
+
+type VideoGridTileProps = {
+  src: string
+  poster?: string
+  aspectRatio?: number
+  width?: number
+  height?: number
+  gridId: string
+  initialMedia: boolean
+}
+
+function VideoGridTile({
+  src,
+  poster,
+  aspectRatio,
+  width,
+  height,
+  gridId,
+  initialMedia,
+}: VideoGridTileProps) {
+  const videoRef = useRef<HTMLVideoElement>(null)
+  const [shouldPlay, setShouldPlay] = useState(false)
+
+  useEffect(() => {
+    const coordinator = getAutoplayCoordinator()
+    return coordinator.subscribe(gridId, setShouldPlay)
+  }, [gridId])
+
+  useEffect(() => {
+    const el = videoRef.current
+    if (!el) return
+    const coordinator = getAutoplayCoordinator()
+    const observer = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          coordinator.update(candidateFromEntry(gridId, entry))
+        }
+      },
+      { threshold: [0, AUTOPLAY_THRESHOLD, 1], rootMargin: AUTOPLAY_ROOT_MARGIN },
+    )
+    observer.observe(el)
+    return () => {
+      observer.disconnect()
+      coordinator.remove(gridId)
+    }
+  }, [gridId])
+
+  useEffect(() => {
+    const video = videoRef.current
+    if (!video) return
+    if (shouldPlay) {
+      void video.play().catch(() => {})
+    } else {
+      video.pause()
+    }
+  }, [shouldPlay])
+
+  return (
+    <video
+      ref={videoRef}
+      src={src}
+      poster={poster}
+      muted
+      loop
+      playsInline
+      preload={initialMedia ? 'metadata' : 'none'}
+      width={width}
+      height={height}
+      style={aspectRatio ? { aspectRatio } : undefined}
+      className="app-media-image relative block h-auto w-full"
+    />
+  )
 }
 
 export function MediaTile({
@@ -62,20 +143,32 @@ export function MediaTile({
               }}
             />
           ) : null}
-          <img
-            src={imageSources.src}
-            srcSet={imageSources.srcSet}
-            sizes={imageSources.sizes}
-            alt={tweet?.text || 'Bookmarked media'}
-            decoding="async"
-            fetchPriority={fetchPriority}
-            loading={loading}
-            data-initial-media={initialMedia ? 'true' : undefined}
-            width={item.width}
-            height={item.height}
-            style={aspectRatio ? { aspectRatio } : undefined}
-            className="app-media-image relative block h-auto w-full"
-          />
+          {isMotion ? (
+            <VideoGridTile
+              src={item.fullUrl}
+              poster={imageSources.src}
+              aspectRatio={aspectRatio}
+              width={item.width}
+              height={item.height}
+              gridId={item.gridId}
+              initialMedia={initialMedia}
+            />
+          ) : (
+            <img
+              src={imageSources.src}
+              srcSet={imageSources.srcSet}
+              sizes={imageSources.sizes}
+              alt={tweet?.text || 'Bookmarked media'}
+              decoding="async"
+              fetchPriority={fetchPriority}
+              loading={loading}
+              data-initial-media={initialMedia ? 'true' : undefined}
+              width={item.width}
+              height={item.height}
+              style={aspectRatio ? { aspectRatio } : undefined}
+              className="app-media-image relative block h-auto w-full"
+            />
+          )}
 
           {!immersive ? (
             <div className="app-media-scrim pointer-events-none absolute inset-x-0 bottom-0 p-3">
