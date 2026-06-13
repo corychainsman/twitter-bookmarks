@@ -6,8 +6,8 @@ import type { GridItem, TweetDoc } from '@/features/bookmarks/model'
 type BookmarksPageContentProps = {
   columnCount: number
   docsById: Map<string, TweetDoc>
+  hasFirstQueryResult: boolean
   immersive: boolean
-  isQueryPending: boolean
   items: GridItem[]
   loadingError: string | null
   onInitialMediaReady: () => void
@@ -40,8 +40,8 @@ function BookmarksPageStatus({
 export function BookmarksPageContent({
   columnCount,
   docsById,
+  hasFirstQueryResult,
   immersive,
-  isQueryPending,
   items,
   loadingError,
   onInitialMediaReady,
@@ -55,13 +55,8 @@ export function BookmarksPageContent({
     return <BookmarksPageStatus title="Load failed" description={loadingError} />
   }
 
-  if (!ready) {
-    return (
-      <BookmarksPageStatus
-        title="Loading"
-        description={isQueryPending ? 'Querying' : undefined}
-      />
-    )
+  if (!ready || !hasFirstQueryResult) {
+    return null
   }
 
   return (

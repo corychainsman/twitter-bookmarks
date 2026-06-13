@@ -119,6 +119,7 @@ export function useBookmarksPageController() {
   )
   const [artifacts, setArtifacts] = React.useState<HydratedArtifacts | null>(null)
   const [loadingError, setLoadingError] = React.useState<string | null>(null)
+  const [hasFirstQueryResult, setHasFirstQueryResult] = React.useState(false)
   const [queryResult, setQueryResult] = React.useState<QueryResult>({
     total: 0,
     orderedGridIds: [],
@@ -289,6 +290,7 @@ export function useBookmarksPageController() {
         startTransition(() => {
           setQueryResult(message.result)
         })
+        setHasFirstQueryResult(true)
         setLoadingError(null)
         return
       }
@@ -711,6 +713,7 @@ export function useBookmarksPageController() {
     queryState: displayedQueryState,
     loadingError,
     hasLoadedArtifacts: artifacts !== null,
+    hasFirstQueryResult,
     isQueryPending: isQueryPending || isEmbeddingPending,
     semanticImageQueryName,
     semanticImagePreviewUrl,

@@ -11,7 +11,7 @@ export function AppShell() {
     queryState,
     loadingError,
     hasLoadedArtifacts,
-    isQueryPending,
+    hasFirstQueryResult,
     semanticImagePreviewUrl,
     semanticSourceLabel,
     selection,
@@ -67,8 +67,8 @@ export function AppShell() {
         <BookmarksPageContent
           columnCount={masonryLayout.columnCount}
           docsById={docsById}
+          hasFirstQueryResult={hasFirstQueryResult}
           immersive={queryState.immersive}
-          isQueryPending={isQueryPending}
           items={visibleItems}
           loadingError={loadingError}
           onInitialMediaReady={onInitialMediaReady}
