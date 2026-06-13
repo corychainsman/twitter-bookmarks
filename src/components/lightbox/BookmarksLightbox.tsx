@@ -23,6 +23,7 @@ import {
 } from 'lucide-react'
 
 import type { TweetDoc } from '@/features/bookmarks/model'
+import { getMediaHandoff } from '@/lib/media-handoff'
 import { formatCompactNumber, formatPostedDateTime } from '@/lib/format'
 import {
   getLightboxDetailsPanelWidth,
@@ -55,6 +56,7 @@ type TweetEmbedSlide = {
   poster?: string
   width?: number
   height?: number
+  gridId?: string
 }
 
 type DirectVideoSlide = {
@@ -65,6 +67,52 @@ type DirectVideoSlide = {
   height?: number
   loop?: boolean
   muted?: boolean
+  gridId?: string
+}
+
+/**
+ * Full-resolution lightbox video that picks up where the grid preview left off:
+ * shows the grid's already-decoded poster immediately (no black flash) and seeks
+ * to the captured playback position once metadata is available.
+ */
+function LightboxVideo({
+  src,
+  poster,
+  loop,
+  startTime,
+}: {
+  src: string
+  poster?: string
+  loop?: boolean
+  startTime?: number
+}) {
+  const seekedRef = useRef(false)
+
+  return (
+    <video
+      data-lightbox-media-content
+      src={src}
+      poster={poster}
+      controls
+      playsInline
+      preload="metadata"
+      loop={loop}
+      muted
+      onLoadedMetadata={(event) => {
+        const video = event.currentTarget
+        if (!seekedRef.current && startTime && startTime > 0.1 && startTime < video.duration) {
+          try {
+            video.currentTime = startTime
+          } catch {
+            // Seeking can throw before the media is seekable; ignore and start at 0.
+          }
+        }
+        seekedRef.current = true
+        void video.play().catch(() => {})
+      }}
+      className="max-h-full max-w-full bg-black object-contain"
+    />
+  )
 }
 
 const LightboxRenderer = Lightbox as unknown as ComponentType<Record<string, unknown>>
@@ -335,23 +383,24 @@ export function BookmarksLightbox({
             <XIcon className="size-6" />
           </button>
         ),
-        slide: ({ slide }: { slide: DirectVideoSlide | TweetEmbedSlide | { type?: string } }) =>
-          slide.type === 'video' ? (
+        slide: ({ slide }: { slide: DirectVideoSlide | TweetEmbedSlide | { type?: string } }) => {
+          if (slide.type !== 'video') {
+            return undefined
+          }
+          const videoSlide = slide as DirectVideoSlide
+          const handoff = videoSlide.gridId ? getMediaHandoff(videoSlide.gridId) : undefined
+          const videoHandoff = handoff?.kind === 'video' ? handoff : undefined
+          return (
             <div className="flex h-full w-full items-center justify-center px-4">
-              <video
-                data-lightbox-media-content
-                src={(slide as DirectVideoSlide).src}
-                poster={(slide as DirectVideoSlide).poster}
-                controls
-                playsInline
-                preload="metadata"
-                autoPlay
-                loop={(slide as DirectVideoSlide).loop}
-                muted={(slide as DirectVideoSlide).muted}
-                className="max-h-full max-w-full bg-black object-contain"
+              <LightboxVideo
+                src={videoSlide.src}
+                poster={videoHandoff?.poster ?? videoSlide.poster}
+                loop={videoSlide.loop}
+                startTime={videoHandoff?.currentTime}
               />
             </div>
-          ) : undefined,
+          )
+        },
         controls: () => (
           <div
             ref={controlsRef}
@@ -395,17 +444,35 @@ export function BookmarksLightbox({
             ) : null}
           </div>
         ),
-        slideContainer: ({ slide, children }: { slide: { type?: string }; children: unknown }) => (
+        slideContainer: ({
+          slide,
+          children,
+        }: {
+          slide: { type?: string; gridId?: string }
+          children: unknown
+        }) => {
+          const paddingBottom =
+            slide.type === 'tweet-embed'
+              ? `${mediaFooterClearance}px`
+              : isDesktopLightbox
+                ? 0
+                : getLightboxMediaPaddingBottom(slide)
+          const paddingRight = isDesktopLightbox ? effectiveDetailsPanelWidth : 0
+          // For a photo slide opened from the grid, paint the already-cached
+          // variant underneath YARL's image. YARL keeps its <img> at opacity 0
+          // until the higher-res source decodes, so this shows through first and
+          // is covered seamlessly once the upgrade finishes — no reload flash.
+          // An image handoff only ever exists for a photo tile, so its presence
+          // is sufficient — no need to test slide.type (YARL labels photo slides
+          // type: 'image', not undefined).
+          const handoff = slide.gridId ? getMediaHandoff(slide.gridId) : undefined
+          const placeholderSrc = handoff?.kind === 'image' ? handoff.src : undefined
+          return (
           <div
-            className="box-border flex h-full w-full touch-pan-y items-center justify-center"
+            className="relative box-border flex h-full w-full touch-pan-y items-center justify-center"
             style={{
-              paddingBottom:
-                slide.type === 'tweet-embed'
-                  ? `${mediaFooterClearance}px`
-                  : isDesktopLightbox
-                    ? 0
-                    : getLightboxMediaPaddingBottom(slide),
-              paddingRight: isDesktopLightbox ? effectiveDetailsPanelWidth : 0,
+              paddingBottom,
+              paddingRight,
             }}
             onPointerDownCapture={(event) => {
               const container = event.currentTarget
@@ -443,9 +510,30 @@ export function BookmarksLightbox({
               }
             }}
           >
-            {children as ReactNode}
+            {placeholderSrc ? (
+              <div
+                aria-hidden
+                className="pointer-events-none absolute"
+                style={{
+                  top: 0,
+                  left: 0,
+                  right: paddingRight,
+                  bottom: paddingBottom,
+                }}
+              >
+                <img
+                  draggable={false}
+                  src={placeholderSrc}
+                  className="h-full w-full object-contain"
+                />
+              </div>
+            ) : null}
+            <div className="relative z-10 flex h-full w-full items-center justify-center">
+              {children as ReactNode}
+            </div>
           </div>
-        ),
+          )
+        },
         buttonZoom: ({
           disabled,
           zoom,

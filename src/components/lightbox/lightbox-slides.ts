@@ -45,9 +45,12 @@ function createLightboxImageSourceSet(media: TweetDoc['media'][number]) {
 }
 
 export function createBookmarksLightboxSlides(tweet: TweetDoc | undefined) {
-  return (tweet?.media ?? []).map((media) =>
-    media.type === 'photo'
+  return (tweet?.media ?? []).map((media, mediaIndex) => {
+    const gridId = tweet ? `${tweet.id}:${mediaIndex}` : undefined
+
+    return media.type === 'photo'
       ? {
+          gridId,
           src: withTwitterSize(media.fullUrl, 'large'),
           srcSet: createLightboxImageSourceSet(media),
           width: media.width,
@@ -55,6 +58,7 @@ export function createBookmarksLightboxSlides(tweet: TweetDoc | undefined) {
           alt: tweet?.text ?? '',
         }
       : {
+          gridId,
           type: 'video' as const,
           src: media.fullUrl,
           poster: withTwitterSize(media.posterUrl ?? media.thumbUrl, 'medium'),
@@ -62,8 +66,8 @@ export function createBookmarksLightboxSlides(tweet: TweetDoc | undefined) {
           height: media.height,
           loop: media.type === 'animated_gif',
           muted: true,
-        },
-  )
+        }
+  })
 }
 
 export function createLightboxPreloadCandidates(

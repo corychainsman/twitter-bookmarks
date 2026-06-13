@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 
 import type { GridItem, TweetDoc } from '@/features/bookmarks/model'
 import { formatPostedDate } from '@/lib/format'
+import { captureMediaHandoff } from '@/lib/media-handoff'
 import { thumbhashToDataUrl } from '@/lib/thumbhash-placeholder'
 import { resolveTwitterImageSourceSet } from '@/lib/twitter-media-url'
 import { Badge } from '@/components/ui/badge'
@@ -113,15 +114,21 @@ export function MediaTile({
     sizes: imageSizes,
   })
   const placeholderUrl = thumbhashToDataUrl(item.thumbhash)
+  const mediaRef = useRef<HTMLDivElement>(null)
+
+  const handleOpen = () => {
+    captureMediaHandoff(item.gridId, mediaRef.current?.querySelector('video, img') ?? null)
+    onOpen()
+  }
 
   return (
     <article className="app-tile group">
       <button
         type="button"
         className="app-tile-button cursor-pointer text-left"
-        onClick={onOpen}
+        onClick={handleOpen}
       >
-        <div className="relative overflow-hidden bg-black">
+        <div ref={mediaRef} className="relative overflow-hidden bg-black">
           {placeholderUrl ? (
             <div
               aria-hidden

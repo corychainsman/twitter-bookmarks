@@ -39,6 +39,7 @@ describe('createBookmarksLightboxSlides', () => {
 
     expect(slides).toEqual([
       {
+        gridId: 'tweet-1:0',
         src: 'https://pbs.twimg.com/media/example.jpg?name=large',
         srcSet: [
           {
@@ -87,6 +88,7 @@ describe('createBookmarksLightboxSlides', () => {
 
     expect(slides).toEqual([
       {
+        gridId: 'tweet-1:0',
         type: 'video',
         src: 'https://video.twimg.com/ext_tw_video/example.mp4',
         poster: 'https://pbs.twimg.com/ext_tw_video_thumb/poster.jpg',
@@ -115,6 +117,7 @@ describe('createBookmarksLightboxSlides', () => {
 
     expect(slides).toEqual([
       {
+        gridId: 'tweet-1:0',
         type: 'video',
         src: 'https://video.twimg.com/tweet_video/example.mp4',
         poster: 'https://pbs.twimg.com/tweet_video_thumb/example.jpg',

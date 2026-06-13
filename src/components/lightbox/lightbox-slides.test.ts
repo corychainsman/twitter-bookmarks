@@ -28,6 +28,7 @@ describe('createBookmarksLightboxSlides', () => {
   it('uses a large lightbox fallback and exposes responsive image sources', () => {
     expect(createBookmarksLightboxSlides(tweet)).toEqual([
       {
+        gridId: 'tweet-1:0',
         src: 'https://pbs.twimg.com/media/photo.jpg?name=large',
         srcSet: [
           {
