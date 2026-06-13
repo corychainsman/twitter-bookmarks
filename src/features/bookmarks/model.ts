@@ -48,6 +48,8 @@ export type GridItem = {
   thumbUrl: string
   fullUrl: string
   posterUrl?: string
+  /** Downscaled muted MP4 for in-grid autoplay (mirrored videos only). */
+  previewUrl?: string
   width?: number
   height?: number
   aspectRatio?: number

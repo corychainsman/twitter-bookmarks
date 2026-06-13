@@ -93,7 +93,7 @@ describe('createBookmarksLightboxSlides', () => {
         width: 1280,
         height: 720,
         loop: false,
-        muted: false,
+        muted: true,
       },
     ])
   })

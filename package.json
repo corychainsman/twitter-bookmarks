@@ -16,14 +16,15 @@
     "sync:ft:resume": "FT_DATA_DIR=\"$PWD/.data/fieldtheory\" bun run scripts/sync-fieldtheory.ts",
     "sync:ft:full": "FT_DATA_DIR=\"$PWD/.data/fieldtheory\" bun run scripts/sync-fieldtheory.ts",
     "data:mirror": "bun run scripts/mirror-media.ts",
+    "data:video-previews": "bun run scripts/generate-video-previews.ts",
     "mirror:sync": "bash scripts/sync-mirror.sh",
     "data:export": "bun run scripts/export-fieldtheory.ts",
     "data:embeddings": "bun run scripts/export-embeddings.ts",
     "data:validate": "bun run scripts/validate-export.ts",
-    "refresh": "bun run sync:ft && bun run data:mirror && bun run mirror:sync && bun run data:export && bun run data:embeddings && bun run data:validate && bun run build",
-    "refresh:resume": "bun run sync:ft:resume && bun run data:mirror && bun run mirror:sync && bun run data:export && bun run data:embeddings && bun run data:validate && bun run build",
-    "refresh:full": "bun run sync:ft:full && bun run data:mirror && bun run mirror:sync && bun run data:export && bun run data:embeddings && bun run data:validate && bun run build",
-    "refresh:embeddings": "bun run sync:ft && bun run data:mirror && bun run mirror:sync && bun run data:export && bun run data:embeddings && bun run data:validate && bun run build"
+    "refresh": "bun run sync:ft && bun run data:mirror && bun run data:video-previews && bun run mirror:sync && bun run data:export && bun run data:embeddings && bun run data:validate && bun run build",
+    "refresh:resume": "bun run sync:ft:resume && bun run data:mirror && bun run data:video-previews && bun run mirror:sync && bun run data:export && bun run data:embeddings && bun run data:validate && bun run build",
+    "refresh:full": "bun run sync:ft:full && bun run data:mirror && bun run data:video-previews && bun run mirror:sync && bun run data:export && bun run data:embeddings && bun run data:validate && bun run build",
+    "refresh:embeddings": "bun run sync:ft && bun run data:mirror && bun run data:video-previews && bun run mirror:sync && bun run data:export && bun run data:embeddings && bun run data:validate && bun run build"
   },
   "dependencies": {
     "@fontsource-variable/geist": "^5.2.8",

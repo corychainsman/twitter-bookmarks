@@ -18,6 +18,9 @@ export type MirrorAssetRecord = {
   height?: number
   variants?: MirrorVariant[]
   thumbhash?: string
+  /** Downscaled, audio-stripped MP4 for in-grid autoplay (videos only). */
+  previewKey?: string
+  previewBytes?: number
   fetchedAt?: string
   attempts: number
   error?: string
@@ -55,6 +58,14 @@ export function mirrorVariantKey(originalKey: string, width: number): string {
   const extension = path.extname(originalKey)
   const stem = extension ? originalKey.slice(0, -extension.length) : originalKey
   return `${stem}/w${width}.avif`
+}
+
+// Grid autoplay preview clip key, derived from the original video key by
+// convention: <stem>/preview.mp4 (sibling of the AVIF poster variants).
+export function videoPreviewKey(originalKey: string): string {
+  const extension = path.extname(originalKey)
+  const stem = extension ? originalKey.slice(0, -extension.length) : originalKey
+  return `${stem}/preview.mp4`
 }
 
 // Every image gets all three tiers (withoutEnlargement caps the actual pixels)

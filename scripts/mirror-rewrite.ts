@@ -8,6 +8,7 @@ export type MirrorRewriteStats = {
   totalUrls: number
   rewrittenUrls: number
   thumbhashedGridItems: number
+  previewGridItems: number
 }
 
 type MirrorLookup = {
@@ -56,13 +57,26 @@ function rewriteMediaItem(media: MediaItem, lookup: MirrorLookup, stats: MirrorR
   }
 }
 
-function rewriteGridItem(item: GridItem, lookup: MirrorLookup, stats: MirrorRewriteStats): void {
+function rewriteGridItem(
+  item: GridItem,
+  lookup: MirrorLookup,
+  baseUrl: string,
+  stats: MirrorRewriteStats,
+): void {
   // The tile image is thumbUrl for photos and the poster for motion media; grab
   // its thumbhash before the URLs are rewritten away from the manifest keys.
   const tileRecord = lookup.recordFor(item.thumbUrl) ?? lookup.recordFor(item.posterUrl)
   if (tileRecord?.thumbhash) {
     item.thumbhash = tileRecord.thumbhash
     stats.thumbhashedGridItems += 1
+  }
+
+  // Capture the autoplay preview clip from the video record (keyed by the
+  // original fullUrl) before fullUrl is rewritten to the mirror base.
+  const videoRecord = lookup.recordFor(item.fullUrl)
+  if (videoRecord?.previewKey) {
+    item.previewUrl = `${baseUrl}/${videoRecord.previewKey}`
+    stats.previewGridItems += 1
   }
 
   for (const field of ['thumbUrl', 'fullUrl', 'posterUrl'] as const) {
@@ -84,8 +98,14 @@ export function applyMirrorRewrite(
   manifest: MirrorManifest,
   baseUrl: string = DEFAULT_MEDIA_BASE_URL,
 ): MirrorRewriteStats {
-  const lookup = createMirrorLookup(manifest, baseUrl)
-  const stats: MirrorRewriteStats = { totalUrls: 0, rewrittenUrls: 0, thumbhashedGridItems: 0 }
+  const normalizedBase = baseUrl.replace(/\/+$/, '')
+  const lookup = createMirrorLookup(manifest, normalizedBase)
+  const stats: MirrorRewriteStats = {
+    totalUrls: 0,
+    rewrittenUrls: 0,
+    thumbhashedGridItems: 0,
+    previewGridItems: 0,
+  }
 
   for (const chunk of artifacts.docsChunks) {
     for (const doc of chunk.docs) {
@@ -96,10 +116,10 @@ export function applyMirrorRewrite(
   }
 
   for (const item of [...artifacts.gridOne, ...artifacts.gridAll]) {
-    rewriteGridItem(item, lookup, stats)
+    rewriteGridItem(item, lookup, normalizedBase, stats)
   }
 
-  artifacts.manifest.mediaBaseUrl = baseUrl.replace(/\/+$/, '')
+  artifacts.manifest.mediaBaseUrl = normalizedBase
 
   return stats
 }

@@ -7,7 +7,7 @@
 #          access_key_id=... secret_access_key=... \
 #          endpoint=https://<account-id>.r2.cloudflarestorage.com
 #   2. Google Drive (cold backup): originals + manifest + exported JSON only;
-#      AVIF variants are regenerable so they are excluded.
+#      AVIF variants and video preview clips are regenerable so they are excluded.
 #      Requires the existing "gdrive" remote (rclone config reconnect gdrive:
 #      if the token has expired).
 #
@@ -46,7 +46,7 @@ fi
 if rclone listremotes | grep -q '^gdrive:'; then
   echo "Backing up originals + manifest to $GDRIVE_TARGET ..."
   rclone copy "$ASSETS_DIR" "$GDRIVE_TARGET/assets" \
-    --exclude '*.avif' --fast-list --transfers 8 --stats-one-line -P
+    --exclude '*.avif' --exclude 'preview.mp4' --fast-list --transfers 8 --stats-one-line -P
   rclone copyto "$MANIFEST" "$GDRIVE_TARGET/mirror-manifest.json"
   rclone copy public/data "$GDRIVE_TARGET/data" --fast-list --stats-one-line
 else

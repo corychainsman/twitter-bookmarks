@@ -81,6 +81,7 @@ function buildManifest(): MirrorManifest {
         status: 'ok',
         kind: 'video',
         key: 'vid/amplify_video/1/vid/avc1/100x100/clip.mp4',
+        previewKey: 'vid/amplify_video/1/vid/avc1/100x100/clip/preview.mp4',
         attempts: 1,
       },
       [POSTER_URL]: {
@@ -119,11 +120,16 @@ describe('applyMirrorRewrite', () => {
     expect(photoTile.thumbUrl).toBe('https://media.example.com/pbs/media/abc.jpg')
     expect(photoTile.thumbhash).toBe('aGFzaA==')
     expect(videoTile.thumbhash).toBe('cG9zdGVy')
+    expect(videoTile.previewUrl).toBe(
+      'https://media.example.com/vid/amplify_video/1/vid/avc1/100x100/clip/preview.mp4',
+    )
+    expect(photoTile.previewUrl).toBeUndefined()
     expect(deadTile.thumbUrl).toBe(DEAD_URL)
     expect(deadTile.thumbhash).toBeUndefined()
 
     expect(artifacts.manifest.mediaBaseUrl).toBe('https://media.example.com')
     expect(stats.rewrittenUrls).toBeGreaterThan(0)
     expect(stats.thumbhashedGridItems).toBe(3)
+    expect(stats.previewGridItems).toBe(1)
   })
 })

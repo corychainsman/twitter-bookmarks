@@ -28,7 +28,7 @@ async function main() {
     const stats = applyMirrorRewrite(artifacts, mirrorManifest, mediaBaseUrl)
     console.log(
       `Mirror rewrite: ${stats.rewrittenUrls}/${stats.totalUrls} media URLs now served from ${mediaBaseUrl} ` +
-        `(${stats.thumbhashedGridItems} grid items thumbhashed).`,
+        `(${stats.thumbhashedGridItems} grid items thumbhashed, ${stats.previewGridItems} with autoplay previews).`,
     )
   } else {
     console.log('Mirror rewrite skipped: no mirrored assets in .data/media/mirror-manifest.json.')

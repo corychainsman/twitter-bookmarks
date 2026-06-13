@@ -7,7 +7,6 @@ import { resolveTwitterImageSourceSet } from '@/lib/twitter-media-url'
 import { Badge } from '@/components/ui/badge'
 import {
   candidateFromEntry,
-  getAutoplayCoordinator,
   AUTOPLAY_ROOT_MARGIN,
   AUTOPLAY_THRESHOLD,
 } from '@/components/media/autoplay'
@@ -48,27 +47,18 @@ function VideoGridTile({
   const [shouldPlay, setShouldPlay] = useState(false)
 
   useEffect(() => {
-    const coordinator = getAutoplayCoordinator()
-    return coordinator.subscribe(gridId, setShouldPlay)
-  }, [gridId])
-
-  useEffect(() => {
     const el = videoRef.current
     if (!el) return
-    const coordinator = getAutoplayCoordinator()
     const observer = new IntersectionObserver(
       (entries) => {
         for (const entry of entries) {
-          coordinator.update(candidateFromEntry(gridId, entry))
+          setShouldPlay(candidateFromEntry(gridId, entry).isActiveBand)
         }
       },
       { threshold: [0, AUTOPLAY_THRESHOLD, 1], rootMargin: AUTOPLAY_ROOT_MARGIN },
     )
     observer.observe(el)
-    return () => {
-      observer.disconnect()
-      coordinator.remove(gridId)
-    }
+    return () => observer.disconnect()
   }, [gridId])
 
   useEffect(() => {
@@ -145,7 +135,7 @@ export function MediaTile({
           ) : null}
           {isMotion ? (
             <VideoGridTile
-              src={item.fullUrl}
+              src={item.previewUrl ?? item.fullUrl}
               poster={imageSources.src}
               aspectRatio={aspectRatio}
               width={item.width}

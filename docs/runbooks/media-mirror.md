@@ -83,27 +83,38 @@ bun run build                # then deploy as usual
 
 ## Video playback
 
-Videos and animated GIFs play directly from the mirrored MP4 files on R2.
+Videos and animated GIFs autoplay (muted, looping) in both the grid and the
+lightbox.
 
-**Grid tiles** (`VideoGridTile` in `MediaTile.tsx`): videos autoplay muted and
-looping when ≥35% visible in the viewport. An `AutoplayCoordinator` limits
-concurrent playback to 2 tiles (nearest to viewport center win). Videos use
-`preload="none"` so no data loads until a tile enters the active band;
-above-the-fold initial tiles use `preload="metadata"`. The poster image (AVIF
-w680 variant of the poster/thumb) shows while the video is not playing.
+**Preview clips (grid tier).** Every mirrored video gets a downscaled,
+audio-stripped MP4 for in-grid autoplay so that many tiles can decode at once
+without streaming the multi-MB originals. `bun run data:video-previews`
+(`scripts/generate-video-previews.ts`) runs ffmpeg over each `ok` video in the
+manifest and writes `vid/<stem>/preview.mp4` — width 480, H.264 CRF 31, no
+audio, `+faststart` — recording `previewKey`/`previewBytes` in the manifest.
+It is incremental (skips videos that already have a preview file; `--force` to
+re-encode) and supports `--limit N`, `--concurrency N`, `--dry-run`. Typical
+output is ~0.5 MB per clip vs ~5 MB average for the original. The clips live
+alongside the AVIF poster variants under the same stem and are regenerable, so
+`mirror:sync` uploads them to R2 (full-tree `rclone copy`) but excludes them
+from the Google Drive cold backup.
 
-**Lightbox**: all video slides (both regular video and animated GIF) autoplay
-muted via the HTML `autoPlay` attribute. `muted` is required for iOS Safari
-autoplay policy. The native controls are shown so the user can unmute, pause,
-and seek.
+`data:export` (`mirror-rewrite.ts`) sets `GridItem.previewUrl` from the video
+record's `previewKey`; the grid uses `previewUrl ?? fullUrl`. `bun run refresh`
+runs `data:mirror → data:video-previews → mirror:sync → data:export → …`.
 
-**Future option — grid preview clips**: if R2 video bandwidth becomes a
-concern, generate a 5–10 second 360p preview clip per video with ffmpeg
-(`-t 10 -vf scale=360:-2 -b:v 400k`) and store it at
-`vid/<twimg-path>/preview.mp4`. Update `GridItem` with a `previewUrl` field
-and `mirror-rewrite.ts` to populate it; use `previewUrl ?? fullUrl` as the
-video `src` in `VideoGridTile`. No change to the R2 sync pipeline beyond
-running the generator script once.
+**Grid tiles** (`VideoGridTile` in `MediaTile.tsx`): the preview clip autoplays
+muted and looping for every tile in the active band (≥35% visible plus a 180px
+prewarm margin). Each tile drives its own `IntersectionObserver` — all visible
+videos play; there is no global concurrency cap. Videos use `preload="none"`
+so nothing loads until a tile enters the band (above-the-fold initial tiles use
+`preload="metadata"`). The ThumbHash placeholder shows underneath until the
+first frame paints.
+
+**Lightbox**: plays the full-resolution original (`media.fullUrl`), not the
+preview. All video slides autoplay muted via the HTML `autoPlay` attribute
+(`muted` is required by the iOS Safari autoplay policy); native controls let
+the user unmute, pause, and seek.
 
 ## Failure handling
 
