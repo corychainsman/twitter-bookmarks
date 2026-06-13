@@ -1,41 +1,44 @@
 import type { GridItem } from '@/features/bookmarks/model'
-import { isMirroredImageUrl, MIRROR_IMAGE_WIDTHS, mirroredVariantUrl } from '@/lib/twitter-media-url'
+import { isMirroredImageUrl, mirroredVariantUrl } from '@/lib/twitter-media-url'
 
 const PRECACHE_START_DELAY_MS = 4_000
 const PRECACHE_CONCURRENCY = 3
+// On mobile (single narrow column), the browser picks w1280 at DPR 3 — 120 KB each.
+// Cap total tiles and use a smaller tier to avoid saturating mobile bandwidth.
+const PRECACHE_WIDTH_MOBILE = 320
+const PRECACHE_WIDTH_DESKTOP = 680
+const PRECACHE_MAX_TILES_MOBILE = 200
+const PRECACHE_MAX_TILES_DESKTOP = 1500
 
 let precacheStarted = false
 
-type SaveDataNavigator = Navigator & { connection?: { saveData?: boolean } }
+type NetworkNavigator = Navigator & {
+  connection?: { saveData?: boolean; effectiveType?: string }
+}
+
+function isSlowConnection(): boolean {
+  const conn = (navigator as NetworkNavigator).connection
+  if (!conn) return false
+  if (conn.saveData) return true
+  const type = conn.effectiveType
+  return type === 'slow-2g' || type === '2g' || type === '3g'
+}
+
+function isMobileViewport(): boolean {
+  return window.innerWidth <= 800
+}
 
 function shouldPrecache(): boolean {
   if (typeof window === 'undefined' || precacheStarted) {
     return false
   }
-
-  return !(navigator as SaveDataNavigator).connection?.saveData
-}
-
-// Approximates the tier the browser will pick from the tiles' srcset/sizes so
-// the precached bytes are the same ones the grid requests.
-function devicePrecacheWidth(): number {
-  const viewportWidth = window.innerWidth || 1280
-  const viewportFraction = viewportWidth <= 800 ? 1 : viewportWidth <= 1200 ? 0.5 : 0.33
-  const targetPixelWidth = Math.ceil(
-    viewportWidth * viewportFraction * Math.max(1, window.devicePixelRatio || 1),
-  )
-
-  return (
-    MIRROR_IMAGE_WIDTHS.find((width) => width >= targetPixelWidth) ??
-    MIRROR_IMAGE_WIDTHS[MIRROR_IMAGE_WIDTHS.length - 1]
-  )
+  return !isSlowConnection()
 }
 
 /**
- * Progressively fetches the grid-size variant of every mirrored tile after
- * first paint. The media-cache service worker (or plain HTTP cache, given the
- * immutable headers) absorbs each response, so scroll/filter/search hits are
- * served from disk afterwards.
+ * Progressively fetches thumbnail variants for mirrored tiles after first paint.
+ * Uses a smaller AVIF tier on mobile (w320 vs w680) and caps total tile count
+ * to avoid saturating mobile bandwidth with multi-hundred-MB background downloads.
  */
 export function startGridThumbPrecache(items: GridItem[]): void {
   if (!shouldPrecache()) {
@@ -43,7 +46,10 @@ export function startGridThumbPrecache(items: GridItem[]): void {
   }
   precacheStarted = true
 
-  const width = devicePrecacheWidth()
+  const mobile = isMobileViewport()
+  const width = mobile ? PRECACHE_WIDTH_MOBILE : PRECACHE_WIDTH_DESKTOP
+  const maxTiles = mobile ? PRECACHE_MAX_TILES_MOBILE : PRECACHE_MAX_TILES_DESKTOP
+
   const urls = [
     ...new Set(
       items
@@ -51,7 +57,7 @@ export function startGridThumbPrecache(items: GridItem[]): void {
         .filter((url) => isMirroredImageUrl(url))
         .map((url) => mirroredVariantUrl(url, width)),
     ),
-  ]
+  ].slice(0, maxTiles)
 
   if (urls.length === 0) {
     return

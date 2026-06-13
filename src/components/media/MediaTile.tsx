@@ -51,6 +51,17 @@ export function MediaTile({
         onClick={onOpen}
       >
         <div className="relative overflow-hidden bg-black">
+          {placeholderUrl ? (
+            <div
+              aria-hidden
+              className="pointer-events-none absolute inset-0"
+              style={{
+                backgroundImage: `url(${placeholderUrl})`,
+                backgroundSize: 'cover',
+                backgroundPosition: 'center',
+              }}
+            />
+          ) : null}
           <img
             src={imageSources.src}
             srcSet={imageSources.srcSet}
@@ -62,17 +73,8 @@ export function MediaTile({
             data-initial-media={initialMedia ? 'true' : undefined}
             width={item.width}
             height={item.height}
-            style={{
-              ...(aspectRatio ? { aspectRatio } : undefined),
-              ...(placeholderUrl
-                ? {
-                    backgroundImage: `url(${placeholderUrl})`,
-                    backgroundSize: 'cover',
-                    backgroundPosition: 'center',
-                  }
-                : undefined),
-            }}
-            className="app-media-image block h-auto w-full"
+            style={aspectRatio ? { aspectRatio } : undefined}
+            className="app-media-image relative block h-auto w-full"
           />
 
           {!immersive ? (
