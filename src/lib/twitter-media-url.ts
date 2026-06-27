@@ -2,6 +2,8 @@ export type TwitterImageSize = 'small' | 'medium' | 'large' | 'orig'
 
 const TWITTER_IMAGE_HOST = 'pbs.twimg.com'
 const TWITTER_RESIZABLE_PATH_PREFIX = '/media/'
+const twitterOriginalJpgCache = new Map<string, string>()
+const twitterSizeCache = new Map<string, Map<TwitterImageSize, string>>()
 
 // Self-hosted mirror images live at <base>/pbs/<twimg-path>; resized AVIF
 // variants always exist at <base>/pbs/<path-without-extension>/w{N}.avif.
@@ -49,6 +51,19 @@ export function withTwitterSize(url: string, size: TwitterImageSize): string {
   if (!url) {
     return url
   }
+  const cachedBySize = twitterSizeCache.get(url) ?? (twitterSizeCache.set(url, new Map()), twitterSizeCache.get(url)!)
+  const cached = cachedBySize.get(size)
+  if (cached) return cached
+  if (url.startsWith('https://pbs.twimg.com/media/')) {
+    const queryIndex = url.indexOf('?'), nameIndex = url.indexOf('name='), nextParamIndex = nameIndex < 0 ? -1 : url.indexOf('&', nameIndex)
+    const sizedUrl = queryIndex < 0
+      ? `${url}?name=${size}`
+      : nameIndex < 0
+        ? `${url}&name=${size}`
+        : `${url.slice(0, nameIndex + 5)}${size}${url.slice(nextParamIndex < 0 ? url.length : nextParamIndex)}`
+    cachedBySize.set(size, sizedUrl)
+    return sizedUrl
+  }
 
   if (isMirroredImageUrl(url)) {
     return size === 'orig' ? url : mirroredVariantUrl(url, MIRROR_SIZE_WIDTHS[size])
@@ -58,24 +73,37 @@ export function withTwitterSize(url: string, size: TwitterImageSize): string {
   try {
     parsed = new URL(url)
   } catch {
+    cachedBySize.set(size, url)
     return url
   }
 
   if (parsed.hostname !== TWITTER_IMAGE_HOST) {
+    cachedBySize.set(size, url)
     return url
   }
 
   if (!parsed.pathname.startsWith(TWITTER_RESIZABLE_PATH_PREFIX)) {
+    cachedBySize.set(size, url)
     return url
   }
 
   parsed.searchParams.set('name', size)
-  return parsed.toString()
+  const sizedUrl = parsed.toString()
+  cachedBySize.set(size, sizedUrl)
+  return sizedUrl
 }
 
 export function withTwitterOriginalJpg(url: string): string {
   if (!url) {
     return url
+  }
+  const cached = twitterOriginalJpgCache.get(url)
+  if (cached) return cached
+  if (url.startsWith('https://pbs.twimg.com/media/')) {
+    const queryIndex = url.indexOf('?')
+    const originalJpgUrl = `${queryIndex < 0 ? url : url.slice(0, queryIndex)}?format=jpg&name=orig`
+    twitterOriginalJpgCache.set(url, originalJpgUrl)
+    return originalJpgUrl
   }
 
   if (isMirroredImageUrl(url)) {
@@ -87,22 +115,24 @@ export function withTwitterOriginalJpg(url: string): string {
   try {
     parsed = new URL(url)
   } catch {
+    twitterOriginalJpgCache.set(url, url)
     return url
   }
 
   if (parsed.hostname !== TWITTER_IMAGE_HOST) {
+    twitterOriginalJpgCache.set(url, url)
     return url
   }
 
   if (!parsed.pathname.startsWith(TWITTER_RESIZABLE_PATH_PREFIX)) {
+    twitterOriginalJpgCache.set(url, url)
     return url
   }
 
-  parsed.search = new URLSearchParams({
-    format: 'jpg',
-    name: 'orig',
-  }).toString()
-  return parsed.toString()
+  parsed.search = 'format=jpg&name=orig'
+  const originalJpgUrl = parsed.toString()
+  twitterOriginalJpgCache.set(url, originalJpgUrl)
+  return originalJpgUrl
 }
 
 export type TwitterImageSourceSet = {
@@ -120,19 +150,7 @@ type TwitterImageSourceSetOptions = {
 
 const RESPONSIVE_SIZES =
   '(max-width: 800px) 100vw, (max-width: 1200px) 50vw, 33vw'
-
-const TWITTER_IMAGE_CANDIDATES: Array<{
-  size: Exclude<TwitterImageSize, 'orig'>
-  width: number
-}> = [
-  { size: 'small', width: 680 },
-  { size: 'medium', width: 1200 },
-  { size: 'large', width: 2048 },
-]
-
-function getTwitterImageCandidateRank(size: Exclude<TwitterImageSize, 'orig'>): number {
-  return TWITTER_IMAGE_CANDIDATES.findIndex((candidate) => candidate.size === size)
-}
+const sourceSetCache = new Map<string, Map<number | string, TwitterImageSourceSet>>()
 
 function resolveMaxTwitterImageCandidate(
   options: TwitterImageSourceSetOptions,
@@ -144,12 +162,8 @@ function resolveMaxTwitterImageCandidate(
       : 1
 
   if (renderedWidth && renderedWidth > 0) {
-    const targetPixelWidth = Math.ceil(renderedWidth * devicePixelRatio)
-    const candidate =
-      TWITTER_IMAGE_CANDIDATES.find(({ width }) => width >= targetPixelWidth) ??
-      TWITTER_IMAGE_CANDIDATES[TWITTER_IMAGE_CANDIDATES.length - 1]
-
-    return candidate.size
+    const targetPixelWidth = renderedWidth * devicePixelRatio
+    return targetPixelWidth <= 680 ? 'small' : targetPixelWidth <= 1200 ? 'medium' : 'large'
   }
 
   return options.maxSize ?? 'large'
@@ -192,40 +206,54 @@ export function resolveTwitterImageSourceSet(
   url: string,
   options: TwitterImageSourceSetOptions = {},
 ): TwitterImageSourceSet {
+  const cachedByOptions = sourceSetCache.get(url) ?? (sourceSetCache.set(url, new Map()), sourceSetCache.get(url)!)
+  const cacheKey = options.devicePixelRatio === 1 && options.maxSize === undefined && options.renderedWidth && options.sizes === `${options.renderedWidth}px`
+    ? options.renderedWidth
+    : `${options.devicePixelRatio ?? ''}|${options.maxSize ?? ''}|${options.renderedWidth ?? ''}|${options.sizes ?? ''}`
+  const cached = cachedByOptions.get(cacheKey)
+  if (cached) return cached
+
   if (isMirroredImageUrl(url)) {
-    return resolveMirroredImageSourceSet(url, options)
+    const sourceSet = resolveMirroredImageSourceSet(url, options)
+    cachedByOptions.set(cacheKey, sourceSet)
+    return sourceSet
   }
 
-  const small = withTwitterSize(url, 'small')
-  const medium = withTwitterSize(url, 'medium')
-  const large = withTwitterSize(url, 'large')
-  const urlsBySize: Record<Exclude<TwitterImageSize, 'orig'>, string> = {
-    small,
-    medium,
-    large,
-  }
+  const hasRenderedWidth = hasRenderedWidthOption(options)
   const maxCandidate = resolveMaxTwitterImageCandidate(options)
-  const maxCandidateRank = getTwitterImageCandidateRank(maxCandidate)
-  const candidateSizes = TWITTER_IMAGE_CANDIDATES.slice(0, maxCandidateRank + 1).map(
-    (candidate) => ({
-      ...candidate,
-      url: urlsBySize[candidate.size],
-    }),
-  )
-
+  const small = withTwitterSize(url, 'small')
+  if (maxCandidate === 'small') {
+    const sourceSet = { src: small }
+    cachedByOptions.set(cacheKey, sourceSet)
+    return sourceSet
+  }
+  const medium = withTwitterSize(url, 'medium')
+  if (maxCandidate === 'medium') {
+    const sourceSet = small === url && medium === url
+      ? { src: url }
+      : {
+          src: hasRenderedWidth ? medium : options.maxSize === 'small' ? small : medium,
+          srcSet: `${small} 680w, ${medium} 1200w`,
+          sizes: options.sizes ?? RESPONSIVE_SIZES,
+        }
+    cachedByOptions.set(cacheKey, sourceSet)
+    return sourceSet
+  }
+  const large = withTwitterSize(url, 'large')
   if (small === url && medium === url && large === url) {
-    return { src: url }
+    const sourceSet = { src: url }
+    cachedByOptions.set(cacheKey, sourceSet)
+    return sourceSet
   }
 
-  const src = hasRenderedWidthOption(options)
-    ? urlsBySize[maxCandidate]
-    : options.maxSize === 'small'
-      ? small
-      : medium
+  const srcSet = `${small} 680w, ${medium} 1200w, ${large} 2048w`
+  const src = hasRenderedWidth ? large : options.maxSize === 'small' ? small : medium
 
-  return {
+  const sourceSet = {
     src,
-    srcSet: candidateSizes.map((candidate) => `${candidate.url} ${candidate.width}w`).join(', '),
+    srcSet,
     sizes: options.sizes ?? RESPONSIVE_SIZES,
   }
+  cachedByOptions.set(cacheKey, sourceSet)
+  return sourceSet
 }

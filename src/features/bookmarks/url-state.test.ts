@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 
 import {
+  applyQueryStatePatch,
   DEFAULT_QUERY_STATE,
   parseQueryState,
   serializeQueryState,
@@ -110,5 +111,13 @@ describe('query url state', () => {
         similar: 'tweet-1:0',
       }).toString(),
     )
+  })
+
+  it('preserves state identity for no-op patches', () => {
+    expect(
+      applyQueryStatePatch(DEFAULT_QUERY_STATE, { sort: DEFAULT_QUERY_STATE.sort }, {
+        generateSeed: () => 'seed-1234',
+      }),
+    ).toBe(DEFAULT_QUERY_STATE)
   })
 })

@@ -10,7 +10,7 @@ import {
   type EmbeddingIndex,
   type SemanticQuery,
 } from '@/features/bookmarks/embedding-artifacts'
-import type { QueryResult, QueryState, TweetDoc } from '@/features/bookmarks/model'
+import type { GridItem, QueryResult, QueryState, TweetDoc } from '@/features/bookmarks/model'
 
 export const EMBEDDING_ARTIFACTS_NOT_HYDRATED_MESSAGE =
   'Semantic embedding artifacts have not been hydrated'
@@ -28,10 +28,11 @@ type SemanticTweetRank = {
 type SemanticRecordScore = {
   record: EmbeddingIndex['records'][number]
   score: number
-  adjustedScore: number
 }
 
-const decodedEmbeddingVectorsCache = new WeakMap<EmbeddingIndex, Int8Array>()
+const decodedEmbeddingVectorsCache = new WeakMap<EmbeddingIndex, Int8Array>(), embeddingRecordIndexesCache = new WeakMap<EmbeddingIndex, Map<string, number>>(), randomTweetIdsCache = new Map<string, string[]>(), randomSeedHashCache = new Map<string, [number, number]>()
+const gridAllByTweetIdCache = new WeakMap<GridItem[], Map<string, string[]>>(), docsCache = new WeakMap<QueryArtifacts['docsChunks'], { docs: TweetDoc[]; byId: Map<string, TweetDoc> }>()
+const queryResultCache = new Map<string, QueryResult>()
 
 const SEMANTIC_KIND_WEIGHTS = {
   textQuery: {
@@ -47,12 +48,20 @@ const SEMANTIC_KIND_WEIGHTS = {
 } as const
 
 function rankIdBySeed(seed: string, id: string): number {
-  let hashA = 0xdeadbeef
-  let hashB = 0x41c6ce57
-  const input = `${seed}:${id}`
-
-  for (let index = 0; index < input.length; index += 1) {
-    const code = input.charCodeAt(index)
+  let seedHash = randomSeedHashCache.get(seed)
+  if (!seedHash) {
+    let seedHashA = 0xdeadbeef, seedHashB = 0x41c6ce57
+    for (let index = 0; index < seed.length; index += 1) {
+      const code = seed.charCodeAt(index)
+      seedHashA = Math.imul(seedHashA ^ code, 2654435761)
+      seedHashB = Math.imul(seedHashB ^ code, 1597334677)
+    }
+    seedHash = [Math.imul(seedHashA ^ 58, 2654435761), Math.imul(seedHashB ^ 58, 1597334677)]
+    randomSeedHashCache.set(seed, seedHash)
+  }
+  let [hashA, hashB] = seedHash
+  for (let index = 0; index < id.length; index += 1) {
+    const code = id.charCodeAt(index)
     hashA = Math.imul(hashA ^ code, 2654435761)
     hashB = Math.imul(hashB ^ code, 1597334677)
   }
@@ -74,6 +83,18 @@ function getDecodedEmbeddingVectors(embeddingIndex: EmbeddingIndex): Int8Array {
   const decoded = decodeInt8Base64(embeddingIndex.vectors)
   decodedEmbeddingVectorsCache.set(embeddingIndex, decoded)
   return decoded
+}
+
+function getEmbeddingRecordIndexes(embeddingIndex: EmbeddingIndex): Map<string, number> {
+  const cached = embeddingRecordIndexesCache.get(embeddingIndex)
+  if (cached) return cached
+  const indexes = new Map<string, number>()
+  for (let index = 0; index < embeddingIndex.records.length; index += 1) {
+    const gridId = embeddingIndex.records[index]!.gridId
+    if (gridId) indexes.set(gridId, index)
+  }
+  embeddingRecordIndexesCache.set(embeddingIndex, indexes)
+  return indexes
 }
 
 function getQuantizedRecordVector(input: {
@@ -100,9 +121,7 @@ function resolveSemanticQueryVector(input: {
   const dimension = input.embeddingIndex.model.dimensions
 
   if (input.similarToGridId) {
-    const sourceRecordIndex = input.embeddingIndex.records.findIndex(
-      (record) => record.gridId === input.similarToGridId,
-    )
+    const sourceRecordIndex = getEmbeddingRecordIndexes(input.embeddingIndex).get(input.similarToGridId) ?? -1
     const sourceRecord = input.embeddingIndex.records[sourceRecordIndex]
 
     if (!sourceRecord) {
@@ -157,9 +176,10 @@ function rankTweetsBySemanticSimilarity(
       ? SEMANTIC_KIND_WEIGHTS.visualQuery
       : SEMANTIC_KIND_WEIGHTS.textQuery
 
-  embeddingIndex.records.forEach((record, recordIndex) => {
+  for (let recordIndex = 0; recordIndex < embeddingIndex.records.length; recordIndex += 1) {
+    const record = embeddingIndex.records[recordIndex]!
     if (semanticVector.excludedTweetId && record.tweetId === semanticVector.excludedTweetId) {
-      return
+      continue
     }
 
     const score = dotUnitVectorWithQuantizedRow({
@@ -168,23 +188,23 @@ function rankTweetsBySemanticSimilarity(
       rowIndex: recordIndex,
       vectors,
     })
-    const recordsForKind = scoresByKind.get(record.kind) ?? []
+    const recordsForKind = scoresByKind.get(record.kind) ?? (scoresByKind.set(record.kind, []), scoresByKind.get(record.kind)!)
     recordsForKind.push({
       record,
       score,
-      adjustedScore: score,
     })
-    scoresByKind.set(record.kind, recordsForKind)
-  })
+  }
 
   for (const recordsForKind of scoresByKind.values()) {
     recordsForKind.sort((left, right) => right.score - left.score)
+    const rankDenominator = Math.max(1, recordsForKind.length - 1)
 
-    recordsForKind.forEach((recordScore, recordIndex) => {
+    for (let recordIndex = 0; recordIndex < recordsForKind.length; recordIndex += 1) {
+      const recordScore = recordsForKind[recordIndex]!
       const rankPercentile =
         recordsForKind.length <= 1
           ? 1
-          : 1 - recordIndex / Math.max(1, recordsForKind.length - 1)
+          : 1 - recordIndex / rankDenominator
       const kindWeight = kindWeights[recordScore.record.kind]
       const adjustedScore = rankPercentile * kindWeight + recordScore.score * 0.001
       const currentRank = ranksByTweetId.get(recordScore.record.tweetId)
@@ -201,7 +221,7 @@ function rankTweetsBySemanticSimilarity(
           preferredGridId: recordScore.record.gridId,
         })
       }
-    })
+    }
   }
 
   const ranks = [...ranksByTweetId.values()]
@@ -220,34 +240,90 @@ function rankTweetsBySemanticSimilarity(
   return ranks
 }
 
-function resolveOneModeGridId(input: {
-  doc: TweetDoc
-  rank?: SemanticTweetRank
-  state: QueryState
-}): string {
-  if (input.rank?.preferredGridId) {
-    return input.rank.preferredGridId
+function expandGridIdsForTweets(tweetIds: string[], gridAllByTweetId: Map<string, string[]>, expectedLength: number): string[] {
+  const gridIds = new Array<string>(expectedLength)
+  let writeIndex = 0
+  for (const tweetId of tweetIds) {
+    const ids = gridAllByTweetId.get(tweetId)
+    if (!ids) continue
+    for (const id of ids) gridIds[writeIndex++] = id
   }
-
-  const mediaIndex = input.state.preferMotion
-    ? input.doc.representativeMotionMediaIndex
-    : input.doc.representativeMediaIndex
-
-  return `${input.doc.id}:${mediaIndex}`
+  gridIds.length = writeIndex
+  return gridIds
 }
 
-function orderGridIdsForTweet(input: {
-  gridIds: string[]
-  rank?: SemanticTweetRank
-}): string[] {
-  if (!input.rank?.preferredGridId || !input.gridIds.includes(input.rank.preferredGridId)) {
-    return input.gridIds
+function expandRankedGridIdsForTweets(tweetIds: string[], gridAllByTweetId: Map<string, string[]>, ranks: Map<string, SemanticTweetRank>): string[] {
+  const orderedGridIds = new Array<string>(tweetIds.length * 3)
+  let writeIndex = 0
+  for (const tweetId of tweetIds) {
+    const gridIds = gridAllByTweetId.get(tweetId)
+    if (!gridIds) continue
+    const preferredGridId = ranks.get(tweetId)?.preferredGridId
+    if (preferredGridId) orderedGridIds[writeIndex++] = preferredGridId
+    for (const gridId of gridIds) if (gridId !== preferredGridId) orderedGridIds[writeIndex++] = gridId
+  }
+  orderedGridIds.length = writeIndex
+  return orderedGridIds
+}
+
+function expandOneModeGridIds(tweetIds: string[], docsById: Map<string, TweetDoc>, state: QueryState, ranks: Map<string, SemanticTweetRank> | null): string[] {
+  const gridIds = new Array<string>(tweetIds.length)
+  let writeIndex = 0
+  const mediaIndexKey = state.preferMotion ? 'representativeMotionMediaIndex' : 'representativeMediaIndex'
+  for (const tweetId of tweetIds) {
+    const doc = docsById.get(tweetId)
+    if (!doc) continue
+    const preferredGridId = ranks?.get(tweetId)?.preferredGridId
+    gridIds[writeIndex++] = preferredGridId ?? `${doc.id}:${doc[mediaIndexKey]}`
+  }
+  gridIds.length = writeIndex
+  return gridIds
+}
+
+function getGridAllByTweetId(gridAll: GridItem[]): Map<string, string[]> {
+  const cached = gridAllByTweetIdCache.get(gridAll)
+  if (cached) {
+    return cached
   }
 
-  return [
-    input.rank.preferredGridId,
-    ...input.gridIds.filter((gridId) => gridId !== input.rank?.preferredGridId),
-  ]
+  const grouped = new Map<string, string[]>()
+  for (const gridItem of gridAll) {
+    const gridIds = grouped.get(gridItem.tweetId) ?? (grouped.set(gridItem.tweetId, []), grouped.get(gridItem.tweetId)!)
+    gridIds.push(gridItem.gridId)
+  }
+  gridAllByTweetIdCache.set(gridAll, grouped)
+  return grouped
+}
+
+function getDocs(docsChunks: QueryArtifacts['docsChunks']) {
+  const cached = docsCache.get(docsChunks)
+  if (cached) {
+    return cached
+  }
+  const docs: TweetDoc[] = [], byId = new Map<string, TweetDoc>()
+  for (const chunk of docsChunks) for (const doc of chunk.docs) {
+    docs.push(doc)
+    byId.set(doc.id, doc)
+  }
+  const cachedDocs = { docs, byId }
+  docsCache.set(docsChunks, cachedDocs)
+  return cachedDocs
+}
+
+function getRandomTweetIds(buildId: string, seed: string, docs: TweetDoc[]) {
+  const key = `${buildId}:${seed}`
+  const cached = randomTweetIdsCache.get(key)
+  if (cached) return cached
+  const ranked = new Array<{ id: string; rank: number }>(docs.length)
+  for (let index = 0; index < docs.length; index += 1) {
+    const id = docs[index]!.id
+    ranked[index] = { id, rank: rankIdBySeed(seed, id) }
+  }
+  ranked.sort((left, right) => left.rank - right.rank)
+  const ids = new Array<string>(ranked.length)
+  for (let index = 0; index < ranked.length; index += 1) ids[index] = ranked[index]!.id
+  randomTweetIdsCache.set(key, ids)
+  return ids
 }
 
 export function runBookmarksQuery(
@@ -255,88 +331,52 @@ export function runBookmarksQuery(
   state: QueryState,
   semanticQuery?: SemanticQuery,
 ): QueryResult {
-  const docs = artifacts.docsChunks.flatMap((chunk) => chunk.docs)
-  const docsById = new Map(docs.map((doc) => [doc.id, doc]))
-  const gridAllByTweetId = new Map<string, string[]>()
-
-  for (const gridItem of artifacts.gridAll) {
-    const existing = gridAllByTweetId.get(gridItem.tweetId)
-    if (existing) {
-      existing.push(gridItem.gridId)
-      continue
-    }
-    gridAllByTweetId.set(gridItem.tweetId, [gridItem.gridId])
-  }
-
-  const needsEmbeddingRanking =
-    state.q.trim().length > 0 || state.similarToGridId || semanticQuery
+  const hasTextQuery = state.q.length > 0 && state.q.trim().length > 0
+  const needsEmbeddingRanking = hasTextQuery || state.similarToGridId || semanticQuery
 
   if (needsEmbeddingRanking) {
     if (!artifacts.embeddingIndex) {
       throw new Error(EMBEDDING_ARTIFACTS_NOT_HYDRATED_MESSAGE)
     }
   }
+  const queryResultCacheKey = !semanticQuery && (state.similarToGridId || !needsEmbeddingRanking) ? `${artifacts.manifest.buildId}|${state.sort}|${state.dir}|${state.mode}|${state.preferMotion}|${state.similarToGridId ?? ''}|${state.sort === 'random' ? state.seed ?? '' : ''}` : ''
+  const cachedQueryResult = queryResultCacheKey ? queryResultCache.get(queryResultCacheKey) : undefined
+  if (cachedQueryResult) return cachedQueryResult
+  const docs = state.sort === 'random' || state.mode === 'one' ? getDocs(artifacts.docsChunks) : null
+  const gridAllByTweetId = getGridAllByTweetId(artifacts.gridAll)
 
   const semanticRanks = needsEmbeddingRanking && artifacts.embeddingIndex
     ? rankTweetsBySemanticSimilarity(artifacts.embeddingIndex, state, semanticQuery)
     : null
-  const semanticRanksByTweetId = semanticRanks
-    ? new Map(semanticRanks.map((rank) => [rank.tweetId, rank]))
-    : null
-
-  const orderedTweetIds = semanticRanks
-    ? semanticRanks.map((rank) => rank.tweetId)
-    : state.sort === 'random'
-      ? artifacts.docsChunks
-          .flatMap((chunk) => chunk.docs)
-          .map((doc) => doc.id)
-          .sort((left, right) => {
-            const seed = state.seed ?? ''
-            return rankIdBySeed(seed, left) - rankIdBySeed(seed, right)
-          })
+  const semanticRanksByTweetId = semanticRanks ? new Map<string, SemanticTweetRank>() : null
+  let orderedTweetIds = semanticRanks ? new Array<string>(semanticRanks.length) : null
+  if (semanticRanks && semanticRanksByTweetId && orderedTweetIds) {
+    for (let index = 0; index < semanticRanks.length; index += 1) {
+      const rank = semanticRanks[index]!
+      semanticRanksByTweetId.set(rank.tweetId, rank)
+      orderedTweetIds[index] = rank.tweetId
+    }
+  }
+  orderedTweetIds ??= state.sort === 'random'
+      ? getRandomTweetIds(artifacts.manifest.buildId, state.seed ?? '', docs!.docs)
       : state.sort === 'posted'
-        ? [...artifacts.orderPosted]
-        : [...artifacts.orderBookmarked]
+        ? artifacts.orderPosted
+        : artifacts.orderBookmarked
 
   if (!semanticRanks && state.dir === 'asc') {
-    orderedTweetIds.reverse()
+    orderedTweetIds = orderedTweetIds.slice().reverse()
   }
-
-  const filteredTweetIds = orderedTweetIds.filter((tweetId) => {
-    const doc = docsById.get(tweetId)
-    if (!doc) {
-      return false
-    }
-
-    return true
-  })
 
   const orderedGridIds =
     state.mode === 'all'
-      ? filteredTweetIds.flatMap((tweetId) =>
-          orderGridIdsForTweet({
-            gridIds: gridAllByTweetId.get(tweetId) ?? [],
-            rank: semanticRanksByTweetId?.get(tweetId),
-          }),
-        )
-      : filteredTweetIds.flatMap((tweetId) => {
-          const doc = docsById.get(tweetId)
-          if (!doc) {
-            return []
-          }
+      ? semanticRanksByTweetId ? expandRankedGridIdsForTweets(orderedTweetIds, gridAllByTweetId, semanticRanksByTweetId) : expandGridIdsForTweets(orderedTweetIds, gridAllByTweetId, artifacts.gridAll.length)
+      : expandOneModeGridIds(orderedTweetIds, docs!.byId, state, semanticRanksByTweetId)
 
-          return [
-            resolveOneModeGridId({
-              doc,
-              rank: semanticRanksByTweetId?.get(tweetId),
-              state,
-            }),
-          ]
-        })
-
-  return {
+  const result = {
     total: orderedGridIds.length,
     orderedGridIds,
     appliedSeed: state.sort === 'random' ? state.seed : undefined,
   }
+  if (queryResultCacheKey) queryResultCache.set(queryResultCacheKey, result)
+  return result
 }

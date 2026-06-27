@@ -1,16 +1,24 @@
-import { useEffect, useRef, useState } from 'react'
+import { memo, type CSSProperties, type MouseEventHandler, useEffect, useRef, useState } from 'react'
 
 import type { GridItem, TweetDoc } from '@/features/bookmarks/model'
 import { formatPostedDate } from '@/lib/format'
 import { captureMediaHandoff } from '@/lib/media-handoff'
 import { thumbhashToDataUrl } from '@/lib/thumbhash-placeholder'
-import { resolveTwitterImageSourceSet } from '@/lib/twitter-media-url'
+import { resolveTwitterImageSourceSet, type TwitterImageSourceSet } from '@/lib/twitter-media-url'
 import { Badge } from '@/components/ui/badge'
 import {
   candidateFromEntry,
   AUTOPLAY_ROOT_MARGIN,
   AUTOPLAY_THRESHOLD,
 } from '@/components/media/autoplay'
+
+const MEDIA_TYPE_LABEL = { animated_gif: 'animated gif', photo: 'photo', video: 'video' }
+const aspectRatioStyleCache = new WeakMap<GridItem, CSSProperties | null>()
+const postedDateCache = new WeakMap<TweetDoc, string>()
+const imageSourcesCache = new WeakMap<
+  GridItem,
+  { sourceUrl: string; byKey: Map<number | string, TwitterImageSourceSet> }
+>()
 
 type MediaTileProps = {
   item: GridItem
@@ -22,7 +30,7 @@ type MediaTileProps = {
   imageDevicePixelRatio?: number
   imageRenderedWidth?: number
   imageSizes?: string
-  onOpen: () => void
+  onOpen: MouseEventHandler<HTMLButtonElement>
 }
 
 type VideoGridTileProps = {
@@ -89,7 +97,7 @@ function VideoGridTile({
   )
 }
 
-export function MediaTile({
+export const MediaTile = memo(function MediaTile({
   item,
   tweet,
   immersive,
@@ -103,22 +111,48 @@ export function MediaTile({
 }: MediaTileProps) {
   const isMotion = item.mediaType === 'video' || item.mediaType === 'animated_gif'
   const previewUrl = item.posterUrl ?? item.thumbUrl
-  const aspectRatio =
-    item.aspectRatio ??
-    (item.width && item.height && item.width > 0 && item.height > 0
-      ? item.width / item.height
-      : undefined)
-  const imageSources = resolveTwitterImageSourceSet(isMotion ? previewUrl : item.thumbUrl, {
-    devicePixelRatio: imageDevicePixelRatio,
-    renderedWidth: imageRenderedWidth,
-    sizes: imageSizes,
-  })
+  let aspectRatioStyle = aspectRatioStyleCache.get(item)
+  if (aspectRatioStyle === undefined) {
+    const aspectRatio =
+      item.aspectRatio ??
+      (item.width && item.height && item.width > 0 && item.height > 0
+        ? item.width / item.height
+        : undefined)
+    aspectRatioStyle = aspectRatio ? { aspectRatio } : null
+    aspectRatioStyleCache.set(item, aspectRatioStyle)
+  }
+  const aspectRatio = aspectRatioStyle?.aspectRatio as number | undefined
+  const imageSourcesKey =
+    imageDevicePixelRatio === 1 && imageRenderedWidth && imageSizes === `${imageRenderedWidth}px`
+      ? imageRenderedWidth
+      : `${imageDevicePixelRatio ?? ''}|${imageRenderedWidth ?? ''}|${imageSizes ?? ''}`
+  const imageSourcesRecord = imageSourcesCache.get(item) ?? (imageSourcesCache.set(item, {
+    sourceUrl: isMotion ? previewUrl : item.thumbUrl,
+    byKey: new Map(),
+  }), imageSourcesCache.get(item)!)
+  let imageSources = imageSourcesRecord.byKey.get(imageSourcesKey)
+  if (!imageSources) {
+    imageSources = resolveTwitterImageSourceSet(imageSourcesRecord.sourceUrl, {
+      devicePixelRatio: imageDevicePixelRatio,
+      renderedWidth: imageRenderedWidth,
+      sizes: imageSizes,
+    })
+    imageSourcesRecord.byKey.set(imageSourcesKey, imageSources)
+  }
+  let postedDate = 'Unknown date'
+  if (!immersive && tweet) {
+    postedDate = postedDateCache.get(tweet) ?? ''
+    if (!postedDate) {
+      postedDate = formatPostedDate(tweet.postedAt)
+      postedDateCache.set(tweet, postedDate)
+    }
+  }
   const placeholderUrl = thumbhashToDataUrl(item.thumbhash)
   const mediaRef = useRef<HTMLDivElement>(null)
 
-  const handleOpen = () => {
+  const handleOpen: MouseEventHandler<HTMLButtonElement> = (event) => {
     captureMediaHandoff(item.gridId, mediaRef.current?.querySelector('video, img') ?? null)
-    onOpen()
+    onOpen(event)
   }
 
   return (
@@ -126,6 +160,7 @@ export function MediaTile({
       <button
         type="button"
         className="app-tile-button cursor-pointer text-left"
+        data-grid-id={item.gridId}
         onClick={handleOpen}
       >
         <div ref={mediaRef} className="relative overflow-hidden bg-black">
@@ -162,7 +197,7 @@ export function MediaTile({
               data-initial-media={initialMedia ? 'true' : undefined}
               width={item.width}
               height={item.height}
-              style={aspectRatio ? { aspectRatio } : undefined}
+              style={aspectRatioStyle ?? undefined}
               className="app-media-image relative block h-auto w-full"
             />
           )}
@@ -174,7 +209,7 @@ export function MediaTile({
                   variant="secondary"
                   className="rounded-[var(--app-control-radius)] border border-[var(--app-media-badge-border)] bg-[var(--app-media-badge-surface)] text-[0.625rem] font-medium tracking-[0.2em] text-[var(--foreground)] uppercase"
                 >
-                  {item.mediaType.replace('_', ' ')}
+                  {MEDIA_TYPE_LABEL[item.mediaType]}
                 </Badge>
                 {tweet?.authorHandle ? (
                   <span className="text-[0.6875rem] font-medium text-white/80">@{tweet.authorHandle}</span>
@@ -190,7 +225,7 @@ export function MediaTile({
               {tweet?.text || 'Loading tweet details…'}
             </p>
             <div className="app-tile-meta flex items-center justify-between gap-3">
-              <span>{formatPostedDate(tweet?.postedAt)}</span>
+              <span>{postedDate}</span>
               <span>{tweet?.folderNames[0] || 'Unfoldered'}</span>
             </div>
           </div>
@@ -198,4 +233,4 @@ export function MediaTile({
       </button>
     </article>
   )
-}
+})

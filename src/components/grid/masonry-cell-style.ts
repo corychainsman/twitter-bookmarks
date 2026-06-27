@@ -8,6 +8,7 @@ const HIDDEN_MEASUREMENT_CELL_STYLE: CSSProperties = {
   visibility: 'hidden',
   zIndex: -1,
 }
+const measurementCellStyleCache = new WeakMap<CSSProperties, CSSProperties>()
 
 export function resolveBookmarksMasonryCellStyle(style: CSSProperties | undefined): CSSProperties {
   if (!style) {
@@ -18,8 +19,12 @@ export function resolveBookmarksMasonryCellStyle(style: CSSProperties | undefine
     return style
   }
 
-  return {
+  const cached = measurementCellStyleCache.get(style)
+  if (cached) return cached
+  const hiddenStyle = {
     ...style,
     ...HIDDEN_MEASUREMENT_CELL_STYLE,
   }
+  measurementCellStyleCache.set(style, hiddenStyle)
+  return hiddenStyle
 }

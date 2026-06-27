@@ -545,7 +545,7 @@ describe('BookmarksMasonry', () => {
     ).toHaveLength(0)
   })
 
-  it('prefetches the greater of five viewport-heights or fifty items beyond the viewport', async () => {
+  it('prefetches the greater of five viewport-heights or thirty-six items beyond the viewport', async () => {
     const { rerender } = render(
       <BookmarksMasonry
         columnCount={3}
@@ -565,7 +565,7 @@ describe('BookmarksMasonry', () => {
 
     expect(reactVirtualizedMocks.lastMasonryProps).toMatchObject({
       height: 900,
-      overscanByPixels: 7575,
+      overscanByPixels: 5454,
     })
 
     rerender(
@@ -738,7 +738,7 @@ describe('BookmarksMasonry', () => {
     })
   })
 
-  it('keeps later initial images eager without marking all of them high priority', () => {
+  it('keeps later first-batch images out of the initial-ready gate', () => {
     expect(
       resolveBookmarksMasonryImageLoadingStrategy({
         cellHeight: 300,
@@ -752,8 +752,8 @@ describe('BookmarksMasonry', () => {
       }),
     ).toEqual({
       fetchPriority: 'low',
-      initialMedia: true,
-      loading: 'eager',
+      initialMedia: false,
+      loading: 'lazy',
     })
   })
 

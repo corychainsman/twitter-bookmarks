@@ -85,7 +85,6 @@ describe('data loader', () => {
     expect(requestedPaths).toEqual([
       'data/manifest.json',
       'data/tweets/docs-0001.json?v=build-1',
-      'data/grid/one.json?v=build-1',
       'data/grid/all.json?v=build-1',
       'data/order/bookmarked.json?v=build-1',
       'data/order/posted.json?v=build-1',

@@ -2,9 +2,6 @@ import type { SemanticQuerySource } from '@/features/bookmarks/embedding-artifac
 
 export type EmbeddingWorkerRequest =
   | {
-      type: 'warmup-text'
-    }
-  | {
       type: 'embed-text'
       requestId: number
       text: string

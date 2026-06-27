@@ -131,6 +131,10 @@ export function applyQueryStatePatch(
   patch: Partial<QueryState>,
   options: ParseQueryStateOptions,
 ): QueryState {
+  let changed = false
+  for (const key in patch) changed ||= patch[key as keyof QueryState] !== current[key as keyof QueryState]
+  if (!changed) return current
+
   const next = { ...current, ...patch }
   const enteringRandom = current.sort !== 'random' && next.sort === 'random'
   const toggledKeepSeedOn = current.keepSeed === false && next.keepSeed === true

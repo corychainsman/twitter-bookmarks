@@ -17,9 +17,12 @@ export type DataLoaderOptions = {
   cache?: BookmarksArtifactCache
 }
 
+let dataUrlBase = ''
+let defaultCache: BookmarksArtifactCache | null = null
+
 function resolveDataUrl(path: string): string {
-  const appBase = new URL(import.meta.env.BASE_URL, window.location.origin)
-  return new URL(path.replace(/^\//, ''), appBase).toString()
+  dataUrlBase ||= new URL(import.meta.env.BASE_URL, window.location.origin).toString()
+  return `${dataUrlBase}${path.charCodeAt(0) === 47 ? path.slice(1) : path}`
 }
 
 function resolveArtifactPath(path: string): string {
@@ -27,6 +30,7 @@ function resolveArtifactPath(path: string): string {
 }
 
 function withVersionQuery(path: string, version: string): string {
+  if (path.indexOf('?') < 0) return `${path}?v=${version}`
   const [pathname, existingQuery = ''] = path.split('?')
   const params = new URLSearchParams(existingQuery)
   params.set('v', version)
@@ -64,7 +68,7 @@ function getFetchJson(options?: DataLoaderOptions): JsonFetcher {
 }
 
 function getCache(options?: DataLoaderOptions): BookmarksArtifactCache {
-  return options?.cache ?? createBookmarksArtifactCache()
+  return options?.cache ?? (defaultCache ??= createBookmarksArtifactCache())
 }
 
 export async function loadManifest(options?: DataLoaderOptions): Promise<Manifest> {
@@ -85,19 +89,17 @@ export async function loadCoreArtifacts(options?: DataLoaderOptions): Promise<Co
     return {
       manifest,
       ...cached,
+      gridOne: [],
     }
   }
 
-  const [docs, gridOne, gridAll, orderBookmarked, orderPosted] = await Promise.all([
+  const [docs, gridAll, orderBookmarked, orderPosted] = await Promise.all([
     Promise.all(
       manifest.files.docs.map((fileName) =>
         fetchJson<TweetDoc[]>(
           withVersionQuery(resolveArtifactPath(fileName), manifest.buildId),
         ),
       ),
-    ),
-    fetchJson<GridItem[]>(
-      withVersionQuery(resolveArtifactPath(manifest.files.gridOne), manifest.buildId),
     ),
     fetchJson<GridItem[]>(
       withVersionQuery(resolveArtifactPath(manifest.files.gridAll), manifest.buildId),
@@ -116,7 +118,7 @@ export async function loadCoreArtifacts(options?: DataLoaderOptions): Promise<Co
       fileName,
       docs: docs[index] ?? [],
     })),
-    gridOne,
+    gridOne: [],
     gridAll,
     orderBookmarked,
     orderPosted,
@@ -124,7 +126,7 @@ export async function loadCoreArtifacts(options?: DataLoaderOptions): Promise<Co
 
   await cache.setCore(manifest.buildId, {
     docsChunks: coreArtifacts.docsChunks,
-    gridOne,
+    gridOne: [],
     gridAll,
     orderBookmarked,
     orderPosted,

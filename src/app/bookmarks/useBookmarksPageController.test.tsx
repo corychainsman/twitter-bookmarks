@@ -54,14 +54,6 @@ function getQueryWorker() {
   return worker
 }
 
-function getEmbeddingWorker() {
-  const worker = MockWorker.instances[1]
-  if (!worker) {
-    throw new Error('Expected embedding worker to be constructed.')
-  }
-  return worker
-}
-
 function getQueryMessages() {
   return getQueryWorker().postMessage.mock.calls
     .map(([message]) => message)
@@ -69,7 +61,7 @@ function getQueryMessages() {
 }
 
 function getEmbeddingMessages() {
-  return getEmbeddingWorker().postMessage.mock.calls.map(([message]) => message)
+  return MockWorker.instances[1]?.postMessage.mock.calls.map(([message]) => message) ?? []
 }
 
 async function flushReactWork() {
