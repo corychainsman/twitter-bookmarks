@@ -336,6 +336,15 @@ body {
     margin-inline: calc(var(--app-grid-gap-x) / -2);
   }
 
+  .app-ios-static-grid {
+    column-gap: var(--app-grid-gap-x);
+  }
+
+  .app-ios-static-item {
+    break-inside: avoid;
+    padding-bottom: var(--app-grid-gap-y);
+  }
+
   .app-lightbox-copy {
     font-size: var(--app-lightbox-body-size);
     line-height: 1.6;

@@ -869,4 +869,32 @@ describe('BookmarksMasonry', () => {
     expect(onPinchZoom).toHaveBeenNthCalledWith(2, -1)
     expect(zoomInEvent.defaultPrevented).toBe(true)
   })
+
+  it('uses a static grid fallback on iOS WebKit', async () => {
+    Object.defineProperty(navigator, 'userAgent', {
+      configurable: true,
+      value:
+        'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1',
+    })
+
+    const { container } = render(
+      <BookmarksMasonry
+        columnCount={2}
+        docsById={docsById}
+        immersive
+        items={items}
+        onOpen={() => {}}
+        onPinchZoom={() => {}}
+        onScrollAnchorApplied={() => {}}
+        scrollAnchorRequest={null}
+      />,
+    )
+
+    await waitFor(() => {
+      expect(container.querySelector('.app-ios-static-grid')).not.toBeNull()
+    })
+
+    expect(container.querySelector('[data-testid="mock-masonry"]')).toBeNull()
+    expect(container.querySelectorAll('.app-ios-static-item')).toHaveLength(items.length)
+  })
 })

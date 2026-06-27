@@ -49,6 +49,7 @@ const MINIMUM_EAGER_ITEMS = 12
 const IDLE_PRELOAD_DELAY_MS = 8_000
 const IDLE_PRELOAD_ITEM_COUNT = 16
 const IDLE_PRELOAD_CONCURRENCY = 4
+const IOS_STATIC_BATCH_SIZE = 240
 const MINIMUM_PINCH_DISTANCE_PX = 16
 const PINCH_ZOOM_STEP_RATIO = 1.16
 const VIEWPORT_PREFETCH_MULTIPLIER = 1.5
@@ -59,6 +60,14 @@ const combinedRefsCache = new WeakMap<
   (node: HTMLDivElement | null) => void
 >()
 let toolbarElement: HTMLElement | null = null
+
+function isIOSWebKit(): boolean {
+  if (typeof navigator === 'undefined') {
+    return false
+  }
+
+  return /iP(?:hone|ad|od)/.test(navigator.userAgent) && /WebKit/.test(navigator.userAgent)
+}
 
 function resolveToolbarBottom(): number {
   toolbarElement ??= document.querySelector<HTMLElement>('.app-toolbar')
@@ -194,6 +203,72 @@ function resolveBookmarksMasonryOverscanPx(input: {
   const overscanPx = Math.max(viewportOverscanPx, itemOverscanPx)
   cachedByKey.set(cacheKey, overscanPx)
   return overscanPx
+}
+
+function BookmarksIOSStaticGrid({
+  columnCount,
+  docsById,
+  immersive,
+  items,
+  onOpen,
+}: Pick<BookmarksMasonryProps, 'columnCount' | 'docsById' | 'immersive' | 'items' | 'onOpen'>) {
+  const [visibleCount, setVisibleCount] = React.useState(() =>
+    Math.min(items.length, IOS_STATIC_BATCH_SIZE),
+  )
+  const visibleItems = items.slice(0, visibleCount)
+  const columnWidth =
+    typeof window === 'undefined'
+      ? 320
+      : Math.max(240, Math.floor(window.innerWidth / Math.max(1, columnCount)))
+  const handleTileOpen = React.useCallback(
+    (event: React.MouseEvent<HTMLButtonElement>) => {
+      const gridId = event.currentTarget.dataset.gridId
+      if (gridId) onOpen(gridId)
+    },
+    [onOpen],
+  )
+
+  return (
+    <div className="app-masonry">
+      <div
+        className="app-ios-static-grid"
+        style={{ columnCount: Math.max(1, columnCount) }}
+      >
+        {visibleItems.map((item, index) => (
+          <div className="app-ios-static-item" key={item.gridId}>
+            <MediaTile
+              item={item}
+              tweet={docsById.get(item.tweetId)}
+              immersive={immersive}
+              loading={index < MINIMUM_EAGER_ITEMS ? 'eager' : 'lazy'}
+              fetchPriority={index < MINIMUM_EAGER_ITEMS ? 'high' : 'low'}
+              initialMedia={index < MINIMUM_EAGER_ITEMS}
+              imageDevicePixelRatio={1}
+              imageRenderedWidth={columnWidth}
+              imageSizes={`${columnWidth}px`}
+              onOpen={handleTileOpen}
+            />
+          </div>
+        ))}
+      </div>
+
+      {visibleCount < items.length ? (
+        <div className="flex justify-center px-4 pt-2 pb-8">
+          <button
+            type="button"
+            className="app-control min-h-11 px-4 text-sm font-medium"
+            onClick={() =>
+              setVisibleCount((current) =>
+                Math.min(items.length, current + IOS_STATIC_BATCH_SIZE),
+              )
+            }
+          >
+            Load more
+          </button>
+        </div>
+      ) : null}
+    </div>
+  )
 }
 
 export function BookmarksMasonry({
@@ -583,6 +658,19 @@ export function BookmarksMasonry({
           </EmptyHeader>
         </Empty>
       </div>
+    )
+  }
+
+  if (isIOSWebKit()) {
+    return (
+      <BookmarksIOSStaticGrid
+        key={masonryRenderKey}
+        columnCount={columnCount}
+        docsById={docsById}
+        immersive={immersive}
+        items={items}
+        onOpen={onOpen}
+      />
     )
   }
 
