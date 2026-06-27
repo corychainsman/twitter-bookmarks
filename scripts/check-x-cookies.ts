@@ -1,15 +1,12 @@
-import { fetchBookmarkFolders } from 'fieldtheory/dist/graphql-bookmarks.js'
-
-import { readXCookiePairFromOnePassword, xCookieHeader } from './x-cookie-store'
+import { readStoredXCredentials, validateXCredentials } from './x-credentials'
 
 async function main() {
-  const pair = readXCookiePairFromOnePassword()
-  if (!pair) {
-    throw new Error('No stored X cookies found in 1Password.')
+  const validation = await validateXCredentials(readStoredXCredentials())
+  if (!validation.ok) {
+    throw new Error(validation.message)
   }
 
-  const folders = await fetchBookmarkFolders(pair.ct0, xCookieHeader(pair))
-  console.log(`X cookies are valid. Found ${folders.length} bookmark folders.`)
+  console.log(validation.message)
 }
 
 main().catch((error) => {

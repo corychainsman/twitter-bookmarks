@@ -13,10 +13,12 @@ Twitter Bookmarks is a static, media-first browser for X bookmarks exported thro
 - Semantic embeddings: static CLIP-derived artifacts exported into `public/data` and loaded client-side for concept search, image search, and similar-media browsing.
 - One/all media modes: one mode renders a representative media item per tweet; all mode renders every media item.
 - Public derived artifacts: files under `public/data` generated from local Field Theory data and served by the static app.
+- Refresh pipeline: ordered local workflow that syncs Field Theory data, mirrors media, uploads the mirror, exports public artifacts, validates them, and builds the static app.
+- X credentials: the local cookie credential pair (`ct0` and `auth_token`) used by Field Theory/X bookmark sync, usually stored in 1Password and refreshed from the controlled auth browser when needed.
 
 ## System Flow
 
-Field Theory sync writes raw local cache data into `.data/fieldtheory`. Export scripts normalize that data into derived static artifacts under `public/data`. Vite builds the React app and copies those artifacts into `dist`. GitHub Pages serves the static app. In the browser, data loaders hydrate artifacts, query and embedding workers do search/ranking work, and React components render toolbar, masonry grid, media tiles, lightbox, and Theme Studio.
+Field Theory sync writes raw local cache data into `.data/fieldtheory`. The refresh pipeline owns the ordering and preflight checks for media mirroring, remote rclone sync, export, validation, and build. Export scripts normalize cache data into derived static artifacts under `public/data`. Vite builds the React app and copies those artifacts into `dist`. GitHub Pages serves the static app. In the browser, data loaders hydrate artifacts, query and embedding workers do search/ranking work, and React components render toolbar, masonry grid, media tiles, lightbox, and Theme Studio.
 
 ## Edit Map
 
@@ -27,7 +29,7 @@ Field Theory sync writes raw local cache data into `.data/fieldtheory`. Export s
 - Toolbar controls and layout: `src/components/toolbar`.
 - Theme Studio, theme model, runtime variables, and persistence: `src/app/ThemeStudio.tsx` and `src/features/theme`.
 - Query and embedding worker protocols and implementations: `src/workers`.
-- Field Theory sync, export, embeddings, validation, and performance scripts: `scripts`.
+- Field Theory sync, X credentials, refresh pipeline, export, embeddings, validation, and performance scripts: `scripts`.
 
 ## Invariants
 

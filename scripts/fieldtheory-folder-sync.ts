@@ -1,6 +1,3 @@
-import { extractChromeXCookies } from 'fieldtheory/dist/chrome-cookies.js'
-import { loadChromeSessionConfig } from 'fieldtheory/dist/config.js'
-import { extractFirefoxXCookies } from 'fieldtheory/dist/firefox-cookies.js'
 import {
   applyFolderMirror,
   fetchBookmarkFolders,
@@ -25,7 +22,7 @@ import {
   FIELDTHEORY_FOLDER_NAME,
   FIELDTHEORY_MAX_PAGES,
 } from './fieldtheory'
-import { readXCookiePairFromOnePassword, xCookieHeader } from './x-cookie-store'
+import { resolveFieldTheoryXCredentials } from './x-credentials'
 
 type Folder = {
   id: string
@@ -130,32 +127,6 @@ function parseArgs(argv: string[]): SyncOptions {
   return options
 }
 
-async function resolveFolderSyncCookies(options: SyncOptions): Promise<{
-  csrfToken: string
-  cookieHeader: string
-}> {
-  const onePasswordCookies = readXCookiePairFromOnePassword()
-  if (onePasswordCookies) {
-    return {
-      csrfToken: onePasswordCookies.ct0,
-      cookieHeader: xCookieHeader(onePasswordCookies),
-    }
-  }
-
-  const config = loadChromeSessionConfig({ browserId: options.browser })
-
-  if (config.browser.cookieBackend === 'firefox') {
-    const cookies = extractFirefoxXCookies(options.firefoxProfileDir)
-    return { csrfToken: cookies.csrfToken, cookieHeader: cookies.cookieHeader }
-  }
-
-  const chromeDir = options.chromeUserDataDir ?? config.chromeUserDataDir
-  const chromeProfile = options.chromeProfileDirectory ?? config.chromeProfileDirectory
-  const cookies = extractChromeXCookies(chromeDir, chromeProfile, config.browser)
-
-  return { csrfToken: cookies.csrfToken, cookieHeader: cookies.cookieHeader }
-}
-
 function resolveTargetFolders(allFolders: Folder[]): Folder[] {
   const lower = FIELDTHEORY_FOLDER_NAME.trim().toLowerCase()
   const exact = allFolders.find((folder) => folder.name.trim().toLowerCase() === lower)
@@ -215,7 +186,7 @@ async function persistFolderCheckpoint(records: BookmarkRecord[]): Promise<void>
 
 async function main() {
   const options = parseArgs(process.argv.slice(2))
-  const { csrfToken, cookieHeader } = await resolveFolderSyncCookies(options)
+  const { csrfToken, cookieHeader } = resolveFieldTheoryXCredentials(options)
 
   ensureDataDir()
 

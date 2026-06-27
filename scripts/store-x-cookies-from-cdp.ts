@@ -1,14 +1,12 @@
-import { readXBrowserCookies } from './x-auth-cdp'
-import { writeXCookiePairToOnePassword } from './x-cookie-store'
+import { storeXBrowserCredentials } from './x-credentials'
 
 async function main() {
-  const pair = await readXBrowserCookies()
-  if (!pair) {
+  const result = await storeXBrowserCredentials()
+  if (!result) {
     console.log('X auth cookies not found yet.')
     return
   }
 
-  const result = writeXCookiePairToOnePassword(pair)
   const verb = result.created ? 'Created' : 'Updated'
   console.log(`${verb} "${result.itemTitle}" in the "${result.vault}" vault from browser cookies.`)
 }

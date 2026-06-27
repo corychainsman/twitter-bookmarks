@@ -37,11 +37,13 @@ Agents may inspect and validate data artifacts at any time. Agents must only run
 
 ## Pipeline
 
-The full refresh pipeline is:
+The full refresh pipeline is owned by `scripts/refresh-pipeline.ts`; the
+package commands are thin adapters around that Module. The ordered steps are:
 
 ```bash
 bun run sync:ft
 bun run data:mirror
+bun run data:video-previews
 bun run mirror:sync
 bun run data:export
 bun run data:embeddings
@@ -56,9 +58,18 @@ Convenience commands:
 - `bun run refresh:full`: full sync, then export, embeddings, validate, and build.
 - `bun run refresh:embeddings`: sync, export, embeddings, validate, and build.
 
+Before any refresh step runs, the pipeline preflights `mirror:sync`
+dependencies and fails if `rclone` or either required remote (`r2:`,
+`gdrive:`) is missing. This prevents a partial refresh that rewrites public
+media URLs before the serving mirror can be uploaded.
+
 ## Command Notes
 
 - `bun run sync:ft` depends on a real local Field Theory/X session and writes raw local cache data under `.data/fieldtheory`.
+- `bun run auth:x:check` validates the stored X credentials from 1Password.
+- `bun run auth:x:ensure` validates stored X credentials, starts the controlled
+  auth browser when needed, captures fresh cookies through CDP, stores them in
+  1Password, and stops if X shows a temporary limit page.
 - `bun run data:mirror` downloads media originals into `.data/media` and generates AVIF variants + ThumbHashes (see `docs/runbooks/media-mirror.md`).
 - `bun run mirror:sync` uploads the archive to R2 (serving) and Google Drive (backup) via rclone.
 - `bun run data:export` writes normalized static bookmark artifacts under `public/data`, rewriting media URLs to the self-hosted mirror for assets confirmed in the mirror manifest.
