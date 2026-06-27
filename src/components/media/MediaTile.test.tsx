@@ -125,6 +125,37 @@ describe('MediaTile', () => {
     expect(image).toHaveAttribute('sizes', '342px')
   })
 
+  it('renders mirrored image AVIF candidates with the original image as fallback', () => {
+    render(
+      <MediaTile
+        item={{
+          ...item,
+          thumbUrl: 'https://tbmedia.corychainsman.com/pbs/media/thumb.jpg',
+        }}
+        tweet={tweet}
+        immersive
+        imageDevicePixelRatio={2}
+        imageRenderedWidth={320}
+        imageSizes="320px"
+        initialMedia
+        onOpen={() => {}}
+      />,
+    )
+
+    const source = document.querySelector('source[type="image/avif"]')
+    const image = screen.getByRole('img', { name: tweet.text })
+    expect(source).toHaveAttribute(
+      'srcset',
+      'https://tbmedia.corychainsman.com/pbs/media/thumb/w320.avif 320w, https://tbmedia.corychainsman.com/pbs/media/thumb/w680.avif 680w, https://tbmedia.corychainsman.com/pbs/media/thumb/w1280.avif 1280w',
+    )
+    expect(source).toHaveAttribute('sizes', '320px')
+    expect(image).toHaveAttribute(
+      'src',
+      'https://tbmedia.corychainsman.com/pbs/media/thumb.jpg',
+    )
+    expect(image).not.toHaveAttribute('srcset')
+  })
+
   it('attaches deferred image sources when the tile enters the viewport', () => {
     let intersectionCallback: IntersectionObserverCallback | null = null
     vi.stubGlobal('IntersectionObserver', class {
@@ -206,5 +237,28 @@ describe('MediaTile', () => {
 
     expect(video).toHaveAttribute('src', 'https://video.example.com/preview.mp4')
     expect(video).toHaveAttribute('poster', 'https://pbs.twimg.com/media/poster.jpg?name=small')
+  })
+
+  it('renders motion previews when IntersectionObserver is unavailable', () => {
+    vi.stubGlobal('IntersectionObserver', undefined)
+
+    render(
+      <MediaTile
+        item={{
+          ...item,
+          mediaType: 'video',
+          previewUrl: 'https://video.example.com/preview.mp4',
+          posterUrl: 'https://pbs.twimg.com/media/poster.jpg',
+        }}
+        tweet={tweet}
+        immersive
+        imageDevicePixelRatio={1}
+        imageRenderedWidth={320}
+        imageSizes="320px"
+        onOpen={() => {}}
+      />,
+    )
+
+    expect(document.querySelector('video')).not.toBeNull()
   })
 })

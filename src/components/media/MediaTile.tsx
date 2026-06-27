@@ -4,7 +4,11 @@ import type { GridItem, TweetDoc } from '@/features/bookmarks/model'
 import { formatPostedDate } from '@/lib/format'
 import { captureMediaHandoff } from '@/lib/media-handoff'
 import { thumbhashToDataUrl } from '@/lib/thumbhash-placeholder'
-import { resolveTwitterImageSourceSet, type TwitterImageSourceSet } from '@/lib/twitter-media-url'
+import {
+  isMirroredImageUrl,
+  resolveTwitterImageSourceSet,
+  type TwitterImageSourceSet,
+} from '@/lib/twitter-media-url'
 import { Badge } from '@/components/ui/badge'
 import {
   candidateFromEntry,
@@ -67,6 +71,7 @@ function VideoGridTile({
   useEffect(() => {
     const el = videoRef.current
     if (!el) return
+    if (typeof IntersectionObserver === 'undefined') return
     const observer = new IntersectionObserver(
       (entries) => {
         for (const entry of entries) {
@@ -139,9 +144,10 @@ export const MediaTile = memo(function MediaTile({
     sourceUrl: isMotion ? previewUrl : item.thumbUrl,
     byKey: new Map(),
   }), imageSourcesCache.get(item)!)
+  const imageSourceUrl = imageSourcesRecord.sourceUrl
   let imageSources = imageSourcesRecord.byKey.get(imageSourcesKey)
   if (!imageSources) {
-    imageSources = resolveTwitterImageSourceSet(imageSourcesRecord.sourceUrl, {
+    imageSources = resolveTwitterImageSourceSet(imageSourceUrl, {
       devicePixelRatio: imageDevicePixelRatio,
       renderedWidth: imageRenderedWidth,
       sizes: imageSizes,
@@ -160,6 +166,7 @@ export const MediaTile = memo(function MediaTile({
   const mediaRef = useRef<HTMLDivElement>(null)
   const [deferredImageSrcReady, setDeferredImageSrcReady] = useState(false)
   const shouldAttachImageSrc = initialMedia || loading === 'eager' || deferredImageSrcReady
+  const shouldRenderAvifPicture = isMirroredImageUrl(imageSourceUrl)
 
   useEffect(() => {
     if (initialMedia || loading === 'eager') {
@@ -226,6 +233,28 @@ export const MediaTile = memo(function MediaTile({
               gridId={item.gridId}
               initialMedia={initialMedia}
             />
+          ) : shouldRenderAvifPicture ? (
+            <picture>
+              {shouldAttachImageSrc ? (
+                <source
+                  type="image/avif"
+                  srcSet={imageSources.srcSet ?? imageSources.src}
+                  sizes={imageSources.sizes}
+                />
+              ) : null}
+              <img
+                src={shouldAttachImageSrc ? imageSourceUrl : undefined}
+                alt={tweet?.text || 'Bookmarked media'}
+                decoding="async"
+                fetchPriority={fetchPriority}
+                loading={loading}
+                data-initial-media={initialMedia ? 'true' : undefined}
+                width={item.width}
+                height={item.height}
+                style={aspectRatioStyle ?? undefined}
+                className="app-media-image relative block h-auto w-full"
+              />
+            </picture>
           ) : (
             <img
               src={shouldAttachImageSrc ? imageSources.src : undefined}
