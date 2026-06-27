@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest'
 
 import {
+  resolveMirroredImageFallbackSourceSet,
+  resolveMirroredVideoUrl,
   resolveTwitterImageSourceSet,
   withTwitterOriginalJpg,
   withTwitterSize,
@@ -174,6 +176,25 @@ describe('mirrored media URLs', () => {
     })
   })
 
+  it('builds a responsive Twitter fallback source set for mirrored media URLs', () => {
+    expect(
+      resolveMirroredImageFallbackSourceSet(mirroredUrl, {
+        devicePixelRatio: 2,
+        renderedWidth: 300,
+        sizes: '300px',
+      }),
+    ).toEqual({
+      src: 'https://pbs.twimg.com/media/abc.jpg?name=small',
+    })
+  })
+
+  it('falls back to the mirrored original when a mirrored URL cannot map to pbs media', () => {
+    const posterUrl = 'https://tbmedia.corychainsman.com/pbs/ext_tw_video_thumb/123/pu/img/x.jpg'
+    expect(resolveMirroredImageFallbackSourceSet(posterUrl)).toEqual({
+      src: posterUrl,
+    })
+  })
+
   it('does not treat twimg or app URLs as mirrored', () => {
     expect(withTwitterSize('https://pbs.twimg.com/media/abc.jpg', 'small')).toBe(
       'https://pbs.twimg.com/media/abc.jpg?name=small',
@@ -188,5 +209,13 @@ describe('mirrored media URLs', () => {
     expect(withTwitterSize(posterUrl, 'medium')).toBe(
       'https://tbmedia.corychainsman.com/pbs/ext_tw_video_thumb/123/pu/img/x/w1280.avif',
     )
+  })
+
+  it('maps mirrored video URLs back to video.twimg.com', () => {
+    expect(
+      resolveMirroredVideoUrl(
+        'https://tbmedia.corychainsman.com/vid/amplify_video/1/vid/avc1/720x1280/video.mp4',
+      ),
+    ).toBe('https://video.twimg.com/amplify_video/1/vid/avc1/720x1280/video.mp4')
   })
 })

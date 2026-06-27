@@ -6,6 +6,7 @@ import { captureMediaHandoff } from '@/lib/media-handoff'
 import { thumbhashToDataUrl } from '@/lib/thumbhash-placeholder'
 import {
   isMirroredImageUrl,
+  resolveMirroredImageFallbackSourceSet,
   resolveTwitterImageSourceSet,
   type TwitterImageSourceSet,
 } from '@/lib/twitter-media-url'
@@ -154,6 +155,13 @@ export const MediaTile = memo(function MediaTile({
     })
     imageSourcesRecord.byKey.set(imageSourcesKey, imageSources)
   }
+  const mirroredFallbackSources = isMirroredImageUrl(imageSourceUrl)
+    ? resolveMirroredImageFallbackSourceSet(imageSourceUrl, {
+        devicePixelRatio: imageDevicePixelRatio,
+        renderedWidth: imageRenderedWidth,
+        sizes: imageSizes,
+      })
+    : null
   let postedDate = 'Unknown date'
   if (!immersive && tweet) {
     postedDate = postedDateCache.get(tweet) ?? ''
@@ -243,7 +251,9 @@ export const MediaTile = memo(function MediaTile({
                 />
               ) : null}
               <img
-                src={shouldAttachImageSrc ? imageSourceUrl : undefined}
+                src={shouldAttachImageSrc ? mirroredFallbackSources?.src : undefined}
+                srcSet={shouldAttachImageSrc ? mirroredFallbackSources?.srcSet : undefined}
+                sizes={shouldAttachImageSrc ? mirroredFallbackSources?.sizes : undefined}
                 alt={tweet?.text || 'Bookmarked media'}
                 decoding="async"
                 fetchPriority={fetchPriority}

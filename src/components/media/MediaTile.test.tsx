@@ -125,7 +125,7 @@ describe('MediaTile', () => {
     expect(image).toHaveAttribute('sizes', '342px')
   })
 
-  it('renders mirrored image AVIF candidates with the original image as fallback', () => {
+  it('renders mirrored image AVIF candidates with responsive Twitter fallbacks', () => {
     render(
       <MediaTile
         item={{
@@ -151,7 +151,7 @@ describe('MediaTile', () => {
     expect(source).toHaveAttribute('sizes', '320px')
     expect(image).toHaveAttribute(
       'src',
-      'https://tbmedia.corychainsman.com/pbs/media/thumb.jpg',
+      'https://pbs.twimg.com/media/thumb.jpg?name=small',
     )
     expect(image).not.toHaveAttribute('srcset')
   })

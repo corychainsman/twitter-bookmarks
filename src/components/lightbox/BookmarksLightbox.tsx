@@ -79,11 +79,13 @@ function LightboxVideo({
   src,
   poster,
   loop,
+  muted,
   startTime,
 }: {
   src: string
   poster?: string
   loop?: boolean
+  muted?: boolean
   startTime?: number
 }) {
   const seekedRef = useRef(false)
@@ -97,7 +99,7 @@ function LightboxVideo({
       playsInline
       preload="metadata"
       loop={loop}
-      muted
+      muted={muted}
       onLoadedMetadata={(event) => {
         const video = event.currentTarget
         if (!seekedRef.current && startTime && startTime > 0.1 && startTime < video.duration) {
@@ -108,7 +110,6 @@ function LightboxVideo({
           }
         }
         seekedRef.current = true
-        void video.play().catch(() => {})
       }}
       className="max-h-full max-w-full bg-black object-contain"
     />
@@ -396,6 +397,7 @@ export function BookmarksLightbox({
                 src={videoSlide.src}
                 poster={videoHandoff?.poster ?? videoSlide.poster}
                 loop={videoSlide.loop}
+                muted={videoSlide.muted}
                 startTime={videoHandoff?.currentTime}
               />
             </div>
