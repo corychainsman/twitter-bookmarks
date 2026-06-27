@@ -6,6 +6,15 @@ import type { GridItem } from '@/features/bookmarks/model'
 
 const FALLBACK_MEDIA_ASPECT_RATIO = 1
 const NON_IMMERSIVE_CHROME_HEIGHT = 108
+const masonryCacheCache = new WeakMap<GridItem[], Map<number, BookmarksMasonryCache>>()
+
+function createEstimatedHeights(items: GridItem[], columnWidth: number, immersive: boolean) {
+  const heights = new Array<number>(items.length)
+  for (let index = 0; index < items.length; index += 1) {
+    heights[index] = estimateBookmarksMasonryHeight(items[index]!, columnWidth, immersive)
+  }
+  return heights
+}
 
 export type BookmarksMasonryCache = {
   clear(rowIndex: number, columnIndex: number): void
@@ -48,17 +57,17 @@ export function resolveGridItemAspectRatio(item: GridItem): number {
   return FALLBACK_MEDIA_ASPECT_RATIO
 }
 
-export function estimateBookmarksMasonryHeight(input: {
-  item: GridItem
-  columnWidth: number
-  immersive: boolean
-}): number {
+export function estimateBookmarksMasonryHeight(
+  item: GridItem,
+  columnWidth: number,
+  immersive: boolean,
+): number {
   const mediaHeight = Math.max(
     1,
-    Math.round(input.columnWidth / resolveGridItemAspectRatio(input.item)),
+    (columnWidth / resolveGridItemAspectRatio(item) + 0.5) | 0,
   )
 
-  return input.immersive ? mediaHeight : mediaHeight + NON_IMMERSIVE_CHROME_HEIGHT
+  return immersive ? mediaHeight : mediaHeight + NON_IMMERSIVE_CHROME_HEIGHT
 }
 
 class EstimatedBookmarksMasonryCache implements BookmarksMasonryCache {
@@ -87,18 +96,14 @@ class EstimatedBookmarksMasonryCache implements BookmarksMasonryCache {
     this.measuredCache.clearAll()
   }
 
-  columnWidth = ({ index }: { index: number }) => this.getWidth(index)
+  columnWidth = () => this.defaultWidth
 
-  getHeight(rowIndex: number, columnIndex = 0): number {
-    return this.measuredCache.has(rowIndex, columnIndex)
-      ? this.measuredCache.getHeight(rowIndex, columnIndex)
-      : this.estimatedHeights[rowIndex] ?? this.defaultHeight
+  getHeight(rowIndex: number): number {
+    return this.estimatedHeights[rowIndex] ?? this.defaultHeight
   }
 
-  getWidth(rowIndex: number, columnIndex = 0): number {
-    return this.measuredCache.has(rowIndex, columnIndex)
-      ? this.measuredCache.getWidth(rowIndex, columnIndex)
-      : this.defaultWidth
+  getWidth(): number {
+    return this.defaultWidth
   }
 
   has(rowIndex: number, columnIndex: number): boolean {
@@ -125,18 +130,18 @@ export function createEstimatedBookmarksMasonryCache(input: {
   columnWidth: number
   immersive: boolean
 }): BookmarksMasonryCache {
-  const estimatedHeights = input.items.map((item) =>
-    estimateBookmarksMasonryHeight({
-      item,
-      columnWidth: input.columnWidth,
-      immersive: input.immersive,
-    }),
-  )
+  const cacheKey = input.columnWidth * 2 + (input.immersive ? 1 : 0)
+  const cachedByKey = masonryCacheCache.get(input.items) ?? (masonryCacheCache.set(input.items, new Map()), masonryCacheCache.get(input.items)!)
+  const cached = cachedByKey.get(cacheKey)
+  if (cached) return cached
+  const estimatedHeights = createEstimatedHeights(input.items, input.columnWidth, input.immersive)
   const defaultHeight = estimatedHeights[0] ?? input.columnWidth
 
-  return new EstimatedBookmarksMasonryCache(
+  const cache = new EstimatedBookmarksMasonryCache(
     estimatedHeights,
     input.columnWidth,
     defaultHeight,
   )
+  cachedByKey.set(cacheKey, cache)
+  return cache
 }

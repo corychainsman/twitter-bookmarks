@@ -2,18 +2,10 @@ import type { TweetDoc } from '@/features/bookmarks/model'
 import {
   withTwitterOriginalJpg,
   withTwitterSize,
-  type TwitterImageSize,
 } from '@/lib/twitter-media-url'
 import type { MediaPreloadCandidate } from '@/lib/media-preload'
 
-const LIGHTBOX_IMAGE_SIZES: Array<{
-  size: Exclude<TwitterImageSize, 'orig'>
-  width: number
-}> = [
-  { size: 'small', width: 680 },
-  { size: 'medium', width: 1200 },
-  { size: 'large', width: 2048 },
-]
+const lightboxSlidesCache = new WeakMap<TweetDoc, ReturnType<typeof buildBookmarksLightboxSlides>>()
 
 function createLightboxImageSourceSet(media: TweetDoc['media'][number]) {
   if (!media.width || !media.height || media.width <= 0 || media.height <= 0) {
@@ -23,39 +15,39 @@ function createLightboxImageSourceSet(media: TweetDoc['media'][number]) {
   const mediaWidth = media.width
   const mediaHeight = media.height
   const aspectRatio = mediaWidth / mediaHeight
-  const sources = LIGHTBOX_IMAGE_SIZES.map(({ size, width }) => {
-    const sourceWidth = Math.min(width, mediaWidth)
-
-    return {
-      src: withTwitterSize(media.fullUrl, size),
-      width: sourceWidth,
-      height: Math.round(sourceWidth / aspectRatio),
-    }
-  })
-
-  sources.push({
-    src: withTwitterOriginalJpg(media.fullUrl),
-    width: mediaWidth,
-    height: mediaHeight,
-  })
-
-  return sources.filter(
-    (source, index) => sources.findIndex((candidate) => candidate.src === source.src) === index,
-  )
+  const sources = []
+  const small = withTwitterSize(media.fullUrl, 'small')
+  const smallWidth = Math.min(680, mediaWidth)
+  sources.push({ src: small, width: smallWidth, height: Math.round(smallWidth / aspectRatio) })
+  const medium = withTwitterSize(media.fullUrl, 'medium')
+  if (medium !== small) {
+    const mediumWidth = Math.min(1200, mediaWidth)
+    sources.push({ src: medium, width: mediumWidth, height: Math.round(mediumWidth / aspectRatio) })
+  }
+  const large = withTwitterSize(media.fullUrl, 'large')
+  if (large !== medium) {
+    const largeWidth = Math.min(2048, mediaWidth)
+    sources.push({ src: large, width: largeWidth, height: Math.round(largeWidth / aspectRatio) })
+  }
+  const src = withTwitterOriginalJpg(media.fullUrl)
+  if (src !== large) sources.push({ src, width: mediaWidth, height: mediaHeight })
+  return sources
 }
 
-export function createBookmarksLightboxSlides(tweet: TweetDoc | undefined) {
-  return (tweet?.media ?? []).map((media, mediaIndex) => {
-    const gridId = tweet ? `${tweet.id}:${mediaIndex}` : undefined
-
-    return media.type === 'photo'
+function buildBookmarksLightboxSlides(tweet: TweetDoc | undefined) {
+  if (!tweet) return []
+  const slides = new Array(tweet.media.length)
+  for (let index = 0; index < tweet.media.length; index += 1) {
+    const media = tweet.media[index]!
+    const gridId = `${tweet.id}:${index}`
+    slides[index] = media.type === 'photo'
       ? {
           gridId,
           src: withTwitterSize(media.fullUrl, 'large'),
           srcSet: createLightboxImageSourceSet(media),
           width: media.width,
           height: media.height,
-          alt: tweet?.text ?? '',
+          alt: tweet.text ?? '',
         }
       : {
           gridId,
@@ -67,29 +59,51 @@ export function createBookmarksLightboxSlides(tweet: TweetDoc | undefined) {
           loop: media.type === 'animated_gif',
           muted: true,
         }
-  })
+  }
+  return slides
+}
+
+export function createBookmarksLightboxSlides(tweet: TweetDoc | undefined) {
+  if (!tweet) return []
+  const cached = lightboxSlidesCache.get(tweet)
+  if (cached) return cached
+  const slides = buildBookmarksLightboxSlides(tweet)
+  lightboxSlidesCache.set(tweet, slides)
+  return slides
+}
+
+const lightboxPreloadCandidatesCache = new WeakMap<ReturnType<typeof createBookmarksLightboxSlides>, Map<number, MediaPreloadCandidate[]>>()
+
+function pushLightboxPreloadCandidate(
+  candidates: MediaPreloadCandidate[],
+  slide: ReturnType<typeof createBookmarksLightboxSlides>[number] | undefined,
+) {
+  if (!slide) return
+  candidates.push({ kind: 'image', url: 'type' in slide && slide.type === 'video' ? slide.poster : slide.src })
+}
+
+function buildLightboxPreloadCandidates(
+  slides: ReturnType<typeof createBookmarksLightboxSlides>,
+  index: number,
+): MediaPreloadCandidate[] {
+  const candidates: MediaPreloadCandidate[] = []
+  pushLightboxPreloadCandidate(candidates, slides[index])
+  pushLightboxPreloadCandidate(candidates, slides[index + 1])
+  pushLightboxPreloadCandidate(candidates, slides[index - 1])
+  pushLightboxPreloadCandidate(candidates, slides[index + 2])
+  pushLightboxPreloadCandidate(candidates, slides[index - 2])
+
+  return candidates
 }
 
 export function createLightboxPreloadCandidates(
   slides: ReturnType<typeof createBookmarksLightboxSlides>,
   index: number,
 ): MediaPreloadCandidate[] {
-  const candidates: MediaPreloadCandidate[] = []
-  const indexes = [index, index + 1, index - 1, index + 2, index - 2]
-
-  for (const candidateIndex of indexes) {
-    const slide = slides[candidateIndex]
-    if (!slide) {
-      continue
-    }
-
-    if ('type' in slide && slide.type === 'video') {
-      candidates.push({ kind: 'image', url: slide.poster })
-      continue
-    }
-
-    candidates.push({ kind: 'image', url: slide.src })
-  }
-
+  const byIndex = lightboxPreloadCandidatesCache.get(slides) ?? (lightboxPreloadCandidatesCache.set(slides, new Map()), lightboxPreloadCandidatesCache.get(slides)!)
+  const cached = byIndex.get(index)
+  if (cached) return cached
+  const candidates = buildLightboxPreloadCandidates(slides, index)
+  byIndex.set(index, candidates)
   return candidates
 }

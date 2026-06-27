@@ -12,6 +12,7 @@ function isVisible(rect: DOMRect): boolean {
 }
 
 function escapeGridIdForSelector(gridId: string): string {
+  if (typeof CSS !== 'undefined' && CSS.escape) return CSS.escape(gridId)
   return gridId.replace(/\\/g, '\\\\').replace(/"/g, '\\"')
 }
 
@@ -24,7 +25,7 @@ export function captureMasonryScrollAnchor(
 
   let anchor: MasonryScrollAnchor | null = null
 
-  for (const element of root.querySelectorAll<HTMLElement>('[data-grid-id]')) {
+  for (const element of root.querySelectorAll<HTMLElement>('.app-masonry-cell[data-grid-id]')) {
     const gridId = element.dataset.gridId
     if (!gridId) {
       continue
@@ -55,7 +56,7 @@ export function restoreMasonryScrollAnchor(
   }
 
   const element = root.querySelector<HTMLElement>(
-    `[data-grid-id="${escapeGridIdForSelector(anchor.gridId)}"]`,
+    `.app-masonry-cell[data-grid-id="${escapeGridIdForSelector(anchor.gridId)}"]`,
   )
 
   if (!element) {

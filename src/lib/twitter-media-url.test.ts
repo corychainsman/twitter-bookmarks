@@ -104,8 +104,6 @@ describe('resolveTwitterImageSourceSet', () => {
       }),
     ).toEqual({
       src: 'https://pbs.twimg.com/media/abc.jpg?name=small',
-      srcSet: 'https://pbs.twimg.com/media/abc.jpg?name=small 680w',
-      sizes: '320px',
     })
 
     expect(

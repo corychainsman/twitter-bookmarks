@@ -1,11 +1,7 @@
 const TWITTER_IMAGE_HOST = 'pbs.twimg.com'
 const TWITTER_RESIZABLE_PATH_PREFIX = '/media/'
 const PRELOAD_COUNT = 12
-const CANDIDATES = [
-  { size: 'small', width: 680 },
-  { size: 'medium', width: 1200 },
-  { size: 'large', width: 2048 },
-] as const
+type TwitterImageSize = 'small' | 'medium' | 'large'
 
 type InitialGridItem = {
   mediaType?: string
@@ -16,11 +12,15 @@ type InitialGridItem = {
 type InitialManifest = {
   buildId?: string
   files?: {
-    gridOne?: string
+    gridAll?: string
   }
 }
 
-function withTwitterSize(url: string, size: (typeof CANDIDATES)[number]['size']): string {
+function withTwitterSize(url: string, size: TwitterImageSize): string {
+  if (url.startsWith('https://pbs.twimg.com/media/')) {
+    const queryIndex = url.indexOf('?'), nameIndex = url.indexOf('name='), nextParamIndex = nameIndex < 0 ? -1 : url.indexOf('&', nameIndex)
+    return queryIndex < 0 ? `${url}?name=${size}` : nameIndex < 0 ? `${url}&name=${size}` : `${url.slice(0, nameIndex + 5)}${size}${url.slice(nextParamIndex < 0 ? url.length : nextParamIndex)}`
+  }
   try {
     const parsed = new URL(url)
     if (
@@ -39,6 +39,11 @@ function withTwitterSize(url: string, size: (typeof CANDIDATES)[number]['size'])
 
 const MIRROR_IMAGE_PATH_PREFIX = '/pbs/'
 const MIRROR_WIDTHS = [320, 680, 1280]
+const CANDIDATES: { size: TwitterImageSize; width: number }[] = [
+  { size: 'small', width: 680 },
+  { size: 'medium', width: 1200 },
+  { size: 'large', width: 2048 },
+]
 
 function withMirrorWidth(url: string, targetWidth: number): string | null {
   try {
@@ -104,11 +109,11 @@ async function preloadInitialMedia() {
   }
 
   const manifest = (await manifestResponse.json()) as InitialManifest
-  if (!manifest.buildId || !manifest.files?.gridOne) {
+  if (!manifest.buildId || !manifest.files?.gridAll) {
     return
   }
 
-  const gridUrl = new URL(`data/${manifest.files.gridOne}`, appBase)
+  const gridUrl = new URL(`data/${manifest.files.gridAll}`, appBase)
   gridUrl.searchParams.set('v', manifest.buildId)
   const gridResponse = await fetch(gridUrl)
   if (!gridResponse.ok) {
@@ -116,7 +121,8 @@ async function preloadInitialMedia() {
   }
 
   const items = (await gridResponse.json()) as InitialGridItem[]
-  for (const item of items.slice(0, PRELOAD_COUNT)) {
+  for (let index = 0; index < PRELOAD_COUNT && index < items.length; index += 1) {
+    const item = items[index]!
     const href = resolveImageUrl(item)
     if (href) {
       appendPreload(href)

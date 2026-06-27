@@ -44,23 +44,29 @@ type BookmarksMasonryProps = {
 }
 
 const ANCHOR_RESTORE_ATTEMPTS = 3
-const MINIMUM_PREFETCH_ITEMS = 50
-const MINIMUM_EAGER_ITEMS = 36
-const IDLE_PRELOAD_ITEM_COUNT = 72
-const IDLE_PRELOAD_CONCURRENCY = 18
+const MINIMUM_PREFETCH_ITEMS = 36
+const MINIMUM_EAGER_ITEMS = 24
+const IDLE_PRELOAD_ITEM_COUNT = 48
+const IDLE_PRELOAD_CONCURRENCY = 12
 const MINIMUM_PINCH_DISTANCE_PX = 16
 const PINCH_ZOOM_STEP_RATIO = 1.16
 const VIEWPORT_PREFETCH_MULTIPLIER = 5
 const noop = () => {}
+const overscanPxCache = new WeakMap<GridItem[], Map<string, number>>()
+const combinedRefsCache = new WeakMap<
+  (element?: Element | null) => void,
+  (node: HTMLDivElement | null) => void
+>()
+let toolbarElement: HTMLElement | null = null
 
 function resolveToolbarBottom(): number {
-  const toolbar = document.querySelector<HTMLElement>('.app-toolbar')
-  return toolbar ? toolbar.getBoundingClientRect().bottom : 0
+  toolbarElement ??= document.querySelector<HTMLElement>('.app-toolbar')
+  return toolbarElement ? toolbarElement.getBoundingClientRect().bottom : 0
 }
 
 function resolveBookmarksMasonryCellKey(items: GridItem[], index: number): string {
   const item = items[index]
-  return item ? `${item.gridId}:${index}` : `missing:${index}`
+  return item?.gridId ?? `missing:${index}`
 }
 
 function resolveBookmarksMasonryRenderedCellKey(
@@ -143,10 +149,14 @@ function combineRefs(
   setContainerElement: React.Dispatch<React.SetStateAction<HTMLDivElement | null>>,
   registerChild: (element?: Element | null) => void,
 ) {
-  return (node: HTMLDivElement | null) => {
+  const cached = combinedRefsCache.get(registerChild)
+  if (cached) return cached
+  const ref = (node: HTMLDivElement | null) => {
     setContainerElement(node)
     registerChild(node)
   }
+  combinedRefsCache.set(registerChild, ref)
+  return ref
 }
 
 function resolveBookmarksMasonryOverscanPx(input: {
@@ -156,34 +166,33 @@ function resolveBookmarksMasonryOverscanPx(input: {
   items: GridItem[]
   viewportHeight: number
 }) {
+  const cacheKey = `${input.columnCount}|${input.columnWidth}|${input.immersive ? 1 : 0}|${input.viewportHeight}`
+  const cachedByKey = overscanPxCache.get(input.items) ?? (overscanPxCache.set(input.items, new Map()), overscanPxCache.get(input.items)!)
+  const cached = cachedByKey.get(cacheKey)
+  if (cached !== undefined) return cached
   const viewportOverscanPx = Math.max(
     0,
     Math.ceil(input.viewportHeight * VIEWPORT_PREFETCH_MULTIPLIER),
   )
 
   if (input.items.length === 0) {
+    cachedByKey.set(cacheKey, viewportOverscanPx)
     return viewportOverscanPx
   }
 
   const sampleSize = Math.min(input.items.length, MINIMUM_PREFETCH_ITEMS)
-  const estimatedAverageHeight =
-    input.items
-      .slice(0, sampleSize)
-      .reduce(
-        (totalHeight, item) =>
-          totalHeight +
-          estimateBookmarksMasonryHeight({
-            item,
-            columnWidth: input.columnWidth,
-            immersive: input.immersive,
-          }),
-        0,
-      ) / sampleSize
+  let estimatedHeightTotal = 0
+  for (let index = 0; index < sampleSize; index += 1) {
+    estimatedHeightTotal += estimateBookmarksMasonryHeight(input.items[index]!, input.columnWidth, input.immersive)
+  }
+  const estimatedAverageHeight = estimatedHeightTotal / sampleSize
   const itemOverscanPx = Math.ceil(
     (estimatedAverageHeight * MINIMUM_PREFETCH_ITEMS) / Math.max(1, input.columnCount),
   )
 
-  return Math.max(viewportOverscanPx, itemOverscanPx)
+  const overscanPx = Math.max(viewportOverscanPx, itemOverscanPx)
+  cachedByKey.set(cacheKey, overscanPx)
+  return overscanPx
 }
 
 export function BookmarksMasonry({
@@ -213,6 +222,13 @@ export function BookmarksMasonry({
     scrollTop: 0,
   })
   const handleInitialMediaReady = onInitialMediaReady ?? noop
+  const handleTileOpen = React.useCallback(
+    (event: React.MouseEvent<HTMLButtonElement>) => {
+      const gridId = event.currentTarget.dataset.gridId
+      if (gridId) onOpen(gridId)
+    },
+    [onOpen],
+  )
 
   React.useEffect(() => {
     if (!containerElement) {
@@ -352,8 +368,8 @@ export function BookmarksMasonry({
     items.length,
     Math.max(MINIMUM_EAGER_ITEMS, columnCount * 6),
   )
-  const imageDevicePixelRatio =
-    typeof window === 'undefined' ? 1 : Math.max(1, window.devicePixelRatio || 1)
+  const imageDevicePixelRatio = 1
+  const imageSizes = `${columnWidth}px`
 
   React.useEffect(() => {
     if (!scrollAnchorRequest) {
@@ -403,18 +419,20 @@ export function BookmarksMasonry({
     }
 
     frameId = window.requestAnimationFrame(() => {
-      const images = [
-        ...containerElement.querySelectorAll<HTMLImageElement>(
-          'img[data-initial-media="true"]',
-        ),
-      ]
+      const images = containerElement.querySelectorAll<HTMLImageElement>(
+        'img[data-initial-media="true"]',
+      )
+      let remaining = 0
 
-      if (images.length === 0 || images.every((image) => image.complete)) {
+      for (const image of images) {
+        if (!image.complete) remaining += 1
+      }
+
+      if (images.length === 0 || remaining === 0) {
         reportReady()
         return
       }
 
-      let remaining = images.filter((image) => !image.complete).length
       const handleSettled = () => {
         remaining -= 1
         if (remaining <= 0) {
@@ -449,7 +467,7 @@ export function BookmarksMasonry({
   ])
 
   const cellRenderer = React.useCallback(
-    ({ index, key, parent, style }: MasonryCellProps) => {
+    ({ index, key, style }: MasonryCellProps) => {
       const item = items[index]
       if (!item) {
         return null
@@ -468,11 +486,8 @@ export function BookmarksMasonry({
 
       return (
         <MeasuredMasonryCell
-          cache={cellMeasurerCache}
           gridId={item.gridId}
-          index={index}
           key={renderedCellKeyAllocatorRef.current.resolve(key, style)}
-          parent={parent}
           style={cellStyle}
         >
           <div className="app-masonry-item">
@@ -485,8 +500,8 @@ export function BookmarksMasonry({
               initialMedia={imageLoadingStrategy.initialMedia}
               imageDevicePixelRatio={imageDevicePixelRatio}
               imageRenderedWidth={columnWidth}
-              imageSizes={`${columnWidth}px`}
-              onOpen={() => onOpen(item.gridId)}
+              imageSizes={imageSizes}
+              onOpen={handleTileOpen}
             />
           </div>
         </MeasuredMasonryCell>
@@ -498,8 +513,9 @@ export function BookmarksMasonry({
       docsById,
       eagerItemCount,
       imageDevicePixelRatio,
+      imageSizes,
       items,
-      onOpen,
+      handleTileOpen,
       renderedImmersive,
     ],
   )

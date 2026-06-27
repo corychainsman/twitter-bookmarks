@@ -68,7 +68,7 @@ export function preloadMediaCandidates(
     preloader.preloadImage(candidate.url)
   }
 
-  warmMediaCache(loadedUrls)
+  if (loadedUrls.length > 0) warmMediaCache(loadedUrls)
 
   return loadedUrls
 }

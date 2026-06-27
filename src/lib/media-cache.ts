@@ -54,14 +54,15 @@ export function warmMediaCache(urls: string[]): string[] {
     return []
   }
 
-  const cacheableUrls = urls.filter((url) => {
-    if (!isCacheableMediaUrl(url) || warmedMediaUrls.has(url)) {
-      return false
+  const cacheableUrls: string[] = []
+  for (const url of urls) {
+    if (warmedMediaUrls.has(url) || !isCacheableMediaUrl(url)) {
+      continue
     }
 
     warmedMediaUrls.add(url)
-    return true
-  })
+    cacheableUrls.push(url)
+  }
 
   if (cacheableUrls.length === 0) {
     return []

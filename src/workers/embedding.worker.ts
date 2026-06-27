@@ -132,11 +132,6 @@ async function embedImage(message: Extract<EmbeddingWorkerRequest, { type: 'embe
 
 workerScope.addEventListener('message', (event: MessageEvent<EmbeddingWorkerRequest>) => {
   const message = event.data
-  if (message.type === 'warmup-text') {
-    void getTextEncoder().catch(() => {})
-    return
-  }
-
   const task = message.type === 'embed-text' ? embedText(message) : embedImage(message)
 
   task.catch((error) => {

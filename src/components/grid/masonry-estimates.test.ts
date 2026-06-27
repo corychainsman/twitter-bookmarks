@@ -37,27 +37,19 @@ describe('resolveGridItemAspectRatio', () => {
 describe('estimateBookmarksMasonryHeight', () => {
   it('uses media metadata to estimate immersive tile height', () => {
     expect(
-      estimateBookmarksMasonryHeight({
-        item,
-        columnWidth: 300,
-        immersive: true,
-      }),
+      estimateBookmarksMasonryHeight(item, 300, true),
     ).toBe(200)
   })
 
   it('adds caption chrome in non-immersive mode', () => {
     expect(
-      estimateBookmarksMasonryHeight({
-        item,
-        columnWidth: 300,
-        immersive: false,
-      }),
+      estimateBookmarksMasonryHeight(item, 300, false),
     ).toBe(308)
   })
 })
 
 describe('createEstimatedBookmarksMasonryCache', () => {
-  it('serves estimated heights until a cell has been measured', () => {
+  it('serves fixed estimated heights', () => {
     const cache = createEstimatedBookmarksMasonryCache({
       items: [item],
       columnWidth: 300,
@@ -67,9 +59,6 @@ describe('createEstimatedBookmarksMasonryCache', () => {
     expect(cache.has(0, 0)).toBe(false)
     expect(cache.getHeight(0, 0)).toBe(200)
 
-    cache.set(0, 0, 300, 240)
-
-    expect(cache.has(0, 0)).toBe(true)
-    expect(cache.getHeight(0, 0)).toBe(240)
+    expect(cache.getWidth(0, 0)).toBe(300)
   })
 })

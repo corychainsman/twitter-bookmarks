@@ -47,6 +47,9 @@ import type {
 type HydratedArtifacts = CoreArtifacts
 
 const SEARCH_QUERY_COMMIT_DELAY_MS = 180
+const noop = () => {}
+const gridSelectionCache = new Map<string, { tweetId: string; mediaIndex: number }>()
+const visibleItemsCache = new WeakMap<string[], GridItem[]>()
 
 function resolveDataUrl(path: string): string {
   const appBase = new URL(import.meta.env.BASE_URL, window.location.origin)
@@ -86,6 +89,7 @@ function updateUrlFromState(state: QueryState) {
   const nextQuery = params.toString()
   const nextUrl =
     nextQuery.length > 0 ? `${window.location.pathname}?${nextQuery}` : window.location.pathname
+  if (nextUrl === `${window.location.pathname}${window.location.search}`) return
   window.history.replaceState(null, '', nextUrl)
 }
 
@@ -94,15 +98,19 @@ function parseGridSelection(gridId: string | null): { tweetId: string; mediaInde
     return null
   }
 
+  const cached = gridSelectionCache.get(gridId)
+  if (cached) return cached
   const [tweetId, mediaIndex] = gridId.split(':')
   if (!tweetId || mediaIndex == null) {
     return null
   }
 
-  return {
+  const selection = {
     tweetId,
     mediaIndex: Number(mediaIndex),
   }
+  gridSelectionCache.set(gridId, selection)
+  return selection
 }
 
 export function useBookmarksPageController() {
@@ -183,8 +191,8 @@ export function useBookmarksPageController() {
   )
   const workerRef = React.useRef<Worker | null>(null)
   const embeddingWorkerRef = React.useRef<Worker | null>(null)
+  const workerCoreDocsHydratedRef = React.useRef(false)
   const embeddingHydrationRef = React.useRef(false)
-  const backgroundEmbeddingPreloadRef = React.useRef<number | null>(null)
   const embeddingRequestIdRef = React.useRef(0)
   const embeddingRequestKeyRef = React.useRef<string | null>(null)
   const queryStateRef = React.useRef(initialQueryState)
@@ -196,7 +204,26 @@ export function useBookmarksPageController() {
   })
 
   const postEmbeddingWorkerMessage = React.useEffectEvent((message: EmbeddingWorkerRequest) => {
-    embeddingWorkerRef.current?.postMessage(message)
+    let worker = embeddingWorkerRef.current
+    if (!worker) {
+      worker = new Worker(new URL('../../workers/embedding.worker.ts', import.meta.url), {
+        type: 'module',
+      })
+      embeddingWorkerRef.current = worker
+      worker.onmessage = (event: MessageEvent<EmbeddingWorkerResponse>) => {
+        const message = event.data
+        if (message.requestId !== embeddingRequestIdRef.current) return
+        setIsEmbeddingPending(false)
+        if (message.type === 'result') {
+          setSemanticQuery({ source: message.source, vector: message.vector })
+          setSemanticQueryKey(embeddingRequestKeyRef.current)
+          setLoadingError(null)
+          return
+        }
+        setLoadingError(message.message)
+      }
+    }
+    worker.postMessage(message)
   })
 
   const ensureEmbeddingArtifacts = React.useEffectEvent(async () => {
@@ -222,55 +249,6 @@ export function useBookmarksPageController() {
       })
     }
   })
-
-  const scheduleBackgroundEmbeddingPreload = () => {
-    if (backgroundEmbeddingPreloadRef.current !== null) {
-      return
-    }
-
-    const preload = () => {
-      backgroundEmbeddingPreloadRef.current = null
-      void ensureEmbeddingArtifacts()
-      postEmbeddingWorkerMessage({
-        type: 'warmup-text',
-      })
-    }
-    const idleWindow = window as Window & {
-      requestIdleCallback?: (
-        callback: IdleRequestCallback,
-        options?: IdleRequestOptions,
-      ) => number
-      cancelIdleCallback?: (handle: number) => void
-    }
-
-    if (idleWindow.requestIdleCallback) {
-      backgroundEmbeddingPreloadRef.current = idleWindow.requestIdleCallback(preload, {
-        timeout: 500,
-      })
-      return
-    }
-
-    backgroundEmbeddingPreloadRef.current = window.setTimeout(preload, 250)
-  }
-
-  React.useEffect(() => {
-    return () => {
-      const preloadHandle = backgroundEmbeddingPreloadRef.current
-      if (preloadHandle === null) {
-        return
-      }
-
-      const idleWindow = window as Window & {
-        cancelIdleCallback?: (handle: number) => void
-      }
-
-      if (idleWindow.cancelIdleCallback) {
-        idleWindow.cancelIdleCallback(preloadHandle)
-      } else {
-        window.clearTimeout(preloadHandle)
-      }
-    }
-  }, [])
 
   React.useEffect(() => {
     updateUrlFromState(initialQueryState)
@@ -322,38 +300,12 @@ export function useBookmarksPageController() {
     }
   }, [initialQueryState, initialSessionState.scrollY, startTransition])
 
-  React.useEffect(() => {
-    const worker = new Worker(new URL('../../workers/embedding.worker.ts', import.meta.url), {
-      type: 'module',
-    })
-    embeddingWorkerRef.current = worker
-    worker.onmessage = (event: MessageEvent<EmbeddingWorkerResponse>) => {
-      const message = event.data
-
-      if (message.requestId !== embeddingRequestIdRef.current) {
-        return
-      }
-
-      setIsEmbeddingPending(false)
-
-      if (message.type === 'result') {
-        setSemanticQuery({
-          source: message.source,
-          vector: message.vector,
-        })
-        setSemanticQueryKey(embeddingRequestKeyRef.current)
-        setLoadingError(null)
-        return
-      }
-
-      setLoadingError(message.message)
-    }
-
-    return () => {
-      worker.terminate()
+  React.useEffect(() => () => {
+    if (embeddingWorkerRef.current) {
+      embeddingWorkerRef.current.terminate()
       embeddingWorkerRef.current = null
-      embeddingRequestKeyRef.current = null
     }
+    embeddingRequestKeyRef.current = null
   }, [])
 
   React.useEffect(() => {
@@ -391,10 +343,11 @@ export function useBookmarksPageController() {
         }
 
         setArtifacts(coreArtifacts)
+        workerCoreDocsHydratedRef.current = false
         setHasEmbeddingIndex(false)
         postWorkerMessage({
           type: 'hydrate-core',
-          artifacts: coreArtifacts,
+          artifacts: { ...coreArtifacts, docsChunks: [] },
         })
       })
       .catch((error) => {
@@ -441,6 +394,14 @@ export function useBookmarksPageController() {
     if (isWaitingForSemanticQuery) {
       void ensureEmbeddingArtifacts()
       return
+    }
+
+    if (
+      (queryRequestState.sort === 'random' || queryRequestState.mode === 'one') &&
+      !workerCoreDocsHydratedRef.current
+    ) {
+      postWorkerMessage({ type: 'hydrate-core', artifacts })
+      workerCoreDocsHydratedRef.current = true
     }
 
     postWorkerMessage({
@@ -506,10 +467,15 @@ export function useBookmarksPageController() {
 
   React.useEffect(() => {
     let frameId = 0
+    let lastScrollY = -1
 
     const persistScroll = () => {
       frameId = 0
-      writeBookmarksScrollSnapshot(sessionStorageStore, window.scrollY)
+      const scrollY = Math.max(0, Math.round(window.scrollY))
+      if (scrollY !== lastScrollY) {
+        lastScrollY = scrollY
+        writeBookmarksScrollSnapshot(sessionStorageStore, scrollY)
+      }
     }
 
     const handleScroll = () => {
@@ -552,10 +518,19 @@ export function useBookmarksPageController() {
   }, [artifacts])
 
   const visibleItems = React.useMemo(
-    () =>
-      queryResult.orderedGridIds
-        .map((gridId) => gridById.get(gridId))
-        .filter((item): item is GridItem => item !== undefined),
+    () => {
+      const cached = visibleItemsCache.get(queryResult.orderedGridIds)
+      if (cached) return cached
+      const items = new Array<GridItem>(queryResult.orderedGridIds.length)
+      let count = 0
+      for (const gridId of queryResult.orderedGridIds) {
+        const item = gridById.get(gridId)
+        if (item) items[count++] = item
+      }
+      items.length = count
+      visibleItemsCache.set(queryResult.orderedGridIds, items)
+      return items
+    },
     [gridById, queryResult.orderedGridIds],
   )
   const displayedQueryState = React.useMemo(
@@ -740,7 +715,7 @@ export function useBookmarksPageController() {
     onImmersiveChange: (value: boolean) => patchQueryState({ immersive: value }),
     onImageSearch: requestImageSemanticQuery,
     onClearSemanticSource: clearSemanticSource,
-    onInitialMediaReady: scheduleBackgroundEmbeddingPreload,
+    onInitialMediaReady: noop,
     onBrowseSimilar: browseSimilar,
     onKeepSeedChange: (value: boolean) => patchQueryState({ keepSeed: value }),
     onRerandomize,
