@@ -42,6 +42,7 @@ const tweet: TweetDoc = {
 describe('MediaTile', () => {
   afterEach(() => {
     vi.useRealTimers()
+    vi.unstubAllGlobals()
   })
 
   it('shows bookmark metadata in the default tile mode', () => {
@@ -122,6 +123,45 @@ describe('MediaTile', () => {
       'https://pbs.twimg.com/media/thumb.jpg?name=small 680w, https://pbs.twimg.com/media/thumb.jpg?name=medium 1200w',
     )
     expect(image).toHaveAttribute('sizes', '342px')
+  })
+
+  it('attaches deferred image sources when the tile enters the viewport', () => {
+    let intersectionCallback: IntersectionObserverCallback | null = null
+    vi.stubGlobal('IntersectionObserver', class {
+      disconnect = vi.fn()
+      observe = vi.fn()
+
+      constructor(callback: IntersectionObserverCallback) {
+        intersectionCallback = callback
+      }
+    })
+
+    render(
+      <MediaTile
+        item={{
+          ...item,
+          thumbUrl: 'https://pbs.twimg.com/media/thumb.jpg',
+        }}
+        tweet={tweet}
+        immersive
+        imageDevicePixelRatio={1}
+        imageRenderedWidth={320}
+        imageSizes="320px"
+        onOpen={() => {}}
+      />,
+    )
+
+    const image = screen.getByRole('img', { name: tweet.text })
+    expect(image).not.toHaveAttribute('src')
+
+    act(() => {
+      intersectionCallback?.(
+        [{ isIntersecting: true } as IntersectionObserverEntry],
+        {} as IntersectionObserver,
+      )
+    })
+
+    expect(image).toHaveAttribute('src', 'https://pbs.twimg.com/media/thumb.jpg?name=small')
   })
 
   it('defers motion preview video and poster loading', () => {
