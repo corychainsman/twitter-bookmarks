@@ -1,10 +1,8 @@
 export type TwitterImageSize = 'small' | 'medium' | 'large' | 'orig'
 
 const TWITTER_IMAGE_HOST = 'pbs.twimg.com'
-const TWITTER_VIDEO_HOST = 'video.twimg.com'
 const TWITTER_RESIZABLE_PATH_PREFIX = '/media/'
 const MIRRORED_TWITTER_MEDIA_PATH_PREFIX = '/pbs/media/'
-const MIRRORED_TWITTER_VIDEO_PATH_PREFIX = '/vid/'
 const twitterOriginalJpgCache = new Map<string, string>()
 const mirroredTwitterSourceSetCache = new Map<string, Map<number | string, TwitterImageSourceSet>>()
 const twitterSizeCache = new Map<string, Map<TwitterImageSize, string>>()
@@ -59,24 +57,6 @@ function mirroredTwitterMediaUrl(url: string): string | null {
 
   const mediaPath = parsed.pathname.slice('/pbs'.length)
   return `https://${TWITTER_IMAGE_HOST}${mediaPath}`
-}
-
-export function resolveMirroredVideoUrl(url: string): string {
-  let parsed: URL
-  try {
-    parsed = new URL(url)
-  } catch {
-    return url
-  }
-
-  if (!parsed.pathname.startsWith(MIRRORED_TWITTER_VIDEO_PATH_PREFIX)) {
-    return url
-  }
-
-  parsed.hostname = TWITTER_VIDEO_HOST
-  parsed.pathname = parsed.pathname.slice('/vid'.length)
-  parsed.search = ''
-  return parsed.toString()
 }
 
 const MIRROR_SIZE_WIDTHS: Record<Exclude<TwitterImageSize, 'orig'>, number> = {

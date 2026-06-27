@@ -21,6 +21,9 @@ export type MirrorAssetRecord = {
   /** Downscaled, audio-stripped MP4 for in-grid autoplay (videos only). */
   previewKey?: string
   previewBytes?: number
+  /** Safari-oriented MP4 for lightbox playback (videos only). */
+  playbackKey?: string
+  playbackBytes?: number
   fetchedAt?: string
   attempts: number
   error?: string
@@ -66,6 +69,12 @@ export function videoPreviewKey(originalKey: string): string {
   const extension = path.extname(originalKey)
   const stem = extension ? originalKey.slice(0, -extension.length) : originalKey
   return `${stem}/preview.mp4`
+}
+
+export function videoPlaybackKey(originalKey: string): string {
+  const extension = path.extname(originalKey)
+  const stem = extension ? originalKey.slice(0, -extension.length) : originalKey
+  return `${stem}/playback.mp4`
 }
 
 // Every image gets all three tiers (withoutEnlargement caps the actual pixels)

@@ -82,6 +82,7 @@ function buildManifest(): MirrorManifest {
         kind: 'video',
         key: 'vid/amplify_video/1/vid/avc1/100x100/clip.mp4',
         previewKey: 'vid/amplify_video/1/vid/avc1/100x100/clip/preview.mp4',
+        playbackKey: 'vid/amplify_video/1/vid/avc1/100x100/clip/playback.mp4',
         attempts: 1,
       },
       [POSTER_URL]: {
@@ -110,7 +111,7 @@ describe('applyMirrorRewrite', () => {
     const [photo, video, dead] = artifacts.docsChunks[0].docs[0].media
     expect(photo.fullUrl).toBe('https://media.example.com/pbs/media/abc.jpg')
     expect(photo.originUrl).toBe(PHOTO_URL)
-    expect(video.fullUrl).toBe('https://media.example.com/vid/amplify_video/1/vid/avc1/100x100/clip.mp4')
+    expect(video.fullUrl).toBe('https://media.example.com/vid/amplify_video/1/vid/avc1/100x100/clip/playback.mp4')
     expect(video.posterUrl).toBe('https://media.example.com/pbs/amplify_video_thumb/1/img/poster.jpg')
     expect(video.originUrl).toBe(VIDEO_URL)
     expect(dead.fullUrl).toBe(DEAD_URL)
@@ -122,6 +123,9 @@ describe('applyMirrorRewrite', () => {
     expect(videoTile.thumbhash).toBe('cG9zdGVy')
     expect(videoTile.previewUrl).toBe(
       'https://media.example.com/vid/amplify_video/1/vid/avc1/100x100/clip/preview.mp4',
+    )
+    expect(videoTile.fullUrl).toBe(
+      'https://media.example.com/vid/amplify_video/1/vid/avc1/100x100/clip/playback.mp4',
     )
     expect(photoTile.previewUrl).toBeUndefined()
     expect(deadTile.thumbUrl).toBe(DEAD_URL)

@@ -77,7 +77,7 @@ describe('createBookmarksLightboxSlides', () => {
           {
             type: 'video',
             thumbUrl: 'https://pbs.twimg.com/ext_tw_video_thumb/example.jpg',
-            fullUrl: 'https://tbmedia.corychainsman.com/vid/ext_tw_video/example.mp4',
+            fullUrl: 'https://tbmedia.corychainsman.com/vid/ext_tw_video/example/playback.mp4',
             posterUrl: 'https://pbs.twimg.com/ext_tw_video_thumb/poster.jpg',
             width: 1280,
             height: 720,
@@ -90,7 +90,7 @@ describe('createBookmarksLightboxSlides', () => {
       {
         gridId: 'tweet-1:0',
         type: 'video',
-        src: 'https://video.twimg.com/ext_tw_video/example.mp4',
+        src: 'https://tbmedia.corychainsman.com/vid/ext_tw_video/example/playback.mp4',
         poster: 'https://pbs.twimg.com/ext_tw_video_thumb/poster.jpg',
         width: 1280,
         height: 720,

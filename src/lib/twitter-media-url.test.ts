@@ -2,7 +2,6 @@ import { describe, expect, it } from 'vitest'
 
 import {
   resolveMirroredImageFallbackSourceSet,
-  resolveMirroredVideoUrl,
   resolveTwitterImageSourceSet,
   withTwitterOriginalJpg,
   withTwitterSize,
@@ -211,11 +210,4 @@ describe('mirrored media URLs', () => {
     )
   })
 
-  it('maps mirrored video URLs back to video.twimg.com', () => {
-    expect(
-      resolveMirroredVideoUrl(
-        'https://tbmedia.corychainsman.com/vid/amplify_video/1/vid/avc1/720x1280/video.mp4',
-      ),
-    ).toBe('https://video.twimg.com/amplify_video/1/vid/avc1/720x1280/video.mp4')
-  })
 })

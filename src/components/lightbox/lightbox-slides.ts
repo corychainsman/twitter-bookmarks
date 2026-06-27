@@ -1,6 +1,5 @@
 import type { TweetDoc } from '@/features/bookmarks/model'
 import {
-  resolveMirroredVideoUrl,
   withTwitterOriginalJpg,
   withTwitterSize,
 } from '@/lib/twitter-media-url'
@@ -53,7 +52,7 @@ function buildBookmarksLightboxSlides(tweet: TweetDoc | undefined) {
       : {
           gridId,
           type: 'video' as const,
-          src: resolveMirroredVideoUrl(media.fullUrl),
+          src: media.fullUrl,
           poster: withTwitterSize(media.posterUrl ?? media.thumbUrl, 'medium'),
           width: media.width,
           height: media.height,
