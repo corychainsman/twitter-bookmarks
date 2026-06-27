@@ -44,13 +44,14 @@ type BookmarksMasonryProps = {
 }
 
 const ANCHOR_RESTORE_ATTEMPTS = 3
-const MINIMUM_PREFETCH_ITEMS = 36
-const MINIMUM_EAGER_ITEMS = 24
-const IDLE_PRELOAD_ITEM_COUNT = 48
-const IDLE_PRELOAD_CONCURRENCY = 12
+const MINIMUM_PREFETCH_ITEMS = 18
+const MINIMUM_EAGER_ITEMS = 12
+const IDLE_PRELOAD_DELAY_MS = 8_000
+const IDLE_PRELOAD_ITEM_COUNT = 16
+const IDLE_PRELOAD_CONCURRENCY = 4
 const MINIMUM_PINCH_DISTANCE_PX = 16
 const PINCH_ZOOM_STEP_RATIO = 1.16
-const VIEWPORT_PREFETCH_MULTIPLIER = 5
+const VIEWPORT_PREFETCH_MULTIPLIER = 1.5
 const noop = () => {}
 const overscanPxCache = new WeakMap<GridItem[], Map<string, number>>()
 const combinedRefsCache = new WeakMap<
@@ -549,13 +550,22 @@ export function BookmarksMasonry({
       cancelIdleCallback?: (handle: number) => void
     }
 
-    if (idleWindow.requestIdleCallback) {
-      const idleId = idleWindow.requestIdleCallback(preload, { timeout: 1200 })
-      return () => idleWindow.cancelIdleCallback?.(idleId)
-    }
+    let idleId: number | null = null
+    const timeoutId = window.setTimeout(() => {
+      if (idleWindow.requestIdleCallback) {
+        idleId = idleWindow.requestIdleCallback(preload, { timeout: 2_000 })
+        return
+      }
 
-    const timeoutId = window.setTimeout(preload, 350)
-    return () => window.clearTimeout(timeoutId)
+      preload()
+    }, IDLE_PRELOAD_DELAY_MS)
+
+    return () => {
+      window.clearTimeout(timeoutId)
+      if (idleId !== null) {
+        idleWindow.cancelIdleCallback?.(idleId)
+      }
+    }
   }, [columnWidth, eagerItemCount, imageDevicePixelRatio, initialMediaReady, items])
 
   if (items.length === 0) {

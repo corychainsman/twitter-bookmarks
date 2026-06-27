@@ -8,8 +8,10 @@ import { registerMediaCacheWorker } from '@/lib/media-cache'
 import './index.css'
 import 'yet-another-react-lightbox/styles.css'
 
+const MEDIA_CACHE_WORKER_REGISTRATION_DELAY_MS = 12_000
+
 document.documentElement.classList.add('antialiased', 'dark')
-registerMediaCacheWorker()
+window.setTimeout(registerMediaCacheWorker, MEDIA_CACHE_WORKER_REGISTRATION_DELAY_MS)
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>

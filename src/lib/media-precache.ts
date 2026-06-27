@@ -1,14 +1,14 @@
 import type { GridItem } from '@/features/bookmarks/model'
 import { isMirroredImageUrl, mirroredVariantUrl } from '@/lib/twitter-media-url'
 
-const PRECACHE_START_DELAY_MS = 4_000
-const PRECACHE_CONCURRENCY = 3
+const PRECACHE_START_DELAY_MS = 20_000
+const PRECACHE_CONCURRENCY = 1
 // On mobile (single narrow column), the browser picks w1280 at DPR 3 — 120 KB each.
 // Cap total tiles and use a smaller tier to avoid saturating mobile bandwidth.
 const PRECACHE_WIDTH_MOBILE = 320
 const PRECACHE_WIDTH_DESKTOP = 680
 const PRECACHE_MAX_TILES_MOBILE = 200
-const PRECACHE_MAX_TILES_DESKTOP = 1500
+const PRECACHE_MAX_TILES_DESKTOP = 300
 
 let precacheStarted = false
 

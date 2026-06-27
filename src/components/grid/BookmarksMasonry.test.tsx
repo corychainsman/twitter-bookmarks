@@ -545,7 +545,7 @@ describe('BookmarksMasonry', () => {
     ).toHaveLength(0)
   })
 
-  it('prefetches the greater of five viewport-heights or thirty-six items beyond the viewport', async () => {
+  it('prefetches the greater of one-and-a-half viewport-heights or eighteen items beyond the viewport', async () => {
     const { rerender } = render(
       <BookmarksMasonry
         columnCount={3}
@@ -565,7 +565,7 @@ describe('BookmarksMasonry', () => {
 
     expect(reactVirtualizedMocks.lastMasonryProps).toMatchObject({
       height: 900,
-      overscanByPixels: 5454,
+      overscanByPixels: 2727,
     })
 
     rerender(
@@ -584,7 +584,7 @@ describe('BookmarksMasonry', () => {
     await waitFor(() => {
       expect(reactVirtualizedMocks.lastMasonryProps).toMatchObject({
         height: 900,
-        overscanByPixels: 4500,
+        overscanByPixels: 1350,
       })
     })
   })
