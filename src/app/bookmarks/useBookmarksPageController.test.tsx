@@ -38,7 +38,23 @@ class MockWorker {
   static instances: MockWorker[] = []
 
   onmessage: ((event: MessageEvent<unknown>) => void) | null = null
-  postMessage = vi.fn()
+  postMessage = vi.fn((message: { type?: string }) => {
+    if (message.type !== 'query') {
+      return
+    }
+
+    queueMicrotask(() => {
+      this.onmessage?.({
+        data: {
+          type: 'result',
+          result: {
+            total: 0,
+            orderedGridIds: [],
+          },
+        },
+      } as MessageEvent<unknown>)
+    })
+  })
   terminate = vi.fn()
 
   constructor() {
@@ -72,14 +88,10 @@ async function flushReactWork() {
 
 describe('useBookmarksPageController', () => {
   beforeEach(() => {
-    vi.useFakeTimers()
     MockWorker.instances = []
     vi.mocked(loadCoreArtifacts).mockResolvedValue(coreArtifacts)
 
-    Object.defineProperty(window, 'Worker', {
-      configurable: true,
-      value: MockWorker,
-    })
+    vi.stubGlobal('Worker', MockWorker)
     Object.defineProperty(window, 'scrollTo', {
       configurable: true,
       value: vi.fn(),
@@ -89,6 +101,7 @@ describe('useBookmarksPageController', () => {
 
   afterEach(() => {
     vi.useRealTimers()
+    vi.unstubAllGlobals()
     vi.restoreAllMocks()
   })
 
@@ -101,6 +114,7 @@ describe('useBookmarksPageController', () => {
     expect(loadCoreArtifacts).toHaveBeenCalled()
     expect(getQueryMessages()).toHaveLength(1)
 
+    vi.useFakeTimers()
     act(() => {
       result.current.onSearchChange('a')
       result.current.onSearchChange('ab')
@@ -129,5 +143,22 @@ describe('useBookmarksPageController', () => {
       type: 'embed-text',
       text: 'abc',
     })
+  })
+
+  it('runs the initial query in-page when module workers are unavailable', async () => {
+    vi.stubGlobal('Worker', class {
+      constructor() {
+        throw new Error('module workers unavailable')
+      }
+    })
+
+    const { result } = renderHook(() => useBookmarksPageController())
+
+    await flushReactWork()
+    await flushReactWork()
+
+    expect(result.current.hasFirstQueryResult).toBe(true)
+    expect(result.current.queryResult.total).toBe(0)
+    expect(result.current.loadingError).toBeNull()
   })
 })

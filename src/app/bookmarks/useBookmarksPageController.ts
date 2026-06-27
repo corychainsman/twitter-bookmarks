@@ -34,6 +34,11 @@ import {
   type MasonryScrollAnchor,
   type MasonryScrollAnchorRequest,
 } from '@/components/grid/masonry-anchor'
+import {
+  EMBEDDING_ARTIFACTS_NOT_HYDRATED_MESSAGE,
+  runBookmarksQuery,
+  SEMANTIC_QUERY_VECTOR_NOT_READY_MESSAGE,
+} from '@/features/bookmarks/query-engine'
 import { sessionStorageStore } from '@/lib/storage'
 import type {
   QueryWorkerRequest,
@@ -47,6 +52,7 @@ import type {
 type HydratedArtifacts = CoreArtifacts
 
 const SEARCH_QUERY_COMMIT_DELAY_MS = 180
+const QUERY_WORKER_WATCHDOG_MS = 1_500
 const noop = () => {}
 const gridSelectionCache = new Map<string, { tweetId: string; mediaIndex: number }>()
 const visibleItemsCache = new WeakMap<string[], GridItem[]>()
@@ -192,12 +198,54 @@ export function useBookmarksPageController() {
   const workerRef = React.useRef<Worker | null>(null)
   const embeddingWorkerRef = React.useRef<Worker | null>(null)
   const workerCoreDocsHydratedRef = React.useRef(false)
+  const workerAvailableRef = React.useRef(true)
+  const workerLastRequestIdRef = React.useRef(0)
+  const workerLastResponseIdRef = React.useRef(0)
+  const hasFirstQueryResultRef = React.useRef(false)
+  const lastQueryRequestRef = React.useRef<{
+    semanticQuery?: SemanticQuery
+    state: QueryState
+  } | null>(null)
   const embeddingHydrationRef = React.useRef(false)
   const embeddingRequestIdRef = React.useRef(0)
   const embeddingRequestKeyRef = React.useRef<string | null>(null)
   const queryStateRef = React.useRef(initialQueryState)
   const scrollAnchorRequestIdRef = React.useRef(0)
   const [isQueryPending, startTransition] = React.useTransition()
+
+  const applyQueryResult = React.useEffectEvent((result: QueryResult) => {
+    startTransition(() => {
+      setQueryResult(result)
+    })
+    hasFirstQueryResultRef.current = true
+    setHasFirstQueryResult(true)
+    setLoadingError(null)
+  })
+
+  const runQueryOnMainThread = React.useEffectEvent((input: {
+    semanticQuery?: SemanticQuery
+    state: QueryState
+  }) => {
+    const currentArtifacts = artifacts
+    if (!currentArtifacts) {
+      return
+    }
+
+    try {
+      applyQueryResult(runBookmarksQuery(currentArtifacts, input.state, input.semanticQuery))
+    } catch (error) {
+      if (error instanceof Error && error.message === EMBEDDING_ARTIFACTS_NOT_HYDRATED_MESSAGE) {
+        void ensureEmbeddingArtifacts()
+        return
+      }
+
+      if (error instanceof Error && error.message === SEMANTIC_QUERY_VECTOR_NOT_READY_MESSAGE) {
+        return
+      }
+
+      setLoadingError(error instanceof Error ? error.message : 'Failed to query bookmarks.')
+    }
+  })
 
   const postWorkerMessage = React.useEffectEvent((message: QueryWorkerRequest) => {
     workerRef.current?.postMessage(message)
@@ -257,19 +305,41 @@ export function useBookmarksPageController() {
       behavior: 'auto',
     })
 
-    const worker = new Worker(new URL('../../workers/query.worker.ts', import.meta.url), {
-      type: 'module',
-    })
+    let worker: Worker
+    try {
+      worker = new Worker(new URL('../../workers/query.worker.ts', import.meta.url), {
+        type: 'module',
+      })
+    } catch (error) {
+      workerAvailableRef.current = false
+      setLoadingError(
+        error instanceof Error
+          ? `Bookmark query worker failed; using in-page fallback. ${error.message}`
+          : 'Bookmark query worker failed; using in-page fallback.',
+      )
+      return
+    }
     workerRef.current = worker
+    worker.onerror = (event) => {
+      workerAvailableRef.current = false
+      setLoadingError(event.message || 'Bookmark query worker failed; using in-page fallback.')
+      if (!hasFirstQueryResultRef.current && lastQueryRequestRef.current) {
+        runQueryOnMainThread(lastQueryRequestRef.current)
+      }
+    }
+    worker.onmessageerror = () => {
+      workerAvailableRef.current = false
+      setLoadingError('Bookmark query worker could not exchange data; using in-page fallback.')
+      if (!hasFirstQueryResultRef.current && lastQueryRequestRef.current) {
+        runQueryOnMainThread(lastQueryRequestRef.current)
+      }
+    }
     worker.onmessage = (event: MessageEvent<QueryWorkerResponse>) => {
+      workerLastResponseIdRef.current = workerLastRequestIdRef.current
       const message = event.data
 
       if (message.type === 'result') {
-        startTransition(() => {
-          setQueryResult(message.result)
-        })
-        setHasFirstQueryResult(true)
-        setLoadingError(null)
+        applyQueryResult(message.result)
         return
       }
 
@@ -298,7 +368,7 @@ export function useBookmarksPageController() {
       worker.terminate()
       workerRef.current = null
     }
-  }, [initialQueryState, initialSessionState.scrollY, startTransition])
+  }, [initialQueryState, initialSessionState.scrollY])
 
   React.useEffect(() => () => {
     if (embeddingWorkerRef.current) {
@@ -370,7 +440,7 @@ export function useBookmarksPageController() {
   }, [artifacts])
 
   React.useEffect(() => {
-    if (!artifacts || !workerRef.current) {
+    if (!artifacts || (workerAvailableRef.current && !workerRef.current)) {
       return
     }
 
@@ -396,19 +466,40 @@ export function useBookmarksPageController() {
       return
     }
 
-    if (
-      (queryRequestState.sort === 'random' || queryRequestState.mode === 'one') &&
-      !workerCoreDocsHydratedRef.current
-    ) {
-      postWorkerMessage({ type: 'hydrate-core', artifacts })
-      workerCoreDocsHydratedRef.current = true
-    }
-
-    postWorkerMessage({
-      type: 'query',
+    const queryRequest = {
       state: queryRequestState,
       semanticQuery: semanticQueryForRequest ?? undefined,
-    })
+    }
+    lastQueryRequestRef.current = queryRequest
+
+    let watchdogTimeoutId: number | null = null
+    if (!workerAvailableRef.current) {
+      runQueryOnMainThread(queryRequest)
+    } else {
+      if (
+        (queryRequestState.sort === 'random' || queryRequestState.mode === 'one') &&
+        !workerCoreDocsHydratedRef.current
+      ) {
+        postWorkerMessage({ type: 'hydrate-core', artifacts })
+        workerCoreDocsHydratedRef.current = true
+      }
+
+      workerLastRequestIdRef.current += 1
+      const requestId = workerLastRequestIdRef.current
+      postWorkerMessage({
+        type: 'query',
+        ...queryRequest,
+      })
+
+      watchdogTimeoutId = window.setTimeout(() => {
+        if (workerLastResponseIdRef.current >= requestId || hasFirstQueryResultRef.current) {
+          return
+        }
+
+        workerAvailableRef.current = false
+        runQueryOnMainThread(queryRequest)
+      }, QUERY_WORKER_WATCHDOG_MS)
+    }
 
     if (
       (trimmedSemanticText.length > 0 ||
@@ -417,6 +508,12 @@ export function useBookmarksPageController() {
       !hasEmbeddingIndex
     ) {
       void ensureEmbeddingArtifacts()
+    }
+
+    return () => {
+      if (watchdogTimeoutId !== null) {
+        window.clearTimeout(watchdogTimeoutId)
+      }
     }
   }, [
     artifacts,
