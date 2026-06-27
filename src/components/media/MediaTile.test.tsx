@@ -1,5 +1,5 @@
-import { render, screen } from '@testing-library/react'
-import { describe, expect, it } from 'vitest'
+import { act, render, screen } from '@testing-library/react'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import { MediaTile } from '@/components/media/MediaTile'
 import type { GridItem, TweetDoc } from '@/features/bookmarks/model'
@@ -40,6 +40,10 @@ const tweet: TweetDoc = {
 }
 
 describe('MediaTile', () => {
+  afterEach(() => {
+    vi.useRealTimers()
+  })
+
   it('shows bookmark metadata in the default tile mode', () => {
     render(
       <MediaTile
@@ -106,6 +110,7 @@ describe('MediaTile', () => {
         imageDevicePixelRatio={3}
         imageRenderedWidth={342}
         imageSizes="342px"
+        initialMedia
         onOpen={() => {}}
       />,
     )
@@ -117,5 +122,49 @@ describe('MediaTile', () => {
       'https://pbs.twimg.com/media/thumb.jpg?name=small 680w, https://pbs.twimg.com/media/thumb.jpg?name=medium 1200w',
     )
     expect(image).toHaveAttribute('sizes', '342px')
+  })
+
+  it('defers motion preview video and poster loading', () => {
+    vi.useFakeTimers()
+    const disconnect = vi.fn()
+    const observe = vi.fn()
+    vi.stubGlobal('IntersectionObserver', class {
+      disconnect: () => void
+      observe: () => void
+
+      constructor() {
+        this.disconnect = disconnect
+        this.observe = observe
+      }
+    })
+
+    render(
+      <MediaTile
+        item={{
+          ...item,
+          mediaType: 'video',
+          previewUrl: 'https://video.example.com/preview.mp4',
+          posterUrl: 'https://pbs.twimg.com/media/poster.jpg',
+        }}
+        tweet={tweet}
+        immersive
+        imageDevicePixelRatio={1}
+        imageRenderedWidth={320}
+        imageSizes="320px"
+        onOpen={() => {}}
+      />,
+    )
+
+    const video = document.querySelector('video')
+    expect(video).not.toBeNull()
+    expect(video).not.toHaveAttribute('src')
+    expect(video).not.toHaveAttribute('poster')
+
+    act(() => {
+      vi.advanceTimersByTime(12_000)
+    })
+
+    expect(video).toHaveAttribute('src', 'https://video.example.com/preview.mp4')
+    expect(video).toHaveAttribute('poster', 'https://pbs.twimg.com/media/poster.jpg?name=small')
   })
 })

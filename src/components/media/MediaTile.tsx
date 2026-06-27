@@ -13,6 +13,8 @@ import {
 } from '@/components/media/autoplay'
 
 const MEDIA_TYPE_LABEL = { animated_gif: 'animated gif', photo: 'photo', video: 'video' }
+const IMAGE_SRC_ATTACH_DELAY_MS = 12_000
+const VIDEO_SRC_ATTACH_DELAY_MS = 12_000
 const aspectRatioStyleCache = new WeakMap<GridItem, CSSProperties | null>()
 const postedDateCache = new WeakMap<TweetDoc, string>()
 const imageSourcesCache = new WeakMap<
@@ -54,6 +56,12 @@ function VideoGridTile({
 }: VideoGridTileProps) {
   const videoRef = useRef<HTMLVideoElement>(null)
   const [shouldPlay, setShouldPlay] = useState(false)
+  const [canAttachSrc, setCanAttachSrc] = useState(false)
+
+  useEffect(() => {
+    const timeoutId = window.setTimeout(() => setCanAttachSrc(true), VIDEO_SRC_ATTACH_DELAY_MS)
+    return () => window.clearTimeout(timeoutId)
+  }, [])
 
   useEffect(() => {
     const el = videoRef.current
@@ -73,18 +81,18 @@ function VideoGridTile({
   useEffect(() => {
     const video = videoRef.current
     if (!video) return
-    if (shouldPlay) {
+    if (shouldPlay && canAttachSrc) {
       void video.play().catch(() => {})
     } else {
       video.pause()
     }
-  }, [shouldPlay])
+  }, [canAttachSrc, shouldPlay])
 
   return (
     <video
       ref={videoRef}
-      src={src}
-      poster={poster}
+      src={canAttachSrc ? src : undefined}
+      poster={canAttachSrc ? poster : undefined}
       muted
       loop
       playsInline
@@ -149,6 +157,17 @@ export const MediaTile = memo(function MediaTile({
   }
   const placeholderUrl = thumbhashToDataUrl(item.thumbhash)
   const mediaRef = useRef<HTMLDivElement>(null)
+  const [deferredImageSrcReady, setDeferredImageSrcReady] = useState(false)
+  const shouldAttachImageSrc = initialMedia || loading === 'eager' || deferredImageSrcReady
+
+  useEffect(() => {
+    if (initialMedia || loading === 'eager') {
+      return undefined
+    }
+
+    const timeoutId = window.setTimeout(() => setDeferredImageSrcReady(true), IMAGE_SRC_ATTACH_DELAY_MS)
+    return () => window.clearTimeout(timeoutId)
+  }, [initialMedia, loading])
 
   const handleOpen: MouseEventHandler<HTMLButtonElement> = (event) => {
     captureMediaHandoff(item.gridId, mediaRef.current?.querySelector('video, img') ?? null)
@@ -187,9 +206,9 @@ export const MediaTile = memo(function MediaTile({
             />
           ) : (
             <img
-              src={imageSources.src}
-              srcSet={imageSources.srcSet}
-              sizes={imageSources.sizes}
+              src={shouldAttachImageSrc ? imageSources.src : undefined}
+              srcSet={shouldAttachImageSrc ? imageSources.srcSet : undefined}
+              sizes={shouldAttachImageSrc ? imageSources.sizes : undefined}
               alt={tweet?.text || 'Bookmarked media'}
               decoding="async"
               fetchPriority={fetchPriority}

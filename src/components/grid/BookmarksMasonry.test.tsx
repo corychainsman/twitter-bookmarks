@@ -617,7 +617,7 @@ describe('BookmarksMasonry', () => {
       'img[src="https://img.example.com/1.jpg"]',
     )
     const overscanImage = document.querySelector<HTMLImageElement>(
-      'img[src="https://img.example.com/40.jpg"]',
+      '[data-grid-id="tweet-40:0"] img',
     )
 
     expect(initialImage).toHaveAttribute('loading', 'eager')
@@ -627,6 +627,7 @@ describe('BookmarksMasonry', () => {
     expect(overscanImage).toHaveAttribute('loading', 'lazy')
     expect(overscanImage).toHaveAttribute('fetchpriority', 'low')
     expect(overscanImage).not.toHaveAttribute('data-initial-media')
+    expect(overscanImage).not.toHaveAttribute('src')
   })
 
   it('prioritizes the current scroll viewport instead of the first dataset batch', async () => {
@@ -654,15 +655,16 @@ describe('BookmarksMasonry', () => {
     })
 
     const offscreenInitialImage = document.querySelector<HTMLImageElement>(
-      'img[src="https://img.example.com/1.jpg"]',
+      '[data-grid-id="tweet-1:0"] img',
     )
     const viewportImage = document.querySelector<HTMLImageElement>(
-      'img[src="https://img.example.com/46.jpg"]',
+      '[data-grid-id="tweet-46:0"] img',
     )
 
     expect(offscreenInitialImage).toHaveAttribute('loading', 'lazy')
     expect(offscreenInitialImage).toHaveAttribute('fetchpriority', 'low')
     expect(offscreenInitialImage).not.toHaveAttribute('data-initial-media')
+    expect(offscreenInitialImage).not.toHaveAttribute('src')
 
     expect(viewportImage).toHaveAttribute('loading', 'eager')
     expect(viewportImage).toHaveAttribute('fetchpriority', 'high')
@@ -685,11 +687,11 @@ describe('BookmarksMasonry', () => {
     )
 
     await waitFor(() => {
-      expect(document.querySelectorAll('img[src="https://img.example.com/1.jpg"]')).toHaveLength(2)
+      expect(document.querySelectorAll('[data-grid-id="tweet-1:0"] img')).toHaveLength(2)
     })
 
     const repeatedImages = [
-      ...document.querySelectorAll<HTMLImageElement>('img[src="https://img.example.com/1.jpg"]'),
+      ...document.querySelectorAll<HTMLImageElement>('[data-grid-id="tweet-1:0"] img'),
     ]
 
     expect(
@@ -697,6 +699,7 @@ describe('BookmarksMasonry', () => {
         (image) =>
           image.getAttribute('loading') === 'lazy' &&
           image.getAttribute('fetchpriority') === 'low' &&
+          !image.hasAttribute('src') &&
           !image.hasAttribute('data-initial-media'),
       ),
     ).toBe(true)
