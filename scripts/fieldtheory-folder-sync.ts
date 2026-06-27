@@ -25,6 +25,7 @@ import {
   FIELDTHEORY_FOLDER_NAME,
   FIELDTHEORY_MAX_PAGES,
 } from './fieldtheory'
+import { readXCookiePairFromOnePassword, xCookieHeader } from './x-cookie-store'
 
 type Folder = {
   id: string
@@ -133,6 +134,14 @@ async function resolveFolderSyncCookies(options: SyncOptions): Promise<{
   csrfToken: string
   cookieHeader: string
 }> {
+  const onePasswordCookies = readXCookiePairFromOnePassword()
+  if (onePasswordCookies) {
+    return {
+      csrfToken: onePasswordCookies.ct0,
+      cookieHeader: xCookieHeader(onePasswordCookies),
+    }
+  }
+
   const config = loadChromeSessionConfig({ browserId: options.browser })
 
   if (config.browser.cookieBackend === 'firefox') {
@@ -153,7 +162,13 @@ function resolveTargetFolders(allFolders: Folder[]): Folder[] {
   const prefix = allFolders.filter((folder) =>
     folder.name.trim().toLowerCase().startsWith(lower),
   )
-  const resolved = exact ?? (prefix.length === 1 ? prefix[0] : undefined)
+  const suffix = allFolders.filter((folder) =>
+    folder.name.trim().toLowerCase().endsWith(lower),
+  )
+  const resolved =
+    exact ??
+    (prefix.length === 1 ? prefix[0] : undefined) ??
+    (suffix.length === 1 ? suffix[0] : undefined)
 
   if (!resolved) {
     const hint =
