@@ -195,8 +195,7 @@ describe('MediaTile', () => {
     expect(image).toHaveAttribute('src', 'https://pbs.twimg.com/media/thumb.jpg?name=small')
   })
 
-  it('defers motion preview video and poster loading', () => {
-    vi.useFakeTimers()
+  it('attaches motion posters before loading preview video bytes', () => {
     const disconnect = vi.fn()
     const observe = vi.fn()
     vi.stubGlobal('IntersectionObserver', class {
@@ -229,12 +228,41 @@ describe('MediaTile', () => {
     const video = document.querySelector('video')
     expect(video).not.toBeNull()
     expect(video).not.toHaveAttribute('src')
-    expect(video).not.toHaveAttribute('poster')
+    expect(video).toHaveAttribute('poster', 'https://pbs.twimg.com/media/poster.jpg?name=small')
+  })
 
-    act(() => {
-      vi.advanceTimersByTime(12_000)
+  it('loads initial motion preview video immediately', () => {
+    const disconnect = vi.fn()
+    const observe = vi.fn()
+    vi.stubGlobal('IntersectionObserver', class {
+      disconnect: () => void
+      observe: () => void
+
+      constructor() {
+        this.disconnect = disconnect
+        this.observe = observe
+      }
     })
 
+    render(
+      <MediaTile
+        item={{
+          ...item,
+          mediaType: 'video',
+          previewUrl: 'https://video.example.com/preview.mp4',
+          posterUrl: 'https://pbs.twimg.com/media/poster.jpg',
+        }}
+        tweet={tweet}
+        immersive
+        imageDevicePixelRatio={1}
+        imageRenderedWidth={320}
+        imageSizes="320px"
+        initialMedia
+        onOpen={() => {}}
+      />,
+    )
+
+    const video = document.querySelector('video')
     expect(video).toHaveAttribute('src', 'https://video.example.com/preview.mp4')
     expect(video).toHaveAttribute('poster', 'https://pbs.twimg.com/media/poster.jpg?name=small')
   })

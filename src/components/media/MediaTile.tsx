@@ -20,7 +20,6 @@ import {
 const MEDIA_TYPE_LABEL = { animated_gif: 'animated gif', photo: 'photo', video: 'video' }
 const IMAGE_SRC_ATTACH_DELAY_MS = 12_000
 const IMAGE_SRC_ATTACH_ROOT_MARGIN = '900px 0px'
-const VIDEO_SRC_ATTACH_DELAY_MS = 12_000
 const aspectRatioStyleCache = new WeakMap<GridItem, CSSProperties | null>()
 const postedDateCache = new WeakMap<TweetDoc, string>()
 const imageSourcesCache = new WeakMap<
@@ -62,17 +61,14 @@ function VideoGridTile({
 }: VideoGridTileProps) {
   const videoRef = useRef<HTMLVideoElement>(null)
   const [shouldPlay, setShouldPlay] = useState(false)
-  const [canAttachSrc, setCanAttachSrc] = useState(false)
-
-  useEffect(() => {
-    const timeoutId = window.setTimeout(() => setCanAttachSrc(true), VIDEO_SRC_ATTACH_DELAY_MS)
-    return () => window.clearTimeout(timeoutId)
-  }, [])
+  const canAttachSrc = initialMedia || shouldPlay
 
   useEffect(() => {
     const el = videoRef.current
     if (!el) return
-    if (typeof IntersectionObserver === 'undefined') return
+    if (typeof IntersectionObserver === 'undefined') {
+      return
+    }
     const observer = new IntersectionObserver(
       (entries) => {
         for (const entry of entries) {
@@ -83,7 +79,7 @@ function VideoGridTile({
     )
     observer.observe(el)
     return () => observer.disconnect()
-  }, [gridId])
+  }, [gridId, initialMedia])
 
   useEffect(() => {
     const video = videoRef.current
@@ -99,7 +95,7 @@ function VideoGridTile({
     <video
       ref={videoRef}
       src={canAttachSrc ? src : undefined}
-      poster={canAttachSrc ? poster : undefined}
+      poster={poster}
       muted
       loop
       playsInline
@@ -182,12 +178,13 @@ export const MediaTile = memo(function MediaTile({
     }
 
     const element = mediaRef.current
-    const timeoutId = window.setTimeout(() => setDeferredImageSrcReady(true), IMAGE_SRC_ATTACH_DELAY_MS)
 
     if (!element || typeof IntersectionObserver === 'undefined') {
-      return () => window.clearTimeout(timeoutId)
+      setDeferredImageSrcReady(true)
+      return undefined
     }
 
+    const timeoutId = window.setTimeout(() => setDeferredImageSrcReady(true), IMAGE_SRC_ATTACH_DELAY_MS)
     const observer = new IntersectionObserver(
       (entries) => {
         if (entries.some((entry) => entry.isIntersecting)) {
