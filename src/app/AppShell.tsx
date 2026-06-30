@@ -33,6 +33,7 @@ export function AppShell() {
     onPinchZoom,
     onZoomReset,
     onOpenLightbox,
+    onLightboxSelectionChange,
     onCloseLightbox,
     onScrollAnchorApplied,
     scrollAnchorRequest,
@@ -85,6 +86,7 @@ export function AppShell() {
         selection={selection}
         onClose={onCloseLightbox}
         onBrowseSimilar={onBrowseSimilar}
+        onSelectionChange={onLightboxSelectionChange}
       />
     </div>
   )

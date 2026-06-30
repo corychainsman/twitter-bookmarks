@@ -161,4 +161,48 @@ describe('useBookmarksPageController', () => {
     expect(result.current.queryResult.total).toBe(0)
     expect(result.current.loadingError).toBeNull()
   })
+
+  it('hydrates a selected lightbox item from the URL', async () => {
+    window.history.replaceState(null, '', '/?selected=tweet-1%3A2')
+
+    const { result } = renderHook(() => useBookmarksPageController())
+
+    expect(result.current.selection).toEqual({
+      tweetId: 'tweet-1',
+      mediaIndex: 2,
+    })
+
+    await flushReactWork()
+  })
+
+  it('syncs lightbox selection to the URL while preserving query state', async () => {
+    window.history.replaceState(null, '', '/?q=compiler')
+
+    const { result } = renderHook(() => useBookmarksPageController())
+
+    await flushReactWork()
+
+    act(() => {
+      result.current.onOpenLightbox('tweet-1:1')
+    })
+    await flushReactWork()
+
+    expect(new URLSearchParams(window.location.search).get('q')).toBe('compiler')
+    expect(new URLSearchParams(window.location.search).get('selected')).toBe('tweet-1:1')
+
+    act(() => {
+      result.current.onLightboxSelectionChange('tweet-1:2')
+    })
+    await flushReactWork()
+
+    expect(new URLSearchParams(window.location.search).get('selected')).toBe('tweet-1:2')
+
+    act(() => {
+      result.current.onCloseLightbox()
+    })
+    await flushReactWork()
+
+    expect(new URLSearchParams(window.location.search).get('q')).toBe('compiler')
+    expect(new URLSearchParams(window.location.search).has('selected')).toBe(false)
+  })
 })

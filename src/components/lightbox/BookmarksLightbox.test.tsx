@@ -244,6 +244,7 @@ describe('BookmarksLightbox video autoplay', () => {
         selection={{ tweetId: tweet.id, mediaIndex: 1 }}
         onClose={() => {}}
         onBrowseSimilar={() => {}}
+        onSelectionChange={() => {}}
       />,
     )
 

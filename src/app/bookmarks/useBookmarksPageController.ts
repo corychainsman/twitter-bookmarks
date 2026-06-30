@@ -90,8 +90,11 @@ function useWindowWidth() {
   return width
 }
 
-function updateUrlFromState(state: QueryState) {
+function updateUrlFromState(state: QueryState, selectedGridId: string | null) {
   const params = serializeQueryState(state)
+  if (selectedGridId) {
+    params.set('selected', selectedGridId)
+  }
   const nextQuery = params.toString()
   const nextUrl =
     nextQuery.length > 0 ? `${window.location.pathname}?${nextQuery}` : window.location.pathname
@@ -115,8 +118,16 @@ function parseGridSelection(gridId: string | null): { tweetId: string; mediaInde
     tweetId,
     mediaIndex: Number(mediaIndex),
   }
+  if (!Number.isInteger(selection.mediaIndex) || selection.mediaIndex < 0) {
+    return null
+  }
   gridSelectionCache.set(gridId, selection)
   return selection
+}
+
+function parseSelectedGridId(params: URLSearchParams): string | null {
+  const selected = params.get('selected')
+  return parseGridSelection(selected) ? selected : null
 }
 
 export function useBookmarksPageController() {
@@ -131,6 +142,10 @@ export function useBookmarksPageController() {
       }),
     [],
   )
+  const initialSelectedGridId = React.useMemo(
+    () => parseSelectedGridId(new URLSearchParams(window.location.search)),
+    [],
+  )
   const [artifacts, setArtifacts] = React.useState<HydratedArtifacts | null>(null)
   const [loadingError, setLoadingError] = React.useState<string | null>(null)
   const [hasFirstQueryResult, setHasFirstQueryResult] = React.useState(false)
@@ -139,7 +154,7 @@ export function useBookmarksPageController() {
     orderedGridIds: [],
   })
   const [selectedGridId, setSelectedGridId] = React.useState<string | null>(
-    initialSessionState.selectedGridId,
+    initialSelectedGridId ?? initialSessionState.selectedGridId,
   )
   const [queryState, setQueryState] = React.useState<QueryState>(initialQueryState)
   const [searchInputValue, setSearchInputValue] = React.useState(initialQueryState.q)
@@ -299,7 +314,7 @@ export function useBookmarksPageController() {
   })
 
   React.useEffect(() => {
-    updateUrlFromState(initialQueryState)
+    updateUrlFromState(initialQueryState, initialSelectedGridId)
     window.scrollTo({
       top: initialSessionState.scrollY,
       behavior: 'auto',
@@ -368,7 +383,7 @@ export function useBookmarksPageController() {
       worker.terminate()
       workerRef.current = null
     }
-  }, [initialQueryState, initialSessionState.scrollY])
+  }, [initialQueryState, initialSelectedGridId, initialSessionState.scrollY])
 
   React.useEffect(() => () => {
     if (embeddingWorkerRef.current) {
@@ -387,8 +402,8 @@ export function useBookmarksPageController() {
   }, [queryState.q])
 
   React.useEffect(() => {
-    updateUrlFromState(queryState)
-  }, [queryState])
+    updateUrlFromState(queryState, selectedGridId)
+  }, [queryState, selectedGridId])
 
   React.useEffect(() => {
     const handlePopState = () => {
@@ -397,6 +412,7 @@ export function useBookmarksPageController() {
           generateSeed: createQuerySeed,
         }),
       )
+      setSelectedGridId(parseSelectedGridId(new URLSearchParams(window.location.search)))
     }
 
     window.addEventListener('popstate', handlePopState)
@@ -821,6 +837,7 @@ export function useBookmarksPageController() {
     onPinchZoom: onZoomChange,
     onZoomReset: () => updateZoom(() => DEFAULT_QUERY_STATE.zoom),
     onOpenLightbox: (gridId: string) => setSelectedGridId(gridId),
+    onLightboxSelectionChange: (gridId: string) => setSelectedGridId(gridId),
     onCloseLightbox: () => setSelectedGridId(null),
   }
 }

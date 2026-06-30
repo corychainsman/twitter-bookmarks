@@ -48,6 +48,7 @@ type BookmarksLightboxProps = {
   selection: LightboxSelection | null
   onClose: () => void
   onBrowseSimilar: (gridId: string) => void
+  onSelectionChange: (gridId: string) => void
 }
 
 type TweetEmbedSlide = {
@@ -309,6 +310,7 @@ export function BookmarksLightbox({
   selection,
   onClose,
   onBrowseSimilar,
+  onSelectionChange,
 }: BookmarksLightboxProps) {
   const tweet = selection ? docsById.get(selection.tweetId) : undefined
   const postedDateTime = tweet ? formatPostedDateTime(tweet.postedAt) : ''
@@ -399,7 +401,7 @@ export function BookmarksLightbox({
 
   return (
     <LightboxRenderer
-      key={`${selection.tweetId}:${selection.mediaIndex}`}
+      key={selection.tweetId}
       open
       close={onClose}
       index={selection.mediaIndex}
@@ -412,7 +414,12 @@ export function BookmarksLightbox({
       }}
       plugins={[Zoom]}
       on={{
-        view: ({ index }: { index: number }) => setCurrentIndex(index),
+        view: ({ index }: { index: number }) => {
+          setCurrentIndex(index)
+          if (tweet) {
+            onSelectionChange(`${tweet.id}:${index}`)
+          }
+        },
       }}
       render={{
         ...(showNavigation
