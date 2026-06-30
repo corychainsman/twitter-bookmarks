@@ -15,6 +15,7 @@ describe('MeasuredMasonryCell', () => {
       <MeasuredMasonryCell
         gridId="tweet-1:0"
         index={3}
+        isMeasurement
         parent={{ invalidateCellSizeAfterRender }}
         style={{ width: 200 }}
       >
@@ -28,11 +29,30 @@ describe('MeasuredMasonryCell', () => {
     })
   })
 
+  it('does not invalidate positioned cells', () => {
+    const invalidateCellSizeAfterRender = vi.fn()
+
+    render(
+      <MeasuredMasonryCell
+        gridId="tweet-1:0"
+        index={3}
+        isMeasurement={false}
+        parent={{ invalidateCellSizeAfterRender }}
+        style={{ left: 0, position: 'absolute', top: 0, width: 200 }}
+      >
+        <div>Positioned content</div>
+      </MeasuredMasonryCell>,
+    )
+
+    expect(invalidateCellSizeAfterRender).not.toHaveBeenCalled()
+  })
+
   it('does not require react-virtualized parent internals outside invalidation', () => {
     render(
       <MeasuredMasonryCell
         gridId="tweet-1:0"
         index={0}
+        isMeasurement
         parent={{}}
         style={{ width: 200 }}
       >

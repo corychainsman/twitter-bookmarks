@@ -4,6 +4,7 @@ type MeasuredMasonryCellProps = {
   children: ReactNode
   gridId: string
   index: number
+  isMeasurement: boolean
   parent: {
     invalidateCellSizeAfterRender?: (cell: {
       columnIndex: number
@@ -17,12 +18,13 @@ export function MeasuredMasonryCell({
   children,
   gridId,
   index,
+  isMeasurement,
   parent,
   style,
 }: MeasuredMasonryCellProps) {
   const registerChild = useCallback(
     (element: HTMLDivElement | null) => {
-      if (!element) {
+      if (!element || !isMeasurement) {
         return
       }
 
@@ -31,7 +33,7 @@ export function MeasuredMasonryCell({
         rowIndex: index,
       })
     },
-    [index, parent],
+    [index, isMeasurement, parent],
   )
 
   return (

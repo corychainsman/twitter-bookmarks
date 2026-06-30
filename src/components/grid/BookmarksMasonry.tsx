@@ -548,13 +548,14 @@ export function BookmarksMasonry({
       if (!item) {
         return null
       }
+      const isPositioned = style?.position === 'absolute'
       const cellStyle = resolveBookmarksMasonryCellStyle(style)
       const imageLoadingStrategy = resolveBookmarksMasonryImageLoadingStrategy({
         cellHeight: cellMeasurerCache.getHeight(index),
         cellTop: style?.top,
         eagerItemCount,
         index,
-        isPositioned: style?.position === 'absolute',
+        isPositioned,
         scrollDirection: viewportRef.current.scrollDirection,
         viewportHeight: viewportRef.current.height,
         viewportScrollTop: viewportRef.current.scrollTop,
@@ -564,6 +565,7 @@ export function BookmarksMasonry({
         <MeasuredMasonryCell
           gridId={item.gridId}
           index={index}
+          isMeasurement={!isPositioned}
           key={renderedCellKeyAllocatorRef.current.resolve(key, style)}
           parent={parent}
           style={cellStyle}
