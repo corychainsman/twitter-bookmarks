@@ -221,6 +221,19 @@ class MockResizeObserver {
   }
 }
 
+class MockIntersectionObserver {
+  disconnect = vi.fn()
+  observe = vi.fn()
+  unobserve = vi.fn()
+  root = null
+  rootMargin = ''
+  thresholds = []
+
+  takeRecords() {
+    return []
+  }
+}
+
 const items: GridItem[] = [
   {
     gridId: 'tweet-1:0',
@@ -333,6 +346,10 @@ describe('BookmarksMasonry', () => {
     Object.defineProperty(window, 'ResizeObserver', {
       configurable: true,
       value: MockResizeObserver,
+    })
+    Object.defineProperty(window, 'IntersectionObserver', {
+      configurable: true,
+      value: MockIntersectionObserver,
     })
     Object.defineProperty(window, 'requestAnimationFrame', {
       configurable: true,

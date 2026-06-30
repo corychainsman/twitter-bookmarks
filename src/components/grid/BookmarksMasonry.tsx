@@ -543,7 +543,7 @@ export function BookmarksMasonry({
   ])
 
   const cellRenderer = React.useCallback(
-    ({ index, key, style }: MasonryCellProps) => {
+    ({ index, key, parent, style }: MasonryCellProps) => {
       const item = items[index]
       if (!item) {
         return null
@@ -563,7 +563,9 @@ export function BookmarksMasonry({
       return (
         <MeasuredMasonryCell
           gridId={item.gridId}
+          index={index}
           key={renderedCellKeyAllocatorRef.current.resolve(key, style)}
+          parent={parent}
           style={cellStyle}
         >
           <div className="app-masonry-item">
