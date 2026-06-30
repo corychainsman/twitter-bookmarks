@@ -1,5 +1,5 @@
 export const FIELDTHEORY_VERSION = '1.3.9'
-export const FIELDTHEORY_FOLDER_NAME = 'Inspo'
+export const FIELDTHEORY_FOLDER_NAME = '🖼️ Inspo'
 export const FIELDTHEORY_MAX_PAGES = 10_000
 export const FIELDTHEORY_DELAY_MS = 600
 export const FIELDTHEORY_PAGE_SIZE = 100
@@ -41,7 +41,9 @@ export function parseFieldTheorySourceContract(source: string): {
   folderSyncNormalizesTimelineSortIndexes: boolean
 } {
   return {
-    folderSyncIsInspoOnly: source.includes("FIELDTHEORY_FOLDER_NAME = 'Inspo'"),
+    folderSyncIsInspoOnly: source.includes(
+      `FIELDTHEORY_FOLDER_NAME = '${FIELDTHEORY_FOLDER_NAME}'`,
+    ),
     folderSyncUsesDedicatedFolderRunner: source.includes(
       "scripts/fieldtheory-folder-sync.ts",
     ),
