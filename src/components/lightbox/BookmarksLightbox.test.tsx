@@ -1,10 +1,47 @@
-import { describe, expect, it } from 'vitest'
+import { cleanup, fireEvent, render, waitFor } from '@testing-library/react'
+import type { ReactNode } from 'react'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import type { TweetDoc } from '@/features/bookmarks/model'
+import { BookmarksLightbox } from '@/components/lightbox/BookmarksLightbox'
 import {
   createBookmarksLightboxSlides,
   createLightboxPreloadCandidates,
 } from '@/components/lightbox/lightbox-slides'
+
+vi.mock('yet-another-react-lightbox', () => ({
+  default: ({
+    index,
+    render: lightboxRender,
+    slides,
+  }: {
+    index: number
+    render: {
+      slide?: (props: {
+        slide: unknown
+        offset: number
+        rect: { width: number; height: number }
+      }) => ReactNode
+    }
+    slides: unknown[]
+  }) => (
+    <div data-testid="mock-lightbox">
+      {slides.map((slide, slideIndex) => (
+        <div key={String((slide as { gridId?: string }).gridId ?? slideIndex)}>
+          {lightboxRender.slide?.({
+            slide,
+            offset: slideIndex - index,
+            rect: { width: 1000, height: 800 },
+          })}
+        </div>
+      ))}
+    </div>
+  ),
+}))
+
+vi.mock('yet-another-react-lightbox/plugins', () => ({
+  Zoom: () => null,
+}))
 
 function createTweet(overrides: Partial<TweetDoc>): TweetDoc {
   return {
@@ -20,6 +57,11 @@ function createTweet(overrides: Partial<TweetDoc>): TweetDoc {
     ...overrides,
   }
 }
+
+afterEach(() => {
+  cleanup()
+  vi.restoreAllMocks()
+})
 
 describe('createBookmarksLightboxSlides', () => {
   it('renders photos as responsive image slides', () => {
@@ -166,5 +208,74 @@ describe('createBookmarksLightboxSlides', () => {
         url: 'https://pbs.twimg.com/media/one.jpg?name=large',
       },
     ])
+  })
+})
+
+describe('BookmarksLightbox video autoplay', () => {
+  it('autoplays only the active video slide', async () => {
+    const play = vi
+      .spyOn(HTMLMediaElement.prototype, 'play')
+      .mockResolvedValue(undefined)
+    const pause = vi
+      .spyOn(HTMLMediaElement.prototype, 'pause')
+      .mockImplementation(() => undefined)
+    const tweet = createTweet({
+      media: [
+        {
+          type: 'video',
+          thumbUrl: 'https://pbs.twimg.com/ext_tw_video_thumb/one.jpg',
+          fullUrl: 'https://video.twimg.com/ext_tw_video/one.mp4',
+          width: 1280,
+          height: 720,
+        },
+        {
+          type: 'video',
+          thumbUrl: 'https://pbs.twimg.com/ext_tw_video_thumb/two.jpg',
+          fullUrl: 'https://video.twimg.com/ext_tw_video/two.mp4',
+          width: 1280,
+          height: 720,
+        },
+      ],
+    })
+
+    render(
+      <BookmarksLightbox
+        docsById={new Map([[tweet.id, tweet]])}
+        selection={{ tweetId: tweet.id, mediaIndex: 1 }}
+        onClose={() => {}}
+        onBrowseSimilar={() => {}}
+      />,
+    )
+
+    const videos = [...document.querySelectorAll('video')]
+
+    expect(videos).toHaveLength(2)
+    expect(videos[0]).not.toHaveAttribute('autoplay')
+    expect(videos[0]).toHaveAttribute('preload', 'metadata')
+    expect(videos[1]).toHaveAttribute('autoplay')
+    expect(videos[1]).toHaveAttribute('preload', 'auto')
+    expect(videos[0].muted).toBe(true)
+    expect(videos[1].muted).toBe(true)
+
+    await waitFor(() => {
+      expect(play).toHaveBeenCalledTimes(1)
+    })
+    expect(pause).toHaveBeenCalledTimes(1)
+
+    videos[1].muted = false
+    fireEvent.volumeChange(videos[1])
+
+    await waitFor(() => {
+      expect(videos[0].muted).toBe(false)
+      expect(videos[1].muted).toBe(false)
+    })
+
+    videos[1].muted = true
+    fireEvent.volumeChange(videos[1])
+
+    await waitFor(() => {
+      expect(videos[0].muted).toBe(true)
+      expect(videos[1].muted).toBe(true)
+    })
   })
 })

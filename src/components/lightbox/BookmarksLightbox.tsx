@@ -80,26 +80,58 @@ function LightboxVideo({
   poster,
   loop,
   muted,
+  isActive,
+  onMutedChange,
   startTime,
 }: {
   src: string
   poster?: string
   loop?: boolean
   muted?: boolean
+  isActive: boolean
+  onMutedChange: (muted: boolean) => void
   startTime?: number
 }) {
+  const videoRef = useRef<HTMLVideoElement | null>(null)
   const seekedRef = useRef(false)
+
+  useEffect(() => {
+    seekedRef.current = false
+  }, [src, startTime])
+
+  useEffect(() => {
+    const video = videoRef.current
+    if (!video) {
+      return undefined
+    }
+
+    video.muted = muted ?? false
+
+    if (!isActive) {
+      video.pause()
+      return undefined
+    }
+
+    void video.play().catch(() => {})
+
+    return () => {
+      video.pause()
+    }
+  }, [isActive, muted, src])
 
   return (
     <video
+      ref={videoRef}
       data-lightbox-media-content
       src={src}
       poster={poster}
+      autoPlay={isActive}
       controls
       playsInline
-      preload="metadata"
+      preload={isActive ? 'auto' : 'metadata'}
       loop={loop}
       muted={muted}
+      onVolumeChange={(event) => onMutedChange(event.currentTarget.muted)}
       onLoadedMetadata={(event) => {
         const video = event.currentTarget
         if (!seekedRef.current && startTime && startTime > 0.1 && startTime < video.duration) {
@@ -110,6 +142,9 @@ function LightboxVideo({
           }
         }
         seekedRef.current = true
+        if (isActive) {
+          void video.play().catch(() => {})
+        }
       }}
       className="max-h-full max-w-full bg-black object-contain"
     />
@@ -118,6 +153,7 @@ function LightboxVideo({
 
 const LightboxRenderer = Lightbox as unknown as ComponentType<Record<string, unknown>>
 const BACKDROP_CLICK_MOVEMENT_TOLERANCE_PX = 8
+let lightboxVideoMutedPreference = true
 
 function isPointInsideElement(element: Element | null | undefined, x: number, y: number) {
   if (!(element instanceof HTMLElement)) {
@@ -144,6 +180,17 @@ function getViewportSize() {
     width: Math.round(window.visualViewport?.width ?? window.innerWidth),
     height: Math.round(window.visualViewport?.height ?? window.innerHeight),
   }
+}
+
+function useLightboxVideoMutedPreference() {
+  const [muted, setMutedState] = useState(lightboxVideoMutedPreference)
+
+  const setMuted = (nextMuted: boolean) => {
+    lightboxVideoMutedPreference = nextMuted
+    setMutedState(nextMuted)
+  }
+
+  return [muted, setMuted] as const
 }
 
 type TweetDetailsPanelProps = {
@@ -273,6 +320,7 @@ export function BookmarksLightbox({
     expanded: false,
   })
   const [detailsPanelCollapsed, setDetailsPanelCollapsed] = useState(false)
+  const [lightboxVideoMuted, setLightboxVideoMuted] = useLightboxVideoMutedPreference()
   const controlsRef = useRef<HTMLDivElement | null>(null)
   const backdropPointerRef = useRef<{
     pointerId: number
@@ -384,7 +432,13 @@ export function BookmarksLightbox({
             <XIcon className="size-6" />
           </button>
         ),
-        slide: ({ slide }: { slide: DirectVideoSlide | TweetEmbedSlide | { type?: string } }) => {
+        slide: ({
+          slide,
+          offset,
+        }: {
+          slide: DirectVideoSlide | TweetEmbedSlide | { type?: string }
+          offset: number
+        }) => {
           if (slide.type !== 'video') {
             return undefined
           }
@@ -397,7 +451,9 @@ export function BookmarksLightbox({
                 src={videoSlide.src}
                 poster={videoHandoff?.poster ?? videoSlide.poster}
                 loop={videoSlide.loop}
-                muted={videoSlide.muted}
+                muted={lightboxVideoMuted}
+                isActive={offset === 0}
+                onMutedChange={setLightboxVideoMuted}
                 startTime={videoHandoff?.currentTime}
               />
             </div>
