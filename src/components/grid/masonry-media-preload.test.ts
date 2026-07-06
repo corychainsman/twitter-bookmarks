@@ -22,6 +22,13 @@ const videoItem: GridItem = {
   posterUrl: 'https://pbs.twimg.com/ext_tw_video_thumb/poster.jpg',
 }
 
+const videoItemWithPreview: GridItem = {
+  ...videoItem,
+  gridId: 'tweet-3:0',
+  tweetId: 'tweet-3',
+  previewUrl: 'https://tbmedia.corychainsman.com/vid/tweet_video/abc/preview.mp4',
+}
+
 describe('createMasonryMediaPreloadCandidates', () => {
   it('creates bounded image preload candidates for upcoming masonry items', () => {
     expect(
@@ -40,6 +47,27 @@ describe('createMasonryMediaPreloadCandidates', () => {
       {
         kind: 'image',
         url: 'https://pbs.twimg.com/ext_tw_video_thumb/poster.jpg',
+      },
+    ])
+  })
+
+  it('also warms the video preview clip for motion items that have one', () => {
+    expect(
+      createMasonryMediaPreloadCandidates({
+        devicePixelRatio: 2,
+        items: [videoItemWithPreview],
+        renderedWidth: 360,
+        startIndex: 0,
+        take: 1,
+      }),
+    ).toEqual([
+      {
+        kind: 'image',
+        url: 'https://pbs.twimg.com/ext_tw_video_thumb/poster.jpg',
+      },
+      {
+        kind: 'video',
+        url: 'https://tbmedia.corychainsman.com/vid/tweet_video/abc/preview.mp4',
       },
     ])
   })

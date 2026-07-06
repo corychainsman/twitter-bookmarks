@@ -38,7 +38,12 @@ fi
 
 if rclone listremotes | grep -q '^r2:'; then
   echo "Syncing full archive to $R2_TARGET ..."
-  rclone copy "$ASSETS_DIR" "$R2_TARGET" --fast-list --transfers 16 --stats-one-line -P
+  # Assets are immutable (content never changes under a key), so tell R2/Cloudflare
+  # to cache them for a year. A zone-level Cache Rule on tbmedia.corychainsman.com
+  # already overrides edge/browser TTL regardless of this header, but setting it at
+  # the origin too means the right behavior doesn't depend on that dashboard config.
+  rclone copy "$ASSETS_DIR" "$R2_TARGET" --fast-list --transfers 16 --stats-one-line -P \
+    --header-upload "Cache-Control: public, max-age=31536000, immutable"
 else
   echo "Skipping R2 sync: no 'r2' rclone remote configured." >&2
 fi

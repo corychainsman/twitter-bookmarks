@@ -18,7 +18,12 @@ function isCacheableMediaUrl(url) {
 }
 
 function isCacheableMediaRequest(request) {
-  return request.method === 'GET' && isCacheableMediaUrl(request.url)
+  // Range requests (video seeking/scrubbing) must hit the network directly: the Cache
+  // API has no concept of partial content, so caching a 206 here would serve the wrong
+  // byte range back for a later seek to a different offset on the same URL.
+  return (
+    request.method === 'GET' && !request.headers.has('Range') && isCacheableMediaUrl(request.url)
+  )
 }
 
 async function trimMediaCache(cache) {

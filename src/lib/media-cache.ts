@@ -49,6 +49,32 @@ export function registerMediaCacheWorker(): void {
   })
 }
 
+type NetworkInformationLike = {
+  saveData?: boolean
+  effectiveType?: 'slow-2g' | '2g' | '3g' | '4g'
+}
+
+const SLOW_EFFECTIVE_TYPES = new Set(['slow-2g', '2g'])
+
+// Background cache warming (e.g. the full off-screen thumb tier) is a nice-to-have,
+// not something worth spending a user's metered/slow connection on.
+export function isConnectionEligibleForBackgroundWarm(): boolean {
+  if (typeof navigator === 'undefined') {
+    return false
+  }
+
+  const connection = (navigator as Navigator & { connection?: NetworkInformationLike }).connection
+  if (!connection) {
+    return true
+  }
+
+  if (connection.saveData) {
+    return false
+  }
+
+  return !connection.effectiveType || !SLOW_EFFECTIVE_TYPES.has(connection.effectiveType)
+}
+
 export function warmMediaCache(urls: string[]): string[] {
   if (!canUseMediaCacheWorker()) {
     return []

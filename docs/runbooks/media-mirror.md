@@ -58,9 +58,13 @@ data:export → data:embeddings → data:validate → build`.
 1. R2 → Create bucket `twitter-bookmarks` (location: automatic).
 2. Bucket → Settings → Custom Domains → add `tbmedia.corychainsman.com`
    (Cloudflare creates the DNS record; enables CDN caching).
-3. Recommended cache rule (Rules → Cache Rules): host
-   `tbmedia.corychainsman.com` → Cache eligible, Edge TTL 1 year, Browser TTL
-   1 year. Asset URLs are immutable (content never changes under a key).
+3. Cache rule (Rules → Cache Rules): host `tbmedia.corychainsman.com` →
+   Cache eligible, Edge TTL 1 year, Browser TTL 1 year. Asset URLs are
+   immutable (content never changes under a key). Live as of 2026-07-06 via
+   the zone's `http_request_cache_settings` ruleset (see
+   `set_cache_settings` rule matching `http.host eq "tbmedia.corychainsman.com"`).
+   `sync-mirror.sh` also sets the same `Cache-Control` header at upload time
+   as a belt-and-suspenders origin default.
 4. Create an API token for rclone: R2 → Manage R2 API Tokens →
    Object Read & Write, scoped to the bucket. The `r2` remote uses
    `env_auth = true`; the credentials (`AWS_ACCESS_KEY_ID` /

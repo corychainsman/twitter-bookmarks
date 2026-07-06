@@ -21,7 +21,7 @@ export function createMasonryMediaPreloadCandidates(input: {
   const cachedByKey = preloadCandidatesCache.get(input.items) ?? (preloadCandidatesCache.set(input.items, new Map()), preloadCandidatesCache.get(input.items)!)
   const cached = cachedByKey.get(cacheKey)
   if (cached) return cached
-  const candidates = new Array<MediaPreloadCandidate>(endIndex - startIndex)
+  const candidates = new Array<MediaPreloadCandidate>((endIndex - startIndex) * 2)
   let writeIndex = 0
   const targetWidth = Math.ceil(input.renderedWidth * Math.max(1, input.devicePixelRatio))
   const size = targetWidth <= 680 ? 'small' : targetWidth <= 1200 ? 'medium' : 'large'
@@ -32,13 +32,18 @@ export function createMasonryMediaPreloadCandidates(input: {
       continue
     }
 
-    const sourceUrl =
-      item.mediaType === 'photo'
-        ? item.thumbUrl
-        : item.posterUrl ?? item.thumbUrl
+    const isMotion = item.mediaType === 'video' || item.mediaType === 'animated_gif'
+    const sourceUrl = isMotion ? item.posterUrl ?? item.thumbUrl : item.thumbUrl
     candidates[writeIndex++] = {
       kind: 'image',
       url: resolvePreloadImageUrl(sourceUrl, size),
+    }
+
+    if (isMotion && item.previewUrl) {
+      candidates[writeIndex++] = {
+        kind: 'video',
+        url: item.previewUrl,
+      }
     }
   }
 

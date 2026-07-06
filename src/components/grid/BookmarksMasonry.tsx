@@ -30,6 +30,7 @@ import {
 } from '@/components/grid/masonry-image-loading'
 import { createMasonryMediaPreloadCandidates } from '@/components/grid/masonry-media-preload'
 import { preloadMediaCandidates } from '@/lib/media-preload'
+import { isConnectionEligibleForBackgroundWarm, warmMediaCache } from '@/lib/media-cache'
 
 type BookmarksMasonryProps = {
   items: GridItem[]
@@ -49,6 +50,7 @@ const MINIMUM_EAGER_ITEMS = 12
 const IDLE_PRELOAD_DELAY_MS = 8_000
 const IDLE_PRELOAD_ITEM_COUNT = 16
 const IDLE_PRELOAD_CONCURRENCY = 4
+const FULL_CACHE_WARM_DELAY_MS = 20_000
 const IOS_STATIC_BATCH_SIZE = 240
 const MINIMUM_PINCH_DISTANCE_PX = 16
 const PINCH_ZOOM_STEP_RATIO = 1.16
@@ -646,6 +648,59 @@ export function BookmarksMasonry({
       }
     }
   }, [columnWidth, eagerItemCount, imageDevicePixelRatio, initialMediaReady, items])
+
+  // Once the visible viewport is handled, warm the rest of the current view's thumb
+  // tier in the background via the service worker so scrolling, re-sorting, and
+  // filtering stay instant. Runs after the windowed idle preload above and skips
+  // metered/slow connections.
+  React.useEffect(() => {
+    if (!initialMediaReady || columnWidth <= 0 || items.length === 0) {
+      return undefined
+    }
+
+    if (!isConnectionEligibleForBackgroundWarm()) {
+      return undefined
+    }
+
+    const warm = () => {
+      const candidates = createMasonryMediaPreloadCandidates({
+        devicePixelRatio: imageDevicePixelRatio,
+        items,
+        renderedWidth: columnWidth,
+        startIndex: 0,
+        take: items.length,
+      })
+      const urls = candidates
+        .map((candidate) => candidate.url)
+        .filter((url): url is string => Boolean(url))
+      warmMediaCache(urls)
+    }
+
+    const idleWindow = window as Window & {
+      requestIdleCallback?: (
+        callback: IdleRequestCallback,
+        options?: IdleRequestOptions,
+      ) => number
+      cancelIdleCallback?: (handle: number) => void
+    }
+
+    let idleId: number | null = null
+    const timeoutId = window.setTimeout(() => {
+      if (idleWindow.requestIdleCallback) {
+        idleId = idleWindow.requestIdleCallback(warm, { timeout: 5_000 })
+        return
+      }
+
+      warm()
+    }, FULL_CACHE_WARM_DELAY_MS)
+
+    return () => {
+      window.clearTimeout(timeoutId)
+      if (idleId !== null) {
+        idleWindow.cancelIdleCallback?.(idleId)
+      }
+    }
+  }, [columnWidth, imageDevicePixelRatio, initialMediaReady, items])
 
   if (items.length === 0) {
     return (

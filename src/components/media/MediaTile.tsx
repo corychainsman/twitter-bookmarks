@@ -61,7 +61,8 @@ function VideoGridTile({
 }: VideoGridTileProps) {
   const videoRef = useRef<HTMLVideoElement>(null)
   const [shouldPlay, setShouldPlay] = useState(false)
-  const canAttachSrc = initialMedia || shouldPlay
+  const [isPrewarmed, setIsPrewarmed] = useState(false)
+  const canAttachSrc = initialMedia || shouldPlay || isPrewarmed
 
   useEffect(() => {
     const el = videoRef.current
@@ -81,6 +82,29 @@ function VideoGridTile({
     return () => observer.disconnect()
   }, [gridId, initialMedia])
 
+  // Attach the src (preload="metadata") well before the tile reaches the active-play
+  // band, so the connection + faststart moov atom are already fetched by the time
+  // autoplay actually needs to start — same lookahead distance images use.
+  useEffect(() => {
+    if (initialMedia) return undefined
+    const el = videoRef.current
+    if (!el || typeof IntersectionObserver === 'undefined') {
+      setIsPrewarmed(true)
+      return undefined
+    }
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries.some((entry) => entry.isIntersecting)) {
+          setIsPrewarmed(true)
+          observer.disconnect()
+        }
+      },
+      { rootMargin: IMAGE_SRC_ATTACH_ROOT_MARGIN },
+    )
+    observer.observe(el)
+    return () => observer.disconnect()
+  }, [initialMedia])
+
   useEffect(() => {
     const video = videoRef.current
     if (!video) return
@@ -99,7 +123,7 @@ function VideoGridTile({
       muted
       loop
       playsInline
-      preload={initialMedia ? 'metadata' : 'none'}
+      preload={canAttachSrc ? 'metadata' : 'none'}
       width={width}
       height={height}
       style={aspectRatio ? { aspectRatio } : undefined}
