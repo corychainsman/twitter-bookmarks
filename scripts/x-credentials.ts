@@ -130,6 +130,14 @@ function vncHint(): string {
   return `http://127.0.0.1:${port}/vnc_lite.html?path=websockify (password is in ${tokenPath})`
 }
 
+function macCookieFallbackHint(): string {
+  return [
+    'If X temporarily limits login in the auth browser, run this from the Mac that is already logged into X:',
+    '  cd ~/twitter-bookmarks && PROFILE_NAME=Work REMOTE_HOST=nuc scripts/send-x-cookies-from-mac.zsh',
+    'Use PROFILE=Default instead of PROFILE_NAME=Work when you know the Chrome profile folder.',
+  ].join('\n')
+}
+
 function asFieldTheoryCredentials(pair: XCredentials): FieldTheoryCredentials {
   return {
     csrfToken: pair.ct0,
@@ -158,7 +166,10 @@ export async function validateXCredentials(
   adapters: XCredentialAdapters = {},
 ): Promise<XCredentialValidation> {
   if (!pair) {
-    return { ok: false, message: 'No stored X cookies found in 1Password.' }
+    return {
+      ok: false,
+      message: `No stored X cookies found in 1Password.\n${macCookieFallbackHint()}`,
+    }
   }
 
   try {
@@ -258,7 +269,9 @@ export async function ensureXCredentials(
       }
 
       if (containsTemporaryLimitText(state?.pageText)) {
-        throw new Error('X is showing a temporary limit/restriction page. Stopped without retrying.')
+        throw new Error(
+          `X is showing a temporary limit/restriction page. Stopped without retrying.\n${macCookieFallbackHint()}`,
+        )
       }
 
       if (!state?.cookies) {

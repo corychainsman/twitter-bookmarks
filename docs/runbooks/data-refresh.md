@@ -12,7 +12,18 @@ Agents may inspect and validate data artifacts at any time. Agents must only run
 
 1. **Field Theory session**: `sync:ft` drives a real local X session. If it
    fails with auth errors, the user must re-authenticate Field Theory; an
-   agent cannot fix this alone.
+   agent cannot fix this alone. If X temporarily limits login in the controlled
+   browser but the user is already logged into X on their Mac, have them run
+   the Mac helper from that machine:
+
+   ```zsh
+   cd ~/twitter-bookmarks
+   PROFILE_NAME=Work REMOTE_HOST=nuc scripts/send-x-cookies-from-mac.zsh
+   ```
+
+   `PROFILE_NAME` matches Chrome's visible profile name. `PROFILE` can be used
+   instead when the Chrome profile folder is known, for example
+   `PROFILE=Default`.
 2. **1Password CLI unlocked**: `mirror:sync` pulls R2 credentials
    (`AWS_ACCESS_KEY_ID`/`AWS_SECRET_ACCESS_KEY`) via `op environment read`
    (environment ID is hardcoded in `scripts/sync-mirror.sh`). Verify with
