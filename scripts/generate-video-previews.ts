@@ -1,6 +1,7 @@
 import { mkdir, stat } from 'node:fs/promises'
 import path from 'node:path'
 import { spawn } from 'node:child_process'
+import { pathToFileURL } from 'node:url'
 
 import {
   readMirrorManifest,
@@ -91,8 +92,8 @@ function runFfmpeg(args: string[]): Promise<void> {
   })
 }
 
-function runPreviewFfmpeg(inputPath: string, outputPath: string): Promise<void> {
-  return runFfmpeg([
+export function buildPreviewFfmpegArgs(inputPath: string, outputPath: string): string[] {
+  return [
     '-y',
     '-i',
     inputPath,
@@ -114,11 +115,15 @@ function runPreviewFfmpeg(inputPath: string, outputPath: string): Promise<void> 
     '-loglevel',
     'error',
     outputPath,
-  ])
+  ]
 }
 
-function runPlaybackFfmpeg(inputPath: string, outputPath: string): Promise<void> {
-  return runFfmpeg([
+function runPreviewFfmpeg(inputPath: string, outputPath: string): Promise<void> {
+  return runFfmpeg(buildPreviewFfmpegArgs(inputPath, outputPath))
+}
+
+export function buildPlaybackFfmpegArgs(inputPath: string, outputPath: string): string[] {
+  return [
     '-y',
     '-i',
     inputPath,
@@ -133,7 +138,9 @@ function runPlaybackFfmpeg(inputPath: string, outputPath: string): Promise<void>
     '-profile:v',
     'main',
     '-level:v',
-    '4.2',
+    '4.0',
+    '-tag:v',
+    'avc1',
     '-pix_fmt',
     'yuv420p',
     '-crf',
@@ -149,7 +156,11 @@ function runPlaybackFfmpeg(inputPath: string, outputPath: string): Promise<void>
     '-loglevel',
     'error',
     outputPath,
-  ])
+  ]
+}
+
+function runPlaybackFfmpeg(inputPath: string, outputPath: string): Promise<void> {
+  return runFfmpeg(buildPlaybackFfmpegArgs(inputPath, outputPath))
 }
 
 type PreviewJob = {
@@ -268,8 +279,10 @@ async function main() {
   )
 }
 
-main().catch((error) => {
-  const reason = error instanceof Error ? error.message : 'Unknown preview failure'
-  console.error(`generate-video-previews failed: ${reason}`)
-  process.exitCode = 1
-})
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
+  main().catch((error) => {
+    const reason = error instanceof Error ? error.message : 'Unknown preview failure'
+    console.error(`generate-video-previews failed: ${reason}`)
+    process.exitCode = 1
+  })
+}
