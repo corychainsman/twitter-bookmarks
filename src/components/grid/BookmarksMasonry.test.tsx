@@ -390,6 +390,7 @@ describe('BookmarksMasonry', () => {
         onPinchZoom={() => {}}
         onScrollAnchorApplied={() => {}}
         scrollAnchorRequest={null}
+        viewKey="test-view"
       />,
     )
 
@@ -423,6 +424,7 @@ describe('BookmarksMasonry', () => {
         onPinchZoom={() => {}}
         onScrollAnchorApplied={() => {}}
         scrollAnchorRequest={null}
+        viewKey="test-view"
       />,
     )
 
@@ -433,6 +435,8 @@ describe('BookmarksMasonry', () => {
     })
 
     const reorderCallCount = reactVirtualizedMocks.createMasonryCellPositioner.mock.calls.length
+    const recomputeCallCountBeforeReorder =
+      reactVirtualizedMocks.masonryHandle.recomputeCellPositions.mock.calls.length
 
     rerender(
       <BookmarksMasonry
@@ -444,6 +448,7 @@ describe('BookmarksMasonry', () => {
         onPinchZoom={() => {}}
         onScrollAnchorApplied={() => {}}
         scrollAnchorRequest={null}
+        viewKey="test-view"
       />,
     )
 
@@ -453,15 +458,25 @@ describe('BookmarksMasonry', () => {
       )
     })
 
+    // Regression: react-virtualized's Masonry keeps its own internal position
+    // cache that a new cellPositioner prop doesn't invalidate on its own — without
+    // an explicit recomputeCellPositions() call here, items keep stale positions
+    // from before the view's content changed (same viewKey, no remount).
+    await waitFor(() => {
+      expect(
+        reactVirtualizedMocks.masonryHandle.recomputeCellPositions.mock.calls.length,
+      ).toBeGreaterThan(recomputeCallCountBeforeReorder)
+    })
+
     expect(reactVirtualizedMocks.onChildScroll).not.toHaveBeenCalled()
   })
 
-  it('changes the masonry render key when a structural layout input changes', () => {
+  it('changes the masonry render key when a structural layout or view input changes', () => {
     const baseInput = {
       columnCount: 3,
       columnWidth: 320,
       immersive: true,
-      items,
+      viewKey: 'build-1|bookmarked|desc|all||0|',
     }
 
     expect(
@@ -487,8 +502,23 @@ describe('BookmarksMasonry', () => {
     ).not.toBe(
       resolveBookmarksMasonryRenderKey({
         ...baseInput,
-        items: [items[1], items[0]],
+        viewKey: 'build-1|posted|desc|all||0|',
       }),
+    )
+  })
+
+  it('keeps the same masonry render key when only the item content changes for the same view', () => {
+    const baseInput = {
+      columnCount: 3,
+      columnWidth: 320,
+      immersive: true,
+      viewKey: 'build-1|bookmarked|desc|all||0|',
+    }
+
+    // A progressive hand-off (e.g. first-paint items -> the real, larger query
+    // result) must not remount the grid and re-request every image.
+    expect(resolveBookmarksMasonryRenderKey(baseInput)).toBe(
+      resolveBookmarksMasonryRenderKey(baseInput),
     )
   })
 
@@ -512,6 +542,7 @@ describe('BookmarksMasonry', () => {
         onPinchZoom={() => {}}
         onScrollAnchorApplied={() => {}}
         scrollAnchorRequest={null}
+        viewKey="test-view"
       />,
     )
 
@@ -544,6 +575,7 @@ describe('BookmarksMasonry', () => {
         onPinchZoom={() => {}}
         onScrollAnchorApplied={() => {}}
         scrollAnchorRequest={null}
+        viewKey="test-view"
       />,
     )
 
@@ -573,6 +605,7 @@ describe('BookmarksMasonry', () => {
         onPinchZoom={() => {}}
         onScrollAnchorApplied={() => {}}
         scrollAnchorRequest={null}
+        viewKey="test-view"
       />,
     )
 
@@ -595,6 +628,7 @@ describe('BookmarksMasonry', () => {
         onPinchZoom={() => {}}
         onScrollAnchorApplied={() => {}}
         scrollAnchorRequest={null}
+        viewKey="test-view"
       />,
     )
 
@@ -623,6 +657,7 @@ describe('BookmarksMasonry', () => {
         onPinchZoom={() => {}}
         onScrollAnchorApplied={() => {}}
         scrollAnchorRequest={null}
+        viewKey="test-view"
       />,
     )
 
@@ -664,6 +699,7 @@ describe('BookmarksMasonry', () => {
         onPinchZoom={() => {}}
         onScrollAnchorApplied={() => {}}
         scrollAnchorRequest={null}
+        viewKey="test-view"
       />,
     )
 
@@ -700,6 +736,7 @@ describe('BookmarksMasonry', () => {
         onPinchZoom={() => {}}
         onScrollAnchorApplied={() => {}}
         scrollAnchorRequest={null}
+        viewKey="test-view"
       />,
     )
 
@@ -803,6 +840,7 @@ describe('BookmarksMasonry', () => {
         onPinchZoom={() => {}}
         onScrollAnchorApplied={onScrollAnchorApplied}
         scrollAnchorRequest={null}
+        viewKey="test-view"
       />,
     )
 
@@ -824,6 +862,7 @@ describe('BookmarksMasonry', () => {
           requestId: 7,
           top: 40,
         }}
+        viewKey="test-view"
       />,
     )
 
@@ -859,6 +898,7 @@ describe('BookmarksMasonry', () => {
         onPinchZoom={onPinchZoom}
         onScrollAnchorApplied={() => {}}
         scrollAnchorRequest={null}
+        viewKey="test-view"
       />,
     )
 
@@ -904,6 +944,7 @@ describe('BookmarksMasonry', () => {
         onPinchZoom={() => {}}
         onScrollAnchorApplied={() => {}}
         scrollAnchorRequest={null}
+        viewKey="test-view"
       />,
     )
 
@@ -913,5 +954,53 @@ describe('BookmarksMasonry', () => {
 
     expect(container.querySelector('[data-testid="mock-masonry"]')).toBeNull()
     expect(container.querySelectorAll('.app-ios-static-item')).toHaveLength(items.length)
+  })
+
+  it('bumps the iOS static batch up when the real query result replaces firstPaintItems', async () => {
+    Object.defineProperty(navigator, 'userAgent', {
+      configurable: true,
+      value:
+        'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1',
+    })
+
+    const firstPaintItems = createItems(5)
+    const { container, rerender } = render(
+      <BookmarksMasonry
+        columnCount={2}
+        docsById={docsById}
+        immersive
+        items={firstPaintItems}
+        onOpen={() => {}}
+        onPinchZoom={() => {}}
+        onScrollAnchorApplied={() => {}}
+        scrollAnchorRequest={null}
+        viewKey="test-view"
+      />,
+    )
+
+    await waitFor(() => {
+      expect(container.querySelectorAll('.app-ios-static-item')).toHaveLength(5)
+    })
+
+    // Same viewKey as the real query result for the same default view — no remount,
+    // so visibleCount must not stay stuck at the small first-paint count.
+    const realItems = createItems(300)
+    rerender(
+      <BookmarksMasonry
+        columnCount={2}
+        docsById={docsById}
+        immersive
+        items={realItems}
+        onOpen={() => {}}
+        onPinchZoom={() => {}}
+        onScrollAnchorApplied={() => {}}
+        scrollAnchorRequest={null}
+        viewKey="test-view"
+      />,
+    )
+
+    await waitFor(() => {
+      expect(container.querySelectorAll('.app-ios-static-item')).toHaveLength(240)
+    })
   })
 })

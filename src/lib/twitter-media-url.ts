@@ -9,8 +9,13 @@ const twitterSizeCache = new Map<string, Map<TwitterImageSize, string>>()
 
 // Self-hosted mirror images live at <base>/pbs/<twimg-path>; resized AVIF
 // variants always exist at <base>/pbs/<path-without-extension>/w{N}.avif.
+// Keep in sync with MIRROR_VARIANT_WIDTHS in scripts/mirror-lib.ts.
 const MIRROR_IMAGE_PATH_PREFIX = '/pbs/'
-export const MIRROR_IMAGE_WIDTHS = [320, 680, 1280] as const
+export const MIRROR_IMAGE_WIDTHS = [320, 480, 680, 960, 1280] as const
+
+// Above 2x, extra physical pixels are visually indistinguishable in grid tiles
+// but roughly double the bytes; cap the multiplier used for tier selection.
+const MAX_EFFECTIVE_DEVICE_PIXEL_RATIO = 2
 
 export function isMirroredImageUrl(url: string): boolean {
   if (!url) {
@@ -170,14 +175,19 @@ const RESPONSIVE_SIZES =
   '(max-width: 800px) 100vw, (max-width: 1200px) 50vw, 33vw'
 const sourceSetCache = new Map<string, Map<number | string, TwitterImageSourceSet>>()
 
+function resolveEffectiveDevicePixelRatio(devicePixelRatio: number | undefined): number {
+  if (!Number.isFinite(devicePixelRatio) || !devicePixelRatio || devicePixelRatio <= 0) {
+    return 1
+  }
+
+  return Math.min(devicePixelRatio, MAX_EFFECTIVE_DEVICE_PIXEL_RATIO)
+}
+
 function resolveMaxTwitterImageCandidate(
   options: TwitterImageSourceSetOptions,
 ): Exclude<TwitterImageSize, 'orig'> {
   const renderedWidth = Number.isFinite(options.renderedWidth) ? options.renderedWidth : undefined
-  const devicePixelRatio =
-    Number.isFinite(options.devicePixelRatio) && options.devicePixelRatio && options.devicePixelRatio > 0
-      ? options.devicePixelRatio
-      : 1
+  const devicePixelRatio = resolveEffectiveDevicePixelRatio(options.devicePixelRatio)
 
   if (renderedWidth && renderedWidth > 0) {
     const targetPixelWidth = renderedWidth * devicePixelRatio
@@ -202,10 +212,7 @@ function resolveMirroredImageSourceSet(
     url: mirroredVariantUrl(url, width),
   }))
 
-  const devicePixelRatio =
-    Number.isFinite(options.devicePixelRatio) && options.devicePixelRatio && options.devicePixelRatio > 0
-      ? options.devicePixelRatio
-      : 1
+  const devicePixelRatio = resolveEffectiveDevicePixelRatio(options.devicePixelRatio)
   const renderedWidth = hasRenderedWidthOption(options) ? options.renderedWidth : undefined
   const targetPixelWidth = renderedWidth
     ? Math.ceil(renderedWidth * devicePixelRatio)

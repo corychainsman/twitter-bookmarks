@@ -70,6 +70,8 @@ export type Manifest = {
     docs: string[]
     gridOne: string
     gridAll: string
+    /** Small first-paint slice of gridAll in default (bookmarked desc) order. */
+    gridFirst?: string
     orderBookmarked: string
     orderPosted: string
     searchIndex: string

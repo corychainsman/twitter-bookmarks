@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { buildExportArtifacts } from '@/features/bookmarks/export-artifacts'
+import { buildExportArtifacts, GRID_FIRST_ITEM_COUNT } from '@/features/bookmarks/export-artifacts'
 import type { RawBookmarkRecord } from '@/features/bookmarks/model'
 
 describe('buildExportArtifacts', () => {
@@ -132,6 +132,9 @@ describe('buildExportArtifacts', () => {
     expect(artifacts.orderBookmarked).toEqual(['tweet-1', 'tweet-3'])
     expect(artifacts.orderPosted).toEqual(['tweet-1', 'tweet-3'])
 
+    // The first-paint slice must match the default view (bookmarked desc, all mode).
+    expect(artifacts.gridFirst).toEqual(artifacts.gridAll.slice(0, GRID_FIRST_ITEM_COUNT))
+
     expect(artifacts.manifest).toEqual({
       buildId: 'build-123',
       builtAt: '2026-04-17T19:00:00.000Z',
@@ -143,6 +146,7 @@ describe('buildExportArtifacts', () => {
         docs: ['tweets/docs-0001.json', 'tweets/docs-0002.json'],
         gridOne: 'grid/one.json',
         gridAll: 'grid/all.json',
+        gridFirst: 'grid/first.json',
         orderBookmarked: 'order/bookmarked.json',
         orderPosted: 'order/posted.json',
         searchIndex: 'search/index.json',

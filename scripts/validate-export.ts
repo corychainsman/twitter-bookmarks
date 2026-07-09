@@ -39,6 +39,7 @@ async function main() {
     ...manifest.files.docs,
     manifest.files.gridOne,
     manifest.files.gridAll,
+    ...(manifest.files.gridFirst ? [manifest.files.gridFirst] : []),
     manifest.files.orderBookmarked,
     manifest.files.orderPosted,
     manifest.files.searchIndex,

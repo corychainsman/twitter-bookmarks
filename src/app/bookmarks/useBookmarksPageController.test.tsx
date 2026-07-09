@@ -2,11 +2,11 @@ import { act, renderHook } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import type { CoreArtifacts } from '@/features/bookmarks/export-artifacts'
-import { loadCoreArtifacts } from '@/features/bookmarks/data-loader'
+import { loadCoreArtifactsProgressive } from '@/features/bookmarks/data-loader'
 import { useBookmarksPageController } from '@/app/bookmarks/useBookmarksPageController'
 
 vi.mock('@/features/bookmarks/data-loader', () => ({
-  loadCoreArtifacts: vi.fn(),
+  loadCoreArtifactsProgressive: vi.fn(),
 }))
 
 const coreArtifacts: CoreArtifacts = {
@@ -36,6 +36,10 @@ const coreArtifacts: CoreArtifacts = {
 
 class MockWorker {
   static instances: MockWorker[] = []
+  static nextResult: { total: number; orderedGridIds: string[] } = {
+    total: 0,
+    orderedGridIds: [],
+  }
 
   onmessage: ((event: MessageEvent<unknown>) => void) | null = null
   postMessage = vi.fn((message: { type?: string }) => {
@@ -47,10 +51,7 @@ class MockWorker {
       this.onmessage?.({
         data: {
           type: 'result',
-          result: {
-            total: 0,
-            orderedGridIds: [],
-          },
+          result: MockWorker.nextResult,
         },
       } as MessageEvent<unknown>)
     })
@@ -89,7 +90,11 @@ async function flushReactWork() {
 describe('useBookmarksPageController', () => {
   beforeEach(() => {
     MockWorker.instances = []
-    vi.mocked(loadCoreArtifacts).mockResolvedValue(coreArtifacts)
+    MockWorker.nextResult = { total: 0, orderedGridIds: [] }
+    vi.mocked(loadCoreArtifactsProgressive).mockResolvedValue({
+      artifacts: coreArtifacts,
+      docsReady: Promise.resolve(coreArtifacts.docsChunks),
+    })
 
     vi.stubGlobal('Worker', MockWorker)
     Object.defineProperty(window, 'scrollTo', {
@@ -111,7 +116,7 @@ describe('useBookmarksPageController', () => {
     await flushReactWork()
     await flushReactWork()
 
-    expect(loadCoreArtifacts).toHaveBeenCalled()
+    expect(loadCoreArtifactsProgressive).toHaveBeenCalled()
     expect(getQueryMessages()).toHaveLength(1)
 
     vi.useFakeTimers()
@@ -143,6 +148,33 @@ describe('useBookmarksPageController', () => {
       type: 'embed-text',
       text: 'abc',
     })
+  })
+
+  it('never shows an empty grid once hasFirstQueryResult is true', async () => {
+    // Regression test: hasFirstQueryResult and queryResult must commit in the same
+    // render. If hasFirstQueryResult flips true a render before queryResult lands,
+    // visibleItems reads a stale (empty) queryResult and the grid flashes empty.
+    const gridItem = {
+      gridId: 'tweet-1:0',
+      tweetId: 'tweet-1',
+      mediaIndex: 0,
+      mediaType: 'photo' as const,
+      thumbUrl: 'https://example.com/thumb.jpg',
+      fullUrl: 'https://example.com/full.jpg',
+    }
+    vi.mocked(loadCoreArtifactsProgressive).mockResolvedValue({
+      artifacts: { ...coreArtifacts, gridAll: [gridItem] },
+      docsReady: Promise.resolve(coreArtifacts.docsChunks),
+    })
+    MockWorker.nextResult = { total: 1, orderedGridIds: ['tweet-1:0'] }
+
+    const { result } = renderHook(() => useBookmarksPageController())
+
+    await flushReactWork()
+    await flushReactWork()
+
+    expect(result.current.hasFirstQueryResult).toBe(true)
+    expect(result.current.visibleItems).toEqual([gridItem])
   })
 
   it('runs the initial query in-page when module workers are unavailable', async () => {

@@ -12,6 +12,7 @@ dist
 dist-ssr
 *.local
 .data/
+.wrangler/
 
 # Local agent artifacts
 .agents/

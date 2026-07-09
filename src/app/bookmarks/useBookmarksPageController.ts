@@ -9,8 +9,7 @@ import type {
   QueryState,
   TweetDoc,
 } from '@/features/bookmarks/model'
-import { loadCoreArtifacts } from '@/features/bookmarks/data-loader'
-import { startGridThumbPrecache } from '@/lib/media-precache'
+import { loadCoreArtifactsProgressive } from '@/features/bookmarks/data-loader'
 import {
   readBookmarksSessionState,
   writeBookmarksScrollSnapshot,
@@ -210,6 +209,25 @@ export function useBookmarksPageController() {
     () => resolveMasonryLayout({ viewportWidth: windowWidth, zoom: queryState.zoom }),
     [queryState.zoom, windowWidth],
   )
+  // Identifies "which view is this" (same query = same view), not "what content is
+  // currently in it" — so the masonry grid doesn't remount (and re-request every
+  // image) when firstPaintItems hands off to the real, larger query result for the
+  // same default view. Deliberately excludes manifest.buildId: it transitions from
+  // "unloaded" to its real value exactly at that handoff, and artifacts load only
+  // once per session, so keying on it forces a remount at the worst moment while
+  // never capturing a genuine mid-session dataset change.
+  const viewKey = React.useMemo(() => {
+    const seedPart = queryRequestState.sort === 'random' ? (queryRequestState.seed ?? '') : ''
+    return [
+      queryRequestState.sort,
+      queryRequestState.dir,
+      queryRequestState.mode,
+      queryRequestState.q,
+      queryRequestState.similarToGridId ?? '',
+      queryRequestState.preferMotion ? '1' : '0',
+      seedPart,
+    ].join('|')
+  }, [queryRequestState])
   const workerRef = React.useRef<Worker | null>(null)
   const embeddingWorkerRef = React.useRef<Worker | null>(null)
   const workerCoreDocsHydratedRef = React.useRef(false)
@@ -229,11 +247,14 @@ export function useBookmarksPageController() {
   const [isQueryPending, startTransition] = React.useTransition()
 
   const applyQueryResult = React.useEffectEvent((result: QueryResult) => {
+    // hasFirstQueryResult and queryResult must commit in the same render: if the
+    // former flips true a render before the latter lands, visibleItems briefly reads
+    // a stale (empty) queryResult and flashes the "no media" empty state.
     startTransition(() => {
       setQueryResult(result)
+      setHasFirstQueryResult(true)
     })
     hasFirstQueryResultRef.current = true
-    setHasFirstQueryResult(true)
     setLoadingError(null)
   })
 
@@ -422,8 +443,8 @@ export function useBookmarksPageController() {
   React.useEffect(() => {
     let cancelled = false
 
-    void loadCoreArtifacts()
-      .then((coreArtifacts) => {
+    void loadCoreArtifactsProgressive()
+      .then(({ artifacts: coreArtifacts, docsReady }) => {
         if (cancelled) {
           return
         }
@@ -435,6 +456,28 @@ export function useBookmarksPageController() {
           type: 'hydrate-core',
           artifacts: { ...coreArtifacts, docsChunks: [] },
         })
+
+        docsReady
+          .then((docsChunks) => {
+            if (cancelled || docsChunks.length === 0) {
+              return
+            }
+
+            setArtifacts((current) =>
+              current && current.manifest.buildId === coreArtifacts.manifest.buildId
+                ? { ...current, docsChunks }
+                : current,
+            )
+          })
+          .catch((error: unknown) => {
+            if (cancelled) {
+              return
+            }
+
+            setLoadingError(
+              error instanceof Error ? error.message : 'Failed to load bookmark data.',
+            )
+          })
       })
       .catch((error) => {
         if (cancelled) {
@@ -448,12 +491,6 @@ export function useBookmarksPageController() {
       cancelled = true
     }
   }, [])
-
-  React.useEffect(() => {
-    if (artifacts?.gridAll) {
-      startGridThumbPrecache(artifacts.gridAll)
-    }
-  }, [artifacts])
 
   React.useEffect(() => {
     if (!artifacts || (workerAvailableRef.current && !workerRef.current)) {
@@ -482,6 +519,14 @@ export function useBookmarksPageController() {
       return
     }
 
+    const queryNeedsDocs =
+      queryRequestState.sort === 'random' || queryRequestState.mode === 'one'
+    if (queryNeedsDocs && artifacts.docsChunks.length === 0) {
+      // Docs are still streaming in behind the grid artifacts; this effect re-runs
+      // when they land, so hold the query instead of computing an empty result.
+      return
+    }
+
     const queryRequest = {
       state: queryRequestState,
       semanticQuery: semanticQueryForRequest ?? undefined,
@@ -492,10 +537,7 @@ export function useBookmarksPageController() {
     if (!workerAvailableRef.current) {
       runQueryOnMainThread(queryRequest)
     } else {
-      if (
-        (queryRequestState.sort === 'random' || queryRequestState.mode === 'one') &&
-        !workerCoreDocsHydratedRef.current
-      ) {
+      if (queryNeedsDocs && !workerCoreDocsHydratedRef.current) {
         postWorkerMessage({ type: 'hydrate-core', artifacts })
         workerCoreDocsHydratedRef.current = true
       }
@@ -816,6 +858,7 @@ export function useBookmarksPageController() {
       ),
     selection,
     scrollAnchorRequest,
+    viewKey,
     visibleItems,
     canResetZoom: queryState.zoom !== DEFAULT_QUERY_STATE.zoom,
     onSearchChange: (value: string) => {

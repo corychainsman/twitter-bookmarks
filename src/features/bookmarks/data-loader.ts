@@ -50,8 +50,11 @@ async function defaultFetchJson<T>(path: string): Promise<T> {
 }
 
 async function fetchManifest(): Promise<Manifest> {
+  // no-cache (not no-store): still revalidates on every load so new buildIds are
+  // picked up immediately, but lets the request match the index.html preload and
+  // reuse the cached body on a 304.
   const response = await fetch(resolveDataUrl('data/manifest.json'), {
-    cache: 'no-store',
+    cache: 'no-cache',
   })
 
   if (!response.ok) {
@@ -79,28 +82,44 @@ export async function loadManifest(options?: DataLoaderOptions): Promise<Manifes
   return getFetchJson(options)<Manifest>('data/manifest.json')
 }
 
-export async function loadCoreArtifacts(options?: DataLoaderOptions): Promise<CoreArtifacts> {
+export type ProgressiveCoreArtifacts = {
+  /** Ready to render/query; docsChunks is empty on the network path until docsReady resolves. */
+  artifacts: CoreArtifacts
+  /** Resolves with the docs chunks (immediately when served from the IDB cache). */
+  docsReady: Promise<CoreArtifacts['docsChunks']>
+}
+
+/**
+ * Loads the artifacts the grid needs for first render (gridAll + orders) and lets
+ * docs chunks — only needed for captions, one-mode, and random sort — stream in
+ * behind them. The IDB cache is written only once docs have arrived, so cached
+ * loads always contain complete data.
+ */
+export async function loadCoreArtifactsProgressive(
+  options?: DataLoaderOptions,
+): Promise<ProgressiveCoreArtifacts> {
   const fetchJson = getFetchJson(options)
   const cache = getCache(options)
   const manifest = await loadManifest(options)
   const cached = await cache.getCore(manifest.buildId)
 
   if (cached) {
-    return {
+    const artifacts: CoreArtifacts = {
       manifest,
       ...cached,
       gridOne: [],
     }
+    return { artifacts, docsReady: Promise.resolve(artifacts.docsChunks) }
   }
 
-  const [docs, gridAll, orderBookmarked, orderPosted] = await Promise.all([
-    Promise.all(
-      manifest.files.docs.map((fileName) =>
-        fetchJson<TweetDoc[]>(
-          withVersionQuery(resolveArtifactPath(fileName), manifest.buildId),
-        ),
+  const docsPromise = Promise.all(
+    manifest.files.docs.map((fileName) =>
+      fetchJson<TweetDoc[]>(
+        withVersionQuery(resolveArtifactPath(fileName), manifest.buildId),
       ),
     ),
+  )
+  const [gridAll, orderBookmarked, orderPosted] = await Promise.all([
     fetchJson<GridItem[]>(
       withVersionQuery(resolveArtifactPath(manifest.files.gridAll), manifest.buildId),
     ),
@@ -112,27 +131,40 @@ export async function loadCoreArtifacts(options?: DataLoaderOptions): Promise<Co
     ),
   ])
 
-  const coreArtifacts: CoreArtifacts = {
+  const artifacts: CoreArtifacts = {
     manifest,
-    docsChunks: manifest.files.docs.map((fileName, index) => ({
-      fileName,
-      docs: docs[index] ?? [],
-    })),
+    docsChunks: [],
     gridOne: [],
     gridAll,
     orderBookmarked,
     orderPosted,
   }
 
-  await cache.setCore(manifest.buildId, {
-    docsChunks: coreArtifacts.docsChunks,
-    gridOne: [],
-    gridAll,
-    orderBookmarked,
-    orderPosted,
+  const docsReady = docsPromise.then(async (docs) => {
+    const docsChunks = manifest.files.docs.map((fileName, index) => ({
+      fileName,
+      docs: docs[index] ?? [],
+    }))
+
+    await cache.setCore(manifest.buildId, {
+      docsChunks,
+      gridOne: [],
+      gridAll,
+      orderBookmarked,
+      orderPosted,
+    })
+
+    return docsChunks
   })
 
-  return coreArtifacts
+  return { artifacts, docsReady }
+}
+
+export async function loadCoreArtifacts(options?: DataLoaderOptions): Promise<CoreArtifacts> {
+  const { artifacts, docsReady } = await loadCoreArtifactsProgressive(options)
+  const docsChunks = await docsReady
+
+  return { ...artifacts, docsChunks }
 }
 
 export async function loadSearchArtifacts(

@@ -19,6 +19,15 @@ describe('video preview ffmpeg args', () => {
     expect(valueAfter(args, '-movflags')).toBe('+faststart')
   })
 
+  it('caps preview duration so long videos stay small', () => {
+    const args = buildPreviewFfmpegArgs('/input.mp4', '/preview.mp4')
+
+    expect(valueAfter(args, '-t')).toBe('8')
+    // The duration cap must come before -vf/-c:v (output options), and applies to the
+    // output rather than seeking the input, so the clip starts at 0:00.
+    expect(args.indexOf('-t')).toBeGreaterThan(args.indexOf('/input.mp4'))
+  })
+
   it('uses conservative Safari-compatible playback MP4 settings', () => {
     const args = buildPlaybackFfmpegArgs('/input.mp4', '/playback.mp4')
 

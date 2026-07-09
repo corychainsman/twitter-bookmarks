@@ -8,6 +8,7 @@
     "dev": "vite --host 0.0.0.0",
     "build": "vite build",
     "preview": "vite preview",
+    "deploy:cf": "vite build && wrangler deploy",
     "typecheck": "tsc -b",
     "lint": "eslint .",
     "test": "vitest run",
@@ -20,6 +21,7 @@
     "auth:x:ensure": "bun run scripts/ensure-x-cookies.ts",
     "auth:x:sync-browser-cookies": "bun run scripts/store-x-cookies-from-cdp.ts",
     "data:mirror": "bun run scripts/mirror-media.ts",
+    "data:backfill-image-variants": "bun run scripts/backfill-image-variants.ts",
     "data:video-previews": "bun run scripts/generate-video-previews.ts",
     "mirror:sync": "bash scripts/sync-mirror.sh",
     "data:export": "bun run scripts/export-fieldtheory.ts",
@@ -73,6 +75,7 @@
     "typescript": "~6.0.2",
     "typescript-eslint": "^8.58.0",
     "vite": "^8.0.4",
-    "vitest": "^4.1.4"
+    "vitest": "^4.1.4",
+    "wrangler": "^4.107.0"
   }
 }

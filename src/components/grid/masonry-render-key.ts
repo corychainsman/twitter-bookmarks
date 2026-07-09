@@ -1,27 +1,13 @@
-import type { GridItem } from '@/features/bookmarks/model'
-
-const renderKeyCache = new WeakMap<GridItem[], Map<number, string>>()
-
+// Identifies which query/view is being displayed, not what's currently in `items` —
+// so the masonry grid persists (and doesn't re-request every image) across a
+// progressive data hand-off for the same view (e.g. first-paint items handing off
+// to the real, larger query result). Only a genuine view or layout change should
+// force react-virtualized's Masonry to remount.
 export function resolveBookmarksMasonryRenderKey(input: {
   columnCount: number
   columnWidth: number
   immersive: boolean
-  items: GridItem[]
+  viewKey: string
 }): string {
-  const cacheKey = input.columnCount * 1_000_000 + input.columnWidth * 2 + (input.immersive ? 1 : 0)
-  const cachedByKey = renderKeyCache.get(input.items) ?? (renderKeyCache.set(input.items, new Map()), renderKeyCache.get(input.items)!)
-  const cached = cachedByKey.get(cacheKey)
-  if (cached) return cached
-  let itemsHash = 2166136261
-
-  for (const item of input.items) {
-    for (let index = 0; index < item.gridId.length; index += 1) {
-      itemsHash ^= item.gridId.charCodeAt(index)
-      itemsHash = Math.imul(itemsHash, 16777619)
-    }
-  }
-
-  const renderKey = `${input.columnCount}:${input.columnWidth}:${input.immersive ? 1 : 0}:${input.items.length}:${itemsHash >>> 0}`
-  cachedByKey.set(cacheKey, renderKey)
-  return renderKey
+  return `${input.viewKey}:${input.columnCount}:${input.columnWidth}:${input.immersive ? 1 : 0}`
 }

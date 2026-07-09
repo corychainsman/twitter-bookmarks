@@ -28,6 +28,14 @@ export async function writeExportArtifacts(
     writeJson(path.join(outputDirectory, 'manifest.json'), artifacts.manifest),
     writeJson(path.join(outputDirectory, artifacts.manifest.files.gridOne), artifacts.gridOne),
     writeJson(path.join(outputDirectory, artifacts.manifest.files.gridAll), artifacts.gridAll),
+    ...(artifacts.manifest.files.gridFirst && artifacts.gridFirst
+      ? [
+          writeJson(
+            path.join(outputDirectory, artifacts.manifest.files.gridFirst),
+            artifacts.gridFirst,
+          ),
+        ]
+      : []),
     writeJson(
       path.join(outputDirectory, artifacts.manifest.files.orderBookmarked),
       artifacts.orderBookmarked,

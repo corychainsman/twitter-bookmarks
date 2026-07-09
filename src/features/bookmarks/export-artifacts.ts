@@ -23,9 +23,15 @@ export type CoreArtifacts = {
   }>
   gridOne: GridItem[]
   gridAll: GridItem[]
+  /** Populated by the exporter; the client fetches grid/first.json separately for first paint. */
+  gridFirst?: GridItem[]
   orderBookmarked: string[]
   orderPosted: string[]
 }
+
+// Enough grid items to fill the largest first viewport; kept small so the
+// artifact stays a few KB and can paint before the full dataset loads.
+export const GRID_FIRST_ITEM_COUNT = 60
 
 export type ExportArtifacts = CoreArtifacts & SearchArtifacts
 
@@ -308,6 +314,9 @@ export function buildExportArtifacts(
   const docsChunks = chunkDocs(docs, chunkSize)
   const gridOne = docs.map((doc) => toGridItem(doc, doc.representativeMediaIndex))
   const gridAll = docs.flatMap((doc) => doc.media.map((_, mediaIndex) => toGridItem(doc, mediaIndex)))
+  // docs are sorted bookmarked-descending, so this slice matches the app's
+  // default view (sort=bookmarked, dir=desc, mode=all) exactly.
+  const gridFirst = gridAll.slice(0, GRID_FIRST_ITEM_COUNT)
   const orderBookmarked = [...docs].sort(compareBookmarkedDescending).map((doc) => doc.id)
   const orderPosted = [...docs].sort(comparePostedDescending).map((doc) => doc.id)
 
@@ -343,6 +352,7 @@ export function buildExportArtifacts(
       docs: docsChunks.map((chunk) => chunk.fileName),
       gridOne: 'grid/one.json',
       gridAll: 'grid/all.json',
+      gridFirst: 'grid/first.json',
       orderBookmarked: 'order/bookmarked.json',
       orderPosted: 'order/posted.json',
       searchIndex: 'search/index.json',
@@ -355,6 +365,7 @@ export function buildExportArtifacts(
     docsChunks,
     gridOne,
     gridAll,
+    gridFirst,
     orderBookmarked,
     orderPosted,
     searchIndex: searchIndex.toJSON(),

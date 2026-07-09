@@ -37,6 +37,7 @@ export function AppShell() {
     onCloseLightbox,
     onScrollAnchorApplied,
     scrollAnchorRequest,
+    viewKey,
   } = useBookmarksPageController()
 
   return (
@@ -78,6 +79,7 @@ export function AppShell() {
           onScrollAnchorApplied={onScrollAnchorApplied}
           ready={hasLoadedArtifacts}
           scrollAnchorRequest={scrollAnchorRequest}
+          viewKey={viewKey}
         />
       </div>
 

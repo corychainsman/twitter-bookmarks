@@ -54,7 +54,12 @@ type NetworkInformationLike = {
   effectiveType?: 'slow-2g' | '2g' | '3g' | '4g'
 }
 
-const SLOW_EFFECTIVE_TYPES = new Set(['slow-2g', '2g'])
+// On narrow-viewport (usually cellular) devices, cap how many off-screen tiles the
+// background warm may fetch; desktop warms the full current view.
+export const BACKGROUND_WARM_MOBILE_VIEWPORT_MAX_PX = 800
+export const BACKGROUND_WARM_MOBILE_TILE_CAP = 200
+
+const SLOW_EFFECTIVE_TYPES = new Set(['slow-2g', '2g', '3g'])
 
 // Background cache warming (e.g. the full off-screen thumb tier) is a nice-to-have,
 // not something worth spending a user's metered/slow connection on.

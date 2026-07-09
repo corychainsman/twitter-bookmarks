@@ -146,7 +146,7 @@ describe('MediaTile', () => {
     const image = screen.getByRole('img', { name: tweet.text })
     expect(source).toHaveAttribute(
       'srcset',
-      'https://tbmedia.corychainsman.com/pbs/media/thumb/w320.avif 320w, https://tbmedia.corychainsman.com/pbs/media/thumb/w680.avif 680w, https://tbmedia.corychainsman.com/pbs/media/thumb/w1280.avif 1280w',
+      'https://tbmedia.corychainsman.com/pbs/media/thumb/w320.avif 320w, https://tbmedia.corychainsman.com/pbs/media/thumb/w480.avif 480w, https://tbmedia.corychainsman.com/pbs/media/thumb/w680.avif 680w, https://tbmedia.corychainsman.com/pbs/media/thumb/w960.avif 960w, https://tbmedia.corychainsman.com/pbs/media/thumb/w1280.avif 1280w',
     )
     expect(source).toHaveAttribute('sizes', '320px')
     expect(image).toHaveAttribute(

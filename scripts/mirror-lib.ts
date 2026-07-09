@@ -39,7 +39,10 @@ const MIRROR_HOST_PREFIXES: Record<string, string> = {
   'video.twimg.com': 'vid',
 }
 
-export const MIRROR_VARIANT_WIDTHS = [320, 680, 1280] as const
+// Keep in sync with MIRROR_IMAGE_WIDTHS in src/lib/twitter-media-url.ts; the app
+// derives these URLs by convention, so every width here must exist on R2 for
+// every mirrored image (scripts/backfill-image-variants.ts backfills new widths).
+export const MIRROR_VARIANT_WIDTHS = [320, 480, 680, 960, 1280] as const
 
 export function mirrorKeyForUrl(sourceUrl: string): string | null {
   let parsed: URL
@@ -77,7 +80,7 @@ export function videoPlaybackKey(originalKey: string): string {
   return `${stem}/playback.mp4`
 }
 
-// Every image gets all three tiers (withoutEnlargement caps the actual pixels)
+// Every image gets all tiers (withoutEnlargement caps the actual pixels)
 // so the app can derive variant URLs from the original URL by convention alone.
 export function mirrorVariantWidths(): number[] {
   return [...MIRROR_VARIANT_WIDTHS]

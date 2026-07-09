@@ -16,6 +16,7 @@ type BookmarksPageContentProps = {
   onScrollAnchorApplied: (requestId: number) => void
   ready: boolean
   scrollAnchorRequest: MasonryScrollAnchorRequest | null
+  viewKey: string
 }
 
 function BookmarksPageStatus({
@@ -50,6 +51,7 @@ export function BookmarksPageContent({
   onScrollAnchorApplied,
   ready,
   scrollAnchorRequest,
+  viewKey,
 }: BookmarksPageContentProps) {
   if (loadingError) {
     return <BookmarksPageStatus title="Load failed" description={loadingError} />
@@ -70,6 +72,7 @@ export function BookmarksPageContent({
       onPinchZoom={onPinchZoom}
       onScrollAnchorApplied={onScrollAnchorApplied}
       scrollAnchorRequest={scrollAnchorRequest}
+      viewKey={viewKey}
     />
   )
 }

@@ -30,7 +30,12 @@ import {
 } from '@/components/grid/masonry-image-loading'
 import { createMasonryMediaPreloadCandidates } from '@/components/grid/masonry-media-preload'
 import { preloadMediaCandidates } from '@/lib/media-preload'
-import { isConnectionEligibleForBackgroundWarm, warmMediaCache } from '@/lib/media-cache'
+import {
+  BACKGROUND_WARM_MOBILE_TILE_CAP,
+  BACKGROUND_WARM_MOBILE_VIEWPORT_MAX_PX,
+  isConnectionEligibleForBackgroundWarm,
+  warmMediaCache,
+} from '@/lib/media-cache'
 
 type BookmarksMasonryProps = {
   items: GridItem[]
@@ -42,6 +47,7 @@ type BookmarksMasonryProps = {
   onInitialMediaReady?: () => void
   scrollAnchorRequest: MasonryScrollAnchorRequest | null
   onScrollAnchorApplied: (requestId: number) => void
+  viewKey: string
 }
 
 const ANCHOR_RESTORE_ATTEMPTS = 3
@@ -214,8 +220,14 @@ function BookmarksIOSStaticGrid({
   items,
   onOpen,
 }: Pick<BookmarksMasonryProps, 'columnCount' | 'docsById' | 'immersive' | 'items' | 'onOpen'>) {
-  const [visibleCount, setVisibleCount] = React.useState(() =>
-    Math.min(items.length, IOS_STATIC_BATCH_SIZE),
+  // Tracks only how many extra "Load more" batches the user has requested; the
+  // effective count is derived below so it naturally stays in sync when `items`
+  // grows for the same view (e.g. firstPaintItems handing off to the real query
+  // result), instead of a separately-stored count getting stuck at a stale value.
+  const [loadMoreBatchCount, setLoadMoreBatchCount] = React.useState(0)
+  const visibleCount = Math.min(
+    items.length,
+    IOS_STATIC_BATCH_SIZE * (1 + loadMoreBatchCount),
   )
   const visibleItems = items.slice(0, visibleCount)
   const columnWidth =
@@ -259,11 +271,7 @@ function BookmarksIOSStaticGrid({
           <button
             type="button"
             className="app-control min-h-11 px-4 text-sm font-medium"
-            onClick={() =>
-              setVisibleCount((current) =>
-                Math.min(items.length, current + IOS_STATIC_BATCH_SIZE),
-              )
-            }
+            onClick={() => setLoadMoreBatchCount((current) => current + 1)}
           >
             Load more
           </button>
@@ -283,6 +291,7 @@ export function BookmarksMasonry({
   onInitialMediaReady,
   scrollAnchorRequest,
   onScrollAnchorApplied,
+  viewKey,
 }: BookmarksMasonryProps) {
   const [renderedImmersive, setRenderedImmersive] = React.useState(immersive)
   const [containerElement, setContainerElement] = React.useState<HTMLDivElement | null>(null)
@@ -432,15 +441,25 @@ export function BookmarksMasonry({
       }),
     [cellMeasurerCache, columnCount, columnWidth],
   )
+  const masonryRef = React.useRef<Masonry>(null)
+  // Masonry keeps its own internal position cache, separate from the cellPositioner
+  // prop — swapping in a new positioner (e.g. cellMeasurerCache growing as
+  // firstPaintItems hands off to the real query result for the same view, without
+  // a key-driven remount) doesn't invalidate it on its own and leaves stale
+  // positions in place. recomputeCellPositions() is react-virtualized's documented
+  // way to invalidate it without remounting/re-fetching every tile's media.
+  React.useEffect(() => {
+    masonryRef.current?.recomputeCellPositions()
+  }, [cellPositioner])
   const masonryRenderKey = React.useMemo(
     () =>
       resolveBookmarksMasonryRenderKey({
         columnCount,
         columnWidth,
         immersive: renderedImmersive,
-        items,
+        viewKey,
       }),
-    [columnCount, columnWidth, items, renderedImmersive],
+    [columnCount, columnWidth, renderedImmersive, viewKey],
   )
   const eagerItemCount = Math.min(
     items.length,
@@ -663,12 +682,16 @@ export function BookmarksMasonry({
     }
 
     const warm = () => {
+      const take =
+        window.innerWidth <= BACKGROUND_WARM_MOBILE_VIEWPORT_MAX_PX
+          ? Math.min(items.length, BACKGROUND_WARM_MOBILE_TILE_CAP)
+          : items.length
       const candidates = createMasonryMediaPreloadCandidates({
         devicePixelRatio: imageDevicePixelRatio,
         items,
         renderedWidth: columnWidth,
         startIndex: 0,
-        take: items.length,
+        take,
       })
       const urls = candidates
         .map((candidate) => candidate.url)
@@ -771,6 +794,7 @@ export function BookmarksMasonry({
 
                 return (
                   <Masonry
+                    ref={masonryRef}
                     key={masonryRenderKey}
                     autoHeight
                     cellCount={items.length}

@@ -8,8 +8,13 @@ pipeline and the one-time Cloudflare/Namecheap/Drive setup.
 
 - **Local archive (source of truth)**: `.data/media/assets/` — originals at
   full fidelity (`pbs/<twimg-path>`, `vid/<twimg-path>`) plus pre-generated
-  AVIF variants (`<stem>/w320.avif`, `w680.avif`, `w1280.avif`) and a per-asset
-  status manifest at `.data/media/mirror-manifest.json`.
+  AVIF variants at every width in `MIRROR_VARIANT_WIDTHS`
+  (`scripts/mirror-lib.ts`; keep in sync with `MIRROR_IMAGE_WIDTHS` in
+  `src/lib/twitter-media-url.ts`) and a per-asset status manifest at
+  `.data/media/mirror-manifest.json`. `bun run data:backfill-image-variants`
+  generates any widths added after an image was first mirrored, from the
+  locally archived original — it's a one-time catch-up step after changing
+  the width ladder, not part of the regular refresh pipeline.
 - **Serving**: Cloudflare R2 bucket `twitter-bookmarks`, public at
   `https://tbmedia.corychainsman.com` (custom domain on the Cloudflare CDN).
 - **Backup**: Google Drive at `corychainsman.com/media/twitter-bookmarks/`
@@ -95,7 +100,12 @@ audio-stripped MP4 for in-grid autoplay so that many tiles can decode at once
 without streaming the multi-MB originals. `bun run data:video-previews`
 (`scripts/generate-video-previews.ts`) runs ffmpeg over each `ok` video in the
 manifest and writes `vid/<stem>/preview.mp4` — width 480, H.264 CRF 31, no
-audio, `+faststart` — recording `previewKey`/`previewBytes` in the manifest.
+audio, `+faststart`, capped at 8 seconds (the grid only shows a muted loop, so
+long videos don't need full-runtime previews) — recording
+`previewKey`/`previewBytes` in the manifest. Note: preview/playback files are
+served with a 1-year immutable cache TTL, so re-encoding one in place requires
+purging its URL from the Cloudflare cache (`POST /zones/<id>/purge_cache`)
+after `mirror:sync`.
 It is incremental (skips videos that already have a preview file; `--force` to
 re-encode) and supports `--limit N`, `--concurrency N`, `--dry-run`. Typical
 output is ~0.5 MB per clip vs ~5 MB average for the original. The clips live

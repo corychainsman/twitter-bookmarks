@@ -1,12 +1,8 @@
 import type { GridItem } from '@/features/bookmarks/model'
 import type { MediaPreloadCandidate } from '@/lib/media-preload'
-import { withTwitterSize } from '@/lib/twitter-media-url'
+import { resolveTwitterImageSourceSet } from '@/lib/twitter-media-url'
 
 const preloadCandidatesCache = new WeakMap<GridItem[], Map<number | string, MediaPreloadCandidate[]>>()
-
-function resolvePreloadImageUrl(url: string, size: 'small' | 'medium' | 'large') {
-  return withTwitterSize(url, size)
-}
 
 export function createMasonryMediaPreloadCandidates(input: {
   devicePixelRatio: number
@@ -23,8 +19,13 @@ export function createMasonryMediaPreloadCandidates(input: {
   if (cached) return cached
   const candidates = new Array<MediaPreloadCandidate>((endIndex - startIndex) * 2)
   let writeIndex = 0
-  const targetWidth = Math.ceil(input.renderedWidth * Math.max(1, input.devicePixelRatio))
-  const size = targetWidth <= 680 ? 'small' : targetWidth <= 1200 ? 'medium' : 'large'
+  // Resolve through the same source-set logic MediaTile uses so the preloader
+  // warms exactly the tier the rendered <img> will request.
+  const sourceSetOptions = {
+    devicePixelRatio: input.devicePixelRatio,
+    renderedWidth: input.renderedWidth,
+    sizes: `${input.renderedWidth}px`,
+  }
 
   for (let index = startIndex; index < endIndex; index += 1) {
     const item = input.items[index]
@@ -36,7 +37,7 @@ export function createMasonryMediaPreloadCandidates(input: {
     const sourceUrl = isMotion ? item.posterUrl ?? item.thumbUrl : item.thumbUrl
     candidates[writeIndex++] = {
       kind: 'image',
-      url: resolvePreloadImageUrl(sourceUrl, size),
+      url: resolveTwitterImageSourceSet(sourceUrl, sourceSetOptions).src,
     }
 
     if (isMotion && item.previewUrl) {

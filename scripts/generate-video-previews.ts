@@ -24,6 +24,9 @@ const MANIFEST_FLUSH_INTERVAL = 25
 // that many tiles can decode at once without saturating bandwidth.
 const PREVIEW_WIDTH = 480
 const PREVIEW_CRF = 31
+// The grid only ever shows a muted loop, so previews never need the full runtime.
+// Capping the clip keeps long videos from producing multi-MB previews.
+const PREVIEW_MAX_SECONDS = 8
 const PLAYBACK_MAX_EDGE = 1280
 const PLAYBACK_CRF = 23
 
@@ -97,6 +100,8 @@ export function buildPreviewFfmpegArgs(inputPath: string, outputPath: string): s
     '-y',
     '-i',
     inputPath,
+    '-t',
+    String(PREVIEW_MAX_SECONDS),
     '-an',
     '-vf',
     `scale='min(${PREVIEW_WIDTH},iw)':-2:flags=lanczos`,
