@@ -27,27 +27,44 @@ function isCacheableMediaRequest(request) {
 }
 
 async function trimMediaCache(cache) {
-  const keys = await cache.keys()
-  if (keys.length <= MAX_MEDIA_CACHE_ENTRIES) {
-    return
-  }
+  try {
+    const keys = await cache.keys()
+    if (keys.length <= MAX_MEDIA_CACHE_ENTRIES) {
+      return
+    }
 
-  await Promise.all(keys.slice(0, keys.length - MAX_MEDIA_CACHE_ENTRIES).map((key) => cache.delete(key)))
+    await Promise.all(keys.slice(0, keys.length - MAX_MEDIA_CACHE_ENTRIES).map((key) => cache.delete(key)))
+  } catch {
+    // Best-effort trim; a failure here must not affect any in-flight fetch.
+  }
 }
 
 async function cacheMediaRequest(request) {
-  const cache = await caches.open(MEDIA_CACHE_NAME)
-  const cached = await cache.match(request, { ignoreVary: true })
-
-  if (cached) {
-    return cached
+  // The Cache API is meaningfully stricter in some browsers (e.g. Safari throws on
+  // certain opaque-response writes and on any Cache access in Private Browsing).
+  // A caching failure must never turn an otherwise-successful fetch into a failed
+  // one for the page, so every cache read/write here is best-effort: fall back to
+  // a plain network fetch if the cache layer misbehaves at any step.
+  let cache
+  try {
+    cache = await caches.open(MEDIA_CACHE_NAME)
+    const cached = await cache.match(request, { ignoreVary: true })
+    if (cached) {
+      return cached
+    }
+  } catch {
+    return fetch(request)
   }
 
   const response = await fetch(request)
 
   if (response.ok || response.type === 'opaque') {
-    await cache.put(request, response.clone())
-    void trimMediaCache(cache)
+    try {
+      await cache.put(request, response.clone())
+      void trimMediaCache(cache)
+    } catch {
+      // Best-effort: ignore cache write failures, still return the real response.
+    }
   }
 
   return response
@@ -58,19 +75,25 @@ async function warmMediaUrl(url) {
     return
   }
 
-  const request = new Request(url, {
-    credentials: 'omit',
-    mode: 'no-cors',
-  })
-  const cache = await caches.open(MEDIA_CACHE_NAME)
+  // Best-effort background warming; failures here must never surface as an error
+  // to the page (this runs detached from any real image request).
+  try {
+    const request = new Request(url, {
+      credentials: 'omit',
+      mode: 'no-cors',
+    })
+    const cache = await caches.open(MEDIA_CACHE_NAME)
 
-  if (await cache.match(request, { ignoreVary: true })) {
-    return
-  }
+    if (await cache.match(request, { ignoreVary: true })) {
+      return
+    }
 
-  const response = await fetch(request)
-  if (response.ok || response.type === 'opaque') {
-    await cache.put(request, response)
+    const response = await fetch(request)
+    if (response.ok || response.type === 'opaque') {
+      await cache.put(request, response)
+    }
+  } catch {
+    // ignore
   }
 }
 
