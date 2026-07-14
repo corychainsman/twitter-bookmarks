@@ -28,7 +28,10 @@ describe('preloadMediaCandidates', () => {
       'https://img.example.com/one.jpg',
       'https://video.example.com/two.mp4',
     ])
-    expect(preloader.preloadImage).toHaveBeenCalledWith('https://img.example.com/one.jpg')
+    expect(preloader.preloadImage).toHaveBeenCalledWith({
+      kind: 'image',
+      url: 'https://img.example.com/one.jpg',
+    })
     expect(preloader.preloadVideo).toHaveBeenCalledWith('https://video.example.com/two.mp4')
     expect(preloader.preloadImage).not.toHaveBeenCalledWith('https://img.example.com/three.jpg')
   })

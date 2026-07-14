@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import type { GridItem } from '@/features/bookmarks/model'
@@ -12,8 +12,8 @@ function createItems(count: number): GridItem[] {
     tweetId: `tweet-${index + 1}`,
     mediaIndex: 0,
     mediaType: 'photo',
-    thumbUrl: `https://img.example.com/${index + 1}.jpg`,
-    fullUrl: `https://img.example.com/${index + 1}-full.jpg`,
+    thumbUrl: `https://tbmedia.corychainsman.com/pbs/media/${index + 1}.jpg`,
+    fullUrl: `https://tbmedia.corychainsman.com/pbs/media/${index + 1}.jpg`,
     width: 1200,
     height: 800,
     aspectRatio: 1.5,
@@ -29,15 +29,23 @@ describe('BookmarksGrid', () => {
 
   it('uses bounded static batches on iOS without loading desktop virtualization', async () => {
     vi.spyOn(window.navigator, 'userAgent', 'get').mockReturnValue(IOS_USER_AGENT)
+    vi.spyOn(window, 'innerWidth', 'get').mockReturnValue(390)
+    vi.spyOn(window, 'devicePixelRatio', 'get').mockReturnValue(3)
+    let admissionCallback: IntersectionObserverCallback | undefined
     vi.stubGlobal('IntersectionObserver', class {
       disconnect = vi.fn()
       observe = vi.fn()
+      unobserve = vi.fn()
+
+      constructor(callback: IntersectionObserverCallback, options?: IntersectionObserverInit) {
+        if (options?.rootMargin === '300px 0px') admissionCallback = callback
+      }
     })
     const { BookmarksGrid } = await import('@/components/grid/BookmarksGrid')
     const firstPaintItems = createItems(5)
     const { container, rerender } = render(
       <BookmarksGrid
-        columnCount={2}
+        columnCount={4}
         docsById={new Map()}
         immersive
         items={firstPaintItems}
@@ -53,7 +61,7 @@ describe('BookmarksGrid', () => {
 
     rerender(
       <BookmarksGrid
-        columnCount={2}
+        columnCount={4}
         docsById={new Map()}
         immersive
         items={createItems(300)}
@@ -68,12 +76,29 @@ describe('BookmarksGrid', () => {
     await waitFor(() => {
       expect(container.querySelectorAll('.app-ios-static-item')).toHaveLength(80)
     })
-    expect(container.querySelectorAll('img[src]')).toHaveLength(80)
-    expect(container.querySelectorAll('img[loading="eager"]')).toHaveLength(80)
+    expect(container.querySelectorAll('img[src]')).toHaveLength(12)
+    expect(container.querySelectorAll('img[loading="eager"]')).toHaveLength(12)
+    expect(container.querySelectorAll('img[loading="lazy"]')).toHaveLength(68)
+    expect(container.querySelector('source[type="image/avif"]')).toHaveAttribute(
+      'srcset',
+      'https://tbmedia.corychainsman.com/pbs/media/1/w320.avif',
+    )
+
+    const thirteenthTile = container.querySelector<HTMLElement>(
+      '[data-media-admission-id="tweet-13:0"]',
+    )!
+    act(() => {
+      admissionCallback?.(
+        [{ isIntersecting: true, target: thirteenthTile } as unknown as IntersectionObserverEntry],
+        {} as IntersectionObserver,
+      )
+    })
+    expect(container.querySelectorAll('img[src]')).toHaveLength(13)
 
     fireEvent.click(screen.getByRole('button', { name: 'Load more' }))
     expect(container.querySelectorAll('.app-ios-static-item')).toHaveLength(160)
-    expect(container.querySelectorAll('img[src]')).toHaveLength(160)
-    expect(container.querySelectorAll('img[loading="eager"]')).toHaveLength(160)
+    expect(container.querySelectorAll('img[src]')).toHaveLength(13)
+    expect(container.querySelectorAll('img[loading="eager"]')).toHaveLength(13)
+    expect(container.querySelectorAll('img[loading="lazy"]')).toHaveLength(147)
   })
 })

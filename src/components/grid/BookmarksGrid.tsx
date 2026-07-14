@@ -3,6 +3,7 @@ import * as React from 'react'
 import { MediaTile } from '@/components/media/MediaTile'
 import type { BookmarksMasonryProps } from '@/components/grid/BookmarksMasonry'
 import { useInitialMediaReady } from '@/components/grid/useInitialMediaReady'
+import { useIOSColumnWidth, useMediaAdmission } from '@/components/grid/useMediaAdmission'
 
 const IOS_STATIC_BATCH_SIZE = 80
 const MINIMUM_EAGER_ITEMS = 12
@@ -42,16 +43,17 @@ function BookmarksIOSStaticGrid({
   'columnCount' | 'docsById' | 'immersive' | 'items' | 'onInitialMediaReady' | 'onOpen'
 >) {
   const [containerElement, setContainerElement] = React.useState<HTMLDivElement | null>(null)
+  const [gridElement, setGridElement] = React.useState<HTMLDivElement | null>(null)
   const [loadMoreBatchCount, setLoadMoreBatchCount] = React.useState(0)
   const visibleCount = Math.min(
     items.length,
     IOS_STATIC_BATCH_SIZE * (1 + loadMoreBatchCount),
   )
   const visibleItems = items.slice(0, visibleCount)
-  const columnWidth =
-    typeof window === 'undefined'
-      ? 320
-      : Math.max(240, Math.floor(window.innerWidth / Math.max(1, columnCount)))
+  const columnWidth = useIOSColumnWidth(gridElement, columnCount)
+  const admittedIds = useMediaAdmission(gridElement, visibleCount)
+  const imageDevicePixelRatio =
+    typeof window === 'undefined' ? 1 : Math.max(1, window.devicePixelRatio || 1)
   const handleTileOpen = React.useCallback(
     (event: React.MouseEvent<HTMLButtonElement>) => {
       const gridId = event.currentTarget.dataset.gridId
@@ -68,22 +70,28 @@ function BookmarksIOSStaticGrid({
   return (
     <div ref={setContainerElement} className="app-masonry">
       <div
+        ref={setGridElement}
         className="app-ios-static-grid"
         style={{ columnCount: Math.max(1, columnCount) }}
       >
         {visibleItems.map((item, index) => (
-          <div className="app-ios-static-item" key={item.gridId}>
+          <div
+            className="app-ios-static-item"
+            data-media-admission-id={index < MINIMUM_EAGER_ITEMS ? undefined : item.gridId}
+            key={item.gridId}
+          >
             <MediaTile
               item={item}
               tweet={docsById.get(item.tweetId)}
               immersive={immersive}
-              // Safari can strand native-lazy images in a CSS multi-column layout.
-              // This grid is already bounded, so attach and load the whole batch;
-              // only the first viewport receives high network priority.
-              loading="eager"
-              fetchPriority={index < MINIMUM_EAGER_ITEMS ? 'high' : 'low'}
-              initialMedia={index < MINIMUM_EAGER_ITEMS}
-              imageDevicePixelRatio={1}
+              requestState={
+                index < MINIMUM_EAGER_ITEMS
+                  ? 'initial'
+                  : admittedIds.has(item.gridId)
+                    ? 'admitted'
+                    : 'deferred'
+              }
+              imageDevicePixelRatio={imageDevicePixelRatio}
               imageRenderedWidth={columnWidth}
               imageSizes={`${columnWidth}px`}
               onOpen={handleTileOpen}

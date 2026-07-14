@@ -2,7 +2,7 @@ import { access, readFile } from 'node:fs/promises'
 import path from 'node:path'
 import assert from 'node:assert/strict'
 
-import type { Manifest, TweetDoc } from '../src/features/bookmarks/model'
+import type { GridItem, ImageRendition, Manifest, TweetDoc } from '../src/features/bookmarks/model'
 
 const projectRoot = process.cwd()
 const outputDirectory = path.join(projectRoot, 'public/data')
@@ -27,8 +27,8 @@ async function main() {
     Promise.all(
       manifest.files.docs.map((fileName) => readJson<TweetDoc[]>(path.join(outputDirectory, fileName))),
     ),
-    readJson<unknown[]>(path.join(outputDirectory, manifest.files.gridOne)),
-    readJson<unknown[]>(path.join(outputDirectory, manifest.files.gridAll)),
+    readJson<GridItem[]>(path.join(outputDirectory, manifest.files.gridOne)),
+    readJson<GridItem[]>(path.join(outputDirectory, manifest.files.gridAll)),
     readJson<string[]>(path.join(outputDirectory, manifest.files.orderBookmarked)),
     readJson<string[]>(path.join(outputDirectory, manifest.files.orderPosted)),
     readJson<unknown>(path.join(outputDirectory, manifest.files.searchIndex)),
@@ -50,6 +50,45 @@ async function main() {
   }
 
   const flattenedDocs = docs.flat()
+
+  if (manifest.mediaCatalogVersion === 1) {
+    const mediaBaseUrl = assertNonEmptyString(manifest.mediaBaseUrl, 'mediaBaseUrl')
+    const assertRenditions = (renditions: ImageRendition[] | undefined, label: string) => {
+      assert.ok(renditions?.length, `${label} has no published image renditions`)
+      let previousWidth = 0
+      const widths = new Set<number>()
+      for (const rendition of renditions) {
+        assert.equal(rendition.contentType, 'image/avif', `${label} has an invalid rendition type`)
+        assert.ok(rendition.url.startsWith(`${mediaBaseUrl}/`), `${label} rendition is off mirror`)
+        assert.ok(rendition.width > previousWidth, `${label} renditions are not width-sorted`)
+        assert.ok(!widths.has(rendition.width), `${label} has a duplicate rendition width`)
+        widths.add(rendition.width)
+        previousWidth = rendition.width
+      }
+    }
+
+    const docMediaByGridId = new Map<string, TweetDoc['media'][number]>()
+    for (const doc of flattenedDocs) {
+      doc.media.forEach((media, mediaIndex) => {
+        docMediaByGridId.set(`${doc.id}:${mediaIndex}`, media)
+        const imageUrl = media.type === 'photo' ? media.fullUrl : media.posterUrl ?? media.thumbUrl
+        if (imageUrl.startsWith(`${mediaBaseUrl}/`)) {
+          assertRenditions(media.imageRenditions, `${doc.id}:${mediaIndex}`)
+        }
+      })
+    }
+
+    for (const item of gridAll) {
+      const imageUrl = item.mediaType === 'photo' ? item.thumbUrl : item.posterUrl ?? item.thumbUrl
+      if (!imageUrl.startsWith(`${mediaBaseUrl}/`)) continue
+      assertRenditions(item.imageRenditions, item.gridId)
+      assert.deepEqual(
+        item.imageRenditions,
+        docMediaByGridId.get(item.gridId)?.imageRenditions,
+        `${item.gridId} grid/doc rendition catalogs differ`,
+      )
+    }
+  }
 
   assert.equal(flattenedDocs.length, manifest.tweetCount, 'tweetCount mismatch')
   assert.equal(gridOne.length, manifest.gridItemCountOne, 'grid one count mismatch')
@@ -77,6 +116,11 @@ async function main() {
     `Mirror coverage: ${coverage}/${presentUrls.length} media URLs self-hosted` +
       (twimgUrls.length > 0 ? ` (${twimgUrls.length} still on twimg.com).` : '.'),
   )
+}
+
+function assertNonEmptyString(value: string | undefined, label: string): string {
+  assert.ok(value, `${label} missing`)
+  return value
 }
 
 main().catch((error) => {

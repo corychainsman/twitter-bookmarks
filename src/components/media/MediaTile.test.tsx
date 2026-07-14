@@ -1,4 +1,4 @@
-import { act, render, screen } from '@testing-library/react'
+import { fireEvent, render, screen } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import { MediaTile } from '@/components/media/MediaTile'
@@ -86,9 +86,7 @@ describe('MediaTile', () => {
         item={item}
         tweet={tweet}
         immersive
-        loading="eager"
-        fetchPriority="high"
-        initialMedia
+        requestState="initial"
         onOpen={() => {}}
       />,
     )
@@ -111,7 +109,7 @@ describe('MediaTile', () => {
         imageDevicePixelRatio={3}
         imageRenderedWidth={342}
         imageSizes="342px"
-        initialMedia
+        requestState="initial"
         onOpen={() => {}}
       />,
     )
@@ -137,7 +135,7 @@ describe('MediaTile', () => {
         imageDevicePixelRatio={2}
         imageRenderedWidth={320}
         imageSizes="320px"
-        initialMedia
+        requestState="initial"
         onOpen={() => {}}
       />,
     )
@@ -146,7 +144,7 @@ describe('MediaTile', () => {
     const image = screen.getByRole('img', { name: tweet.text })
     expect(source).toHaveAttribute(
       'srcset',
-      'https://tbmedia.corychainsman.com/pbs/media/thumb/w320.avif 320w, https://tbmedia.corychainsman.com/pbs/media/thumb/w480.avif 480w, https://tbmedia.corychainsman.com/pbs/media/thumb/w680.avif 680w, https://tbmedia.corychainsman.com/pbs/media/thumb/w960.avif 960w, https://tbmedia.corychainsman.com/pbs/media/thumb/w1280.avif 1280w',
+      'https://tbmedia.corychainsman.com/pbs/media/thumb/w320.avif 320w, https://tbmedia.corychainsman.com/pbs/media/thumb/w480.avif 480w, https://tbmedia.corychainsman.com/pbs/media/thumb/w680.avif 680w',
     )
     expect(source).toHaveAttribute('sizes', '320px')
     expect(image).toHaveAttribute(
@@ -156,18 +154,31 @@ describe('MediaTile', () => {
     expect(image).not.toHaveAttribute('srcset')
   })
 
-  it('attaches deferred image sources when the tile enters the viewport', () => {
-    vi.useFakeTimers()
-    let intersectionCallback: IntersectionObserverCallback | null = null
-    vi.stubGlobal('IntersectionObserver', class {
-      disconnect = vi.fn()
-      observe = vi.fn()
+  it('retries a failed optimized rendition through the fallback image', () => {
+    render(
+      <MediaTile
+        item={{
+          ...item,
+          thumbUrl: 'https://tbmedia.corychainsman.com/pbs/media/thumb.jpg',
+        }}
+        tweet={tweet}
+        immersive
+        imageDevicePixelRatio={2}
+        imageRenderedWidth={320}
+        imageSizes="320px"
+        requestState="initial"
+        onOpen={() => {}}
+      />,
+    )
 
-      constructor(callback: IntersectionObserverCallback) {
-        intersectionCallback = callback
-      }
-    })
+    const image = screen.getByRole('img', { name: tweet.text })
+    fireEvent.error(image)
 
+    expect(document.querySelector('source[type="image/avif"]')).toBeNull()
+    expect(image).toHaveAttribute('src', 'https://pbs.twimg.com/media/thumb.jpg?name=small')
+  })
+
+  it('leaves deferred image sources detached until the caller admits the tile', () => {
     render(
       <MediaTile
         item={{
@@ -179,6 +190,7 @@ describe('MediaTile', () => {
         imageDevicePixelRatio={1}
         imageRenderedWidth={320}
         imageSizes="320px"
+        requestState="deferred"
         onOpen={() => {}}
       />,
     )
@@ -186,17 +198,7 @@ describe('MediaTile', () => {
     const image = screen.getByRole('img', { name: tweet.text })
     expect(image).not.toHaveAttribute('src')
 
-    act(() => vi.advanceTimersByTime(30_000))
-    expect(image).not.toHaveAttribute('src')
-
-    act(() => {
-      intersectionCallback?.(
-        [{ isIntersecting: true } as IntersectionObserverEntry],
-        {} as IntersectionObserver,
-      )
-    })
-
-    expect(image).toHaveAttribute('src', 'https://pbs.twimg.com/media/thumb.jpg?name=small')
+    expect(image).toHaveAttribute('loading', 'lazy')
   })
 
   it('attaches motion posters before loading preview video bytes', () => {
@@ -225,6 +227,7 @@ describe('MediaTile', () => {
         imageDevicePixelRatio={1}
         imageRenderedWidth={320}
         imageSizes="320px"
+        requestState="deferred"
         onOpen={() => {}}
       />,
     )
@@ -261,7 +264,7 @@ describe('MediaTile', () => {
         imageDevicePixelRatio={1}
         imageRenderedWidth={320}
         imageSizes="320px"
-        initialMedia
+        requestState="initial"
         onOpen={() => {}}
       />,
     )

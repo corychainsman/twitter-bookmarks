@@ -5,11 +5,9 @@ import { formatPostedDate } from '@/lib/format'
 import { captureMediaHandoff } from '@/lib/media-handoff'
 import { thumbhashToDataUrl } from '@/lib/thumbhash-placeholder'
 import {
-  isMirroredImageUrl,
-  resolveMirroredImageFallbackSourceSet,
-  resolveTwitterImageSourceSet,
-  type TwitterImageSourceSet,
-} from '@/lib/twitter-media-url'
+  resolveGridMediaDelivery,
+  type MediaRequestState,
+} from '@/features/bookmarks/media-delivery'
 import { Badge } from '@/components/ui/badge'
 import {
   candidateFromEntry,
@@ -18,21 +16,14 @@ import {
 } from '@/components/media/autoplay'
 
 const MEDIA_TYPE_LABEL = { animated_gif: 'animated gif', photo: 'photo', video: 'video' }
-const IMAGE_SRC_ATTACH_ROOT_MARGIN = '150px 0px'
 const aspectRatioStyleCache = new WeakMap<GridItem, CSSProperties | null>()
 const postedDateCache = new WeakMap<TweetDoc, string>()
-const imageSourcesCache = new WeakMap<
-  GridItem,
-  { sourceUrl: string; byKey: Map<number | string, TwitterImageSourceSet> }
->()
 
 type MediaTileProps = {
   item: GridItem
   tweet: TweetDoc | undefined
   immersive: boolean
-  loading?: 'eager' | 'lazy'
-  fetchPriority?: 'high' | 'low' | 'auto'
-  initialMedia?: boolean
+  requestState?: MediaRequestState
   imageDevicePixelRatio?: number
   imageRenderedWidth?: number
   imageSizes?: string
@@ -46,7 +37,7 @@ type VideoGridTileProps = {
   width?: number
   height?: number
   gridId: string
-  initialMedia: boolean
+  requestState: MediaRequestState
 }
 
 function VideoGridTile({
@@ -56,12 +47,11 @@ function VideoGridTile({
   width,
   height,
   gridId,
-  initialMedia,
+  requestState,
 }: VideoGridTileProps) {
   const videoRef = useRef<HTMLVideoElement>(null)
   const [shouldPlay, setShouldPlay] = useState(false)
-  const [isPrewarmed, setIsPrewarmed] = useState(false)
-  const canAttachSrc = initialMedia || shouldPlay || isPrewarmed
+  const canAttachSrc = requestState !== 'deferred'
 
   useEffect(() => {
     const el = videoRef.current
@@ -79,30 +69,7 @@ function VideoGridTile({
     )
     observer.observe(el)
     return () => observer.disconnect()
-  }, [gridId, initialMedia])
-
-  // Attach the src (preload="metadata") well before the tile reaches the active-play
-  // band, so the connection + faststart moov atom are already fetched by the time
-  // autoplay actually needs to start — same lookahead distance images use.
-  useEffect(() => {
-    if (initialMedia) return undefined
-    const el = videoRef.current
-    if (!el || typeof IntersectionObserver === 'undefined') {
-      setIsPrewarmed(true)
-      return undefined
-    }
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (entries.some((entry) => entry.isIntersecting)) {
-          setIsPrewarmed(true)
-          observer.disconnect()
-        }
-      },
-      { rootMargin: IMAGE_SRC_ATTACH_ROOT_MARGIN },
-    )
-    observer.observe(el)
-    return () => observer.disconnect()
-  }, [initialMedia])
+  }, [gridId])
 
   useEffect(() => {
     const video = videoRef.current
@@ -135,16 +102,21 @@ export const MediaTile = memo(function MediaTile({
   item,
   tweet,
   immersive,
-  loading = 'lazy',
-  fetchPriority = 'auto',
-  initialMedia = false,
+  requestState = 'admitted',
   imageDevicePixelRatio,
   imageRenderedWidth,
   imageSizes,
   onOpen,
 }: MediaTileProps) {
-  const isMotion = item.mediaType === 'video' || item.mediaType === 'animated_gif'
-  const previewUrl = item.posterUrl ?? item.thumbUrl
+  const initialMedia = requestState === 'initial'
+  const shouldAttachImageSrc = requestState !== 'deferred'
+  const loading = requestState === 'deferred' ? 'lazy' : 'eager'
+  const fetchPriority =
+    initialMedia || requestState === 'priority'
+      ? 'high'
+      : requestState === 'admitted'
+        ? 'auto'
+        : 'low'
   let aspectRatioStyle = aspectRatioStyleCache.get(item)
   if (aspectRatioStyle === undefined) {
     const aspectRatio =
@@ -156,31 +128,11 @@ export const MediaTile = memo(function MediaTile({
     aspectRatioStyleCache.set(item, aspectRatioStyle)
   }
   const aspectRatio = aspectRatioStyle?.aspectRatio as number | undefined
-  const imageSourcesKey =
-    imageDevicePixelRatio === 1 && imageRenderedWidth && imageSizes === `${imageRenderedWidth}px`
-      ? imageRenderedWidth
-      : `${imageDevicePixelRatio ?? ''}|${imageRenderedWidth ?? ''}|${imageSizes ?? ''}`
-  const imageSourcesRecord = imageSourcesCache.get(item) ?? (imageSourcesCache.set(item, {
-    sourceUrl: isMotion ? previewUrl : item.thumbUrl,
-    byKey: new Map(),
-  }), imageSourcesCache.get(item)!)
-  const imageSourceUrl = imageSourcesRecord.sourceUrl
-  let imageSources = imageSourcesRecord.byKey.get(imageSourcesKey)
-  if (!imageSources) {
-    imageSources = resolveTwitterImageSourceSet(imageSourceUrl, {
-      devicePixelRatio: imageDevicePixelRatio,
-      renderedWidth: imageRenderedWidth,
-      sizes: imageSizes,
-    })
-    imageSourcesRecord.byKey.set(imageSourcesKey, imageSources)
-  }
-  const mirroredFallbackSources = isMirroredImageUrl(imageSourceUrl)
-    ? resolveMirroredImageFallbackSourceSet(imageSourceUrl, {
-        devicePixelRatio: imageDevicePixelRatio,
-        renderedWidth: imageRenderedWidth,
-        sizes: imageSizes,
-      })
-    : null
+  const delivery = resolveGridMediaDelivery(item, {
+    devicePixelRatio: imageDevicePixelRatio,
+    renderedWidth: imageRenderedWidth,
+    sizes: imageSizes,
+  })
   let postedDate = 'Unknown date'
   if (!immersive && tweet) {
     postedDate = postedDateCache.get(tweet) ?? ''
@@ -191,37 +143,8 @@ export const MediaTile = memo(function MediaTile({
   }
   const placeholderUrl = thumbhashToDataUrl(item.thumbhash)
   const mediaRef = useRef<HTMLDivElement>(null)
-  const [deferredImageSrcReady, setDeferredImageSrcReady] = useState(false)
-  const shouldAttachImageSrc = initialMedia || loading === 'eager' || deferredImageSrcReady
-  const shouldRenderAvifPicture = isMirroredImageUrl(imageSourceUrl)
-
-  useEffect(() => {
-    if (initialMedia || loading === 'eager') {
-      return undefined
-    }
-
-    const element = mediaRef.current
-
-    if (!element || typeof IntersectionObserver === 'undefined') {
-      setDeferredImageSrcReady(true)
-      return undefined
-    }
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (entries.some((entry) => entry.isIntersecting)) {
-          setDeferredImageSrcReady(true)
-          observer.disconnect()
-        }
-      },
-      { rootMargin: IMAGE_SRC_ATTACH_ROOT_MARGIN },
-    )
-    observer.observe(element)
-
-    return () => {
-      observer.disconnect()
-    }
-  }, [initialMedia, loading])
+  const [failedOptimizedGridId, setFailedOptimizedGridId] = useState<string | null>(null)
+  const useImageFallback = failedOptimizedGridId === item.gridId
 
   const handleOpen: MouseEventHandler<HTMLButtonElement> = (event) => {
     captureMediaHandoff(item.gridId, mediaRef.current?.querySelector('video, img') ?? null)
@@ -248,29 +171,29 @@ export const MediaTile = memo(function MediaTile({
               }}
             />
           ) : null}
-          {isMotion ? (
+          {delivery.isMotion ? (
             <VideoGridTile
-              src={item.previewUrl ?? item.fullUrl}
-              poster={imageSources.src}
+              src={delivery.previewUrl ?? item.fullUrl}
+              poster={delivery.image.src}
               aspectRatio={aspectRatio}
               width={item.width}
               height={item.height}
               gridId={item.gridId}
-              initialMedia={initialMedia}
+              requestState={requestState}
             />
-          ) : shouldRenderAvifPicture ? (
+          ) : delivery.renderOptimizedPicture && !useImageFallback ? (
             <picture>
               {shouldAttachImageSrc ? (
                 <source
                   type="image/avif"
-                  srcSet={imageSources.srcSet ?? imageSources.src}
-                  sizes={imageSources.sizes}
+                  srcSet={delivery.image.srcSet ?? delivery.image.src}
+                  sizes={delivery.image.sizes}
                 />
               ) : null}
               <img
-                src={shouldAttachImageSrc ? mirroredFallbackSources?.src : undefined}
-                srcSet={shouldAttachImageSrc ? mirroredFallbackSources?.srcSet : undefined}
-                sizes={shouldAttachImageSrc ? mirroredFallbackSources?.sizes : undefined}
+                src={shouldAttachImageSrc ? delivery.fallback?.src : undefined}
+                srcSet={shouldAttachImageSrc ? delivery.fallback?.srcSet : undefined}
+                sizes={shouldAttachImageSrc ? delivery.fallback?.sizes : undefined}
                 alt={tweet?.text || 'Bookmarked media'}
                 decoding="async"
                 fetchPriority={fetchPriority}
@@ -280,13 +203,24 @@ export const MediaTile = memo(function MediaTile({
                 height={item.height}
                 style={aspectRatioStyle ?? undefined}
                 className="app-media-image relative block h-auto w-full"
+                onError={() => setFailedOptimizedGridId(item.gridId)}
               />
             </picture>
           ) : (
             <img
-              src={shouldAttachImageSrc ? imageSources.src : undefined}
-              srcSet={shouldAttachImageSrc ? imageSources.srcSet : undefined}
-              sizes={shouldAttachImageSrc ? imageSources.sizes : undefined}
+              src={
+                shouldAttachImageSrc
+                  ? useImageFallback
+                    ? delivery.fallback?.src ?? delivery.image.src
+                    : delivery.image.src
+                  : undefined
+              }
+              srcSet={
+                shouldAttachImageSrc && !useImageFallback ? delivery.image.srcSet : undefined
+              }
+              sizes={
+                shouldAttachImageSrc && !useImageFallback ? delivery.image.sizes : undefined
+              }
               alt={tweet?.text || 'Bookmarked media'}
               decoding="async"
               fetchPriority={fetchPriority}

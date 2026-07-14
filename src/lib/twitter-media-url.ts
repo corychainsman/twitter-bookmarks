@@ -219,11 +219,16 @@ function resolveMirroredImageSourceSet(
     : MIRROR_SIZE_WIDTHS[options.maxSize ?? 'medium']
   const selected =
     candidates.find(({ width }) => width >= targetPixelWidth) ?? candidates[candidates.length - 1]
+  const selectedIndex = candidates.indexOf(selected)
+  const eligibleCandidates = candidates.slice(0, selectedIndex + 1)
 
   return {
     src: selected.url,
-    srcSet: candidates.map((candidate) => `${candidate.url} ${candidate.width}w`).join(', '),
-    sizes: options.sizes ?? RESPONSIVE_SIZES,
+    srcSet:
+      eligibleCandidates.length > 1
+        ? eligibleCandidates.map((candidate) => `${candidate.url} ${candidate.width}w`).join(', ')
+        : undefined,
+    sizes: eligibleCandidates.length > 1 ? options.sizes ?? RESPONSIVE_SIZES : undefined,
   }
 }
 

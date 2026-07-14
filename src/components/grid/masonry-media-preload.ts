@@ -1,6 +1,6 @@
 import type { GridItem } from '@/features/bookmarks/model'
+import { resolveGridMediaDelivery } from '@/features/bookmarks/media-delivery'
 import type { MediaPreloadCandidate } from '@/lib/media-preload'
-import { resolveTwitterImageSourceSet } from '@/lib/twitter-media-url'
 
 const preloadCandidatesCache = new WeakMap<GridItem[], Map<number | string, MediaPreloadCandidate[]>>()
 
@@ -33,14 +33,15 @@ export function createMasonryMediaPreloadCandidates(input: {
       continue
     }
 
-    const isMotion = item.mediaType === 'video' || item.mediaType === 'animated_gif'
-    const sourceUrl = isMotion ? item.posterUrl ?? item.thumbUrl : item.thumbUrl
+    const delivery = resolveGridMediaDelivery(item, sourceSetOptions)
     candidates[writeIndex++] = {
       kind: 'image',
-      url: resolveTwitterImageSourceSet(sourceUrl, sourceSetOptions).src,
+      url: delivery.image.src,
+      ...(delivery.image.srcSet ? { srcSet: delivery.image.srcSet } : {}),
+      ...(delivery.image.sizes ? { sizes: delivery.image.sizes } : {}),
     }
 
-    if (isMotion && item.previewUrl) {
+    if (delivery.isMotion && item.previewUrl) {
       candidates[writeIndex++] = {
         kind: 'video',
         url: item.previewUrl,

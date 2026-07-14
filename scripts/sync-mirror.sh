@@ -44,6 +44,8 @@ if rclone listremotes | grep -q '^r2:'; then
   # the origin too means the right behavior doesn't depend on that dashboard config.
   rclone copy "$ASSETS_DIR" "$R2_TARGET" --fast-list --transfers 16 --stats-one-line -P \
     --header-upload "Cache-Control: public, max-age=31536000, immutable"
+  echo "Verifying R2 publication completeness ..."
+  rclone check "$ASSETS_DIR" "$R2_TARGET" --size-only --one-way --fast-list
 else
   echo "Skipping R2 sync: no 'r2' rclone remote configured." >&2
 fi

@@ -42,6 +42,9 @@ describe('createMasonryMediaPreloadCandidates', () => {
     ).toEqual([
       {
         kind: 'image',
+        sizes: '360px',
+        srcSet:
+          'https://pbs.twimg.com/media/photo.jpg?name=small 680w, https://pbs.twimg.com/media/photo.jpg?name=medium 1200w',
         url: 'https://pbs.twimg.com/media/photo.jpg?name=medium',
       },
       {

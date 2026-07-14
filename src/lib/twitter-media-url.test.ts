@@ -160,10 +160,10 @@ describe('mirrored media URLs', () => {
     expect(withTwitterOriginalJpg(mirroredUrl)).toBe(mirroredUrl)
   })
 
-  const fullMirroredSrcSet =
-    'https://tbmedia.corychainsman.com/pbs/media/abc/w320.avif 320w, https://tbmedia.corychainsman.com/pbs/media/abc/w480.avif 480w, https://tbmedia.corychainsman.com/pbs/media/abc/w680.avif 680w, https://tbmedia.corychainsman.com/pbs/media/abc/w960.avif 960w, https://tbmedia.corychainsman.com/pbs/media/abc/w1280.avif 1280w'
+  const cappedGridSrcSet =
+    'https://tbmedia.corychainsman.com/pbs/media/abc/w320.avif 320w, https://tbmedia.corychainsman.com/pbs/media/abc/w480.avif 480w, https://tbmedia.corychainsman.com/pbs/media/abc/w680.avif 680w'
 
-  it('builds a full AVIF source set for mirrored URLs', () => {
+  it('caps the AVIF source set at the selected grid rendition', () => {
     expect(
       resolveTwitterImageSourceSet(mirroredUrl, {
         devicePixelRatio: 2,
@@ -172,7 +172,7 @@ describe('mirrored media URLs', () => {
       }),
     ).toEqual({
       src: 'https://tbmedia.corychainsman.com/pbs/media/abc/w680.avif',
-      srcSet: fullMirroredSrcSet,
+      srcSet: cappedGridSrcSet,
       sizes: '300px',
     })
   })

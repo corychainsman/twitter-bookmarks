@@ -1,4 +1,5 @@
 import type { CSSProperties } from 'react'
+import type { MediaRequestState } from '@/features/bookmarks/media-delivery'
 
 const VIEWPORT_HIGH_PRIORITY_LOOKAHEAD_MULTIPLIER = 0.25
 const VIEWPORT_EAGER_LOOKAHEAD_MULTIPLIER = 1
@@ -9,30 +10,20 @@ const INITIAL_HIGH_PRIORITY_ITEM_COUNT = 12
 export type MasonryScrollDirection = 'down' | 'none' | 'up'
 
 export type MasonryImageLoadingStrategy = {
-  fetchPriority: 'high' | 'low' | 'auto'
-  initialMedia: boolean
-  loading: 'eager' | 'lazy'
+  requestState: MediaRequestState
 }
 
 const LAZY_LOW_PRIORITY_STRATEGY: MasonryImageLoadingStrategy = {
-  fetchPriority: 'low',
-  initialMedia: false,
-  loading: 'lazy',
+  requestState: 'deferred',
 }
 const EAGER_LOW_PRIORITY_STRATEGY: MasonryImageLoadingStrategy = {
-  fetchPriority: 'low',
-  initialMedia: false,
-  loading: 'eager',
+  requestState: 'admitted',
 }
 const EAGER_HIGH_PRIORITY_STRATEGY: MasonryImageLoadingStrategy = {
-  fetchPriority: 'high',
-  initialMedia: false,
-  loading: 'eager',
+  requestState: 'priority',
 }
 const INITIAL_HIGH_PRIORITY_STRATEGY: MasonryImageLoadingStrategy = {
-  fetchPriority: 'high',
-  initialMedia: true,
-  loading: 'eager',
+  requestState: 'initial',
 }
 function resolveCssPixelValue(value: CSSProperties['top']): number | null {
   if (typeof value === 'number') {

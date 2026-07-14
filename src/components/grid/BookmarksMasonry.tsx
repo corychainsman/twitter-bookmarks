@@ -453,9 +453,7 @@ export function BookmarksMasonry({
               item={item}
               tweet={docsById.get(item.tweetId)}
               immersive={renderedImmersive}
-              loading={imageLoadingStrategy.loading}
-              fetchPriority={imageLoadingStrategy.fetchPriority}
-              initialMedia={imageLoadingStrategy.initialMedia}
+              requestState={imageLoadingStrategy.requestState}
               imageDevicePixelRatio={imageDevicePixelRatio}
               imageRenderedWidth={columnWidth}
               imageSizes={imageSizes}

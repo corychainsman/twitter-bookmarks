@@ -1,86 +1,17 @@
-const MEDIA_CACHE_NAME = 'twitter-bookmarks-media-v2'
-const CACHEABLE_MEDIA_HOSTS = new Set([
-  'pbs.twimg.com',
-  'video.twimg.com',
-  'tbmedia.corychainsman.com',
-])
-// High enough to hold the full mirrored thumb tier (~3k tiles) plus overflow.
-const MAX_MEDIA_CACHE_ENTRIES = 4500
-const MEDIA_CACHE_TRIM_INTERVAL_MS = 60_000
-let lastMediaCacheTrimAt = 0
-let mediaCacheTrimPromise = null
+const LEGACY_MEDIA_CACHE_PREFIX = 'twitter-bookmarks-media-'
 
-function isCacheableMediaUrl(url) {
+async function clearLegacyMediaCaches() {
   try {
-    return CACHEABLE_MEDIA_HOSTS.has(new URL(url).hostname)
+    const cacheNames = await caches.keys()
+    await Promise.all(
+      cacheNames
+        .filter((cacheName) => cacheName.startsWith(LEGACY_MEDIA_CACHE_PREFIX))
+        .map((cacheName) => caches.delete(cacheName)),
+    )
   } catch {
-    return false
+    // Cache Storage can be unavailable in Safari Private Browsing. This worker is
+    // cleanup-only, so a failure must not affect the app's native network path.
   }
-}
-
-function isCacheableMediaRequest(request) {
-  // Range requests (video seeking/scrubbing) must hit the network directly: the Cache
-  // API has no concept of partial content, so caching a 206 here would serve the wrong
-  // byte range back for a later seek to a different offset on the same URL.
-  return (
-    request.method === 'GET' && !request.headers.has('Range') && isCacheableMediaUrl(request.url)
-  )
-}
-
-async function trimMediaCache(cache) {
-  try {
-    const keys = await cache.keys()
-    if (keys.length <= MAX_MEDIA_CACHE_ENTRIES) {
-      return
-    }
-
-    await Promise.all(keys.slice(0, keys.length - MAX_MEDIA_CACHE_ENTRIES).map((key) => cache.delete(key)))
-  } catch {
-    // Best-effort trim; a failure here must not affect any in-flight fetch.
-  }
-}
-
-function scheduleMediaCacheTrim(cache) {
-  const now = Date.now()
-  if (mediaCacheTrimPromise || now - lastMediaCacheTrimAt < MEDIA_CACHE_TRIM_INTERVAL_MS) {
-    return
-  }
-
-  lastMediaCacheTrimAt = now
-  mediaCacheTrimPromise = trimMediaCache(cache).finally(() => {
-    mediaCacheTrimPromise = null
-  })
-}
-
-async function cacheMediaRequest(request) {
-  // The Cache API is meaningfully stricter in some browsers (e.g. Safari throws on
-  // certain opaque-response writes and on any Cache access in Private Browsing).
-  // A caching failure must never turn an otherwise-successful fetch into a failed
-  // one for the page, so every cache read/write here is best-effort: fall back to
-  // a plain network fetch if the cache layer misbehaves at any step.
-  let cache
-  try {
-    cache = await caches.open(MEDIA_CACHE_NAME)
-    const cached = await cache.match(request, { ignoreVary: true })
-    if (cached) {
-      return cached
-    }
-  } catch {
-    return fetch(request)
-  }
-
-  const response = await fetch(request)
-
-  if (response.ok || response.type === 'opaque') {
-    try {
-      await cache.put(request, response.clone())
-      scheduleMediaCacheTrim(cache)
-    } catch {
-      // Best-effort: ignore cache write failures, still return the real response.
-    }
-  }
-
-  return response
 }
 
 self.addEventListener('install', () => {
@@ -88,13 +19,7 @@ self.addEventListener('install', () => {
 })
 
 self.addEventListener('activate', (event) => {
-  event.waitUntil(self.clients.claim())
-})
-
-self.addEventListener('fetch', (event) => {
-  if (!isCacheableMediaRequest(event.request)) {
-    return
-  }
-
-  event.respondWith(cacheMediaRequest(event.request))
+  event.waitUntil(
+    clearLegacyMediaCaches().then(() => self.clients.claim()),
+  )
 })

@@ -6,6 +6,12 @@ export type MediaVariant = {
   contentType?: string
 }
 
+export type ImageRendition = {
+  url: string
+  width: number
+  contentType: 'image/avif'
+}
+
 export type MediaItem = {
   type: MediaType
   thumbUrl: string
@@ -18,6 +24,8 @@ export type MediaItem = {
   aspectRatio?: number
   durationMs?: number
   variants?: MediaVariant[]
+  /** Published image renditions for photos, or poster renditions for motion media. */
+  imageRenditions?: ImageRendition[]
 }
 
 export type TweetDoc = {
@@ -55,6 +63,8 @@ export type GridItem = {
   aspectRatio?: number
   /** Base64 ThumbHash of the tile image, present for mirrored assets. */
   thumbhash?: string
+  /** Published image renditions for the tile image or motion poster. */
+  imageRenditions?: ImageRendition[]
 }
 
 export type Manifest = {
@@ -66,6 +76,8 @@ export type Manifest = {
   chunkSize: number
   /** Origin serving self-hosted media, e.g. https://tbmedia.corychainsman.com */
   mediaBaseUrl?: string
+  /** Version of the explicit media rendition catalog embedded in exported records. */
+  mediaCatalogVersion?: 1
   files: {
     docs: string[]
     gridOne: string

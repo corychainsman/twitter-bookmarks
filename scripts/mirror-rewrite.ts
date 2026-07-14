@@ -1,5 +1,5 @@
 import type { ExportArtifacts } from '../src/features/bookmarks/export-artifacts'
-import type { GridItem, MediaItem } from '../src/features/bookmarks/model'
+import type { GridItem, ImageRendition, MediaItem } from '../src/features/bookmarks/model'
 import type { MirrorAssetRecord, MirrorManifest } from './mirror-lib'
 
 export const DEFAULT_MEDIA_BASE_URL = 'https://tbmedia.corychainsman.com'
@@ -14,6 +14,23 @@ export type MirrorRewriteStats = {
 type MirrorLookup = {
   urlFor(sourceUrl: string | undefined): string | undefined
   recordFor(sourceUrl: string | undefined): MirrorAssetRecord | undefined
+}
+
+function imageRenditionsFor(
+  record: MirrorAssetRecord | undefined,
+  baseUrl: string,
+): ImageRendition[] | undefined {
+  if (!record?.variants?.length) {
+    return undefined
+  }
+
+  return record.variants
+    .map((variant) => ({
+      url: `${baseUrl}/${variant.key}`,
+      width: variant.width,
+      contentType: 'image/avif' as const,
+    }))
+    .sort((left, right) => left.width - right.width)
 }
 
 function createMirrorLookup(manifest: MirrorManifest, baseUrl: string): MirrorLookup {
@@ -36,9 +53,19 @@ function createMirrorLookup(manifest: MirrorManifest, baseUrl: string): MirrorLo
   }
 }
 
-function rewriteMediaItem(media: MediaItem, lookup: MirrorLookup, stats: MirrorRewriteStats): void {
+function rewriteMediaItem(
+  media: MediaItem,
+  lookup: MirrorLookup,
+  baseUrl: string,
+  stats: MirrorRewriteStats,
+): void {
   const originalFullUrl = media.fullUrl
   const videoRecord = media.type === 'photo' ? undefined : lookup.recordFor(media.fullUrl)
+  const imageRecord =
+    media.type === 'photo'
+      ? lookup.recordFor(media.fullUrl) ?? lookup.recordFor(media.thumbUrl)
+      : lookup.recordFor(media.posterUrl) ?? lookup.recordFor(media.thumbUrl)
+  media.imageRenditions = imageRenditionsFor(imageRecord, baseUrl)
 
   for (const field of ['thumbUrl', 'fullUrl', 'posterUrl'] as const) {
     const sourceUrl = media[field]
@@ -72,6 +99,7 @@ function rewriteGridItem(
   // The tile image is thumbUrl for photos and the poster for motion media; grab
   // its thumbhash before the URLs are rewritten away from the manifest keys.
   const tileRecord = lookup.recordFor(item.thumbUrl) ?? lookup.recordFor(item.posterUrl)
+  item.imageRenditions = imageRenditionsFor(tileRecord, baseUrl)
   if (tileRecord?.thumbhash) {
     item.thumbhash = tileRecord.thumbhash
     stats.thumbhashedGridItems += 1
@@ -120,7 +148,7 @@ export function applyMirrorRewrite(
   for (const chunk of artifacts.docsChunks) {
     for (const doc of chunk.docs) {
       for (const media of doc.media) {
-        rewriteMediaItem(media, lookup, stats)
+        rewriteMediaItem(media, lookup, normalizedBase, stats)
       }
     }
   }
@@ -130,6 +158,7 @@ export function applyMirrorRewrite(
   }
 
   artifacts.manifest.mediaBaseUrl = normalizedBase
+  artifacts.manifest.mediaCatalogVersion = 1
 
   return stats
 }

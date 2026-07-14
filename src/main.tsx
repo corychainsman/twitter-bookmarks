@@ -6,13 +6,19 @@ import { registerMediaCacheWorker } from '@/lib/media-cache'
 
 import './index.css'
 
-const MEDIA_CACHE_WORKER_REGISTRATION_DELAY_MS = 12_000
-
 document.documentElement.classList.add('antialiased', 'dark')
-window.setTimeout(registerMediaCacheWorker, MEDIA_CACHE_WORKER_REGISTRATION_DELAY_MS)
 
-createRoot(document.getElementById('root')!).render(
-  <StrictMode>
-    <AppRouter />
-  </StrictMode>,
-)
+async function renderApp() {
+  // Remove the retired Cache API media layer before any grid requests. The CDN
+  // already serves immutable assets, and Safari could retain broken variants in
+  // the old cache indefinitely.
+  await registerMediaCacheWorker()
+
+  createRoot(document.getElementById('root')!).render(
+    <StrictMode>
+      <AppRouter />
+    </StrictMode>,
+  )
+}
+
+void renderApp()

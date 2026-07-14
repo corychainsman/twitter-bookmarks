@@ -74,6 +74,10 @@ function buildManifest(): MirrorManifest {
         status: 'ok',
         kind: 'image',
         key: 'pbs/media/abc.jpg',
+        variants: [
+          { key: 'pbs/media/abc/w320.avif', width: 320 },
+          { key: 'pbs/media/abc/w680.avif', width: 680 },
+        ],
         thumbhash: 'aGFzaA==',
         attempts: 1,
       },
@@ -89,6 +93,9 @@ function buildManifest(): MirrorManifest {
         status: 'ok',
         kind: 'image',
         key: 'pbs/amplify_video_thumb/1/img/poster.jpg',
+        variants: [
+          { key: 'pbs/amplify_video_thumb/1/img/poster/w320.avif', width: 320 },
+        ],
         thumbhash: 'cG9zdGVy',
         attempts: 1,
       },
@@ -111,15 +118,35 @@ describe('applyMirrorRewrite', () => {
     const [photo, video, dead] = artifacts.docsChunks[0].docs[0].media
     expect(photo.fullUrl).toBe('https://media.example.com/pbs/media/abc.jpg')
     expect(photo.originUrl).toBe(PHOTO_URL)
+    expect(photo.imageRenditions).toEqual([
+      {
+        url: 'https://media.example.com/pbs/media/abc/w320.avif',
+        width: 320,
+        contentType: 'image/avif',
+      },
+      {
+        url: 'https://media.example.com/pbs/media/abc/w680.avif',
+        width: 680,
+        contentType: 'image/avif',
+      },
+    ])
     expect(video.fullUrl).toBe('https://media.example.com/vid/amplify_video/1/vid/avc1/100x100/clip/playback.mp4')
     expect(video.posterUrl).toBe('https://media.example.com/pbs/amplify_video_thumb/1/img/poster.jpg')
     expect(video.originUrl).toBe(VIDEO_URL)
+    expect(video.imageRenditions).toEqual([
+      {
+        url: 'https://media.example.com/pbs/amplify_video_thumb/1/img/poster/w320.avif',
+        width: 320,
+        contentType: 'image/avif',
+      },
+    ])
     expect(dead.fullUrl).toBe(DEAD_URL)
     expect(dead.originUrl).toBeUndefined()
 
     const [photoTile, videoTile, deadTile] = artifacts.gridAll
     expect(photoTile.thumbUrl).toBe('https://media.example.com/pbs/media/abc.jpg')
     expect(photoTile.thumbhash).toBe('aGFzaA==')
+    expect(photoTile.imageRenditions).toHaveLength(2)
     expect(videoTile.thumbhash).toBe('cG9zdGVy')
     expect(videoTile.previewUrl).toBe(
       'https://media.example.com/vid/amplify_video/1/vid/avc1/100x100/clip/preview.mp4',

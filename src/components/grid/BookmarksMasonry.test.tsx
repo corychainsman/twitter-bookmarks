@@ -775,9 +775,7 @@ describe('BookmarksMasonry', () => {
         viewportScrollTop: 0,
       }),
     ).toEqual({
-      fetchPriority: 'low',
-      initialMedia: false,
-      loading: 'lazy',
+      requestState: 'deferred',
     })
 
     expect(
@@ -792,9 +790,7 @@ describe('BookmarksMasonry', () => {
         viewportScrollTop: 4800,
       }),
     ).toEqual({
-      fetchPriority: 'high',
-      initialMedia: false,
-      loading: 'eager',
+      requestState: 'priority',
     })
   })
 
@@ -811,9 +807,7 @@ describe('BookmarksMasonry', () => {
         viewportScrollTop: 0,
       }),
     ).toEqual({
-      fetchPriority: 'low',
-      initialMedia: false,
-      loading: 'lazy',
+      requestState: 'deferred',
     })
   })
 
@@ -830,9 +824,7 @@ describe('BookmarksMasonry', () => {
         viewportScrollTop: 4_800,
       }),
     ).toEqual({
-      fetchPriority: 'low',
-      initialMedia: false,
-      loading: 'lazy',
+      requestState: 'deferred',
     })
   })
 

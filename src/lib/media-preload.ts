@@ -3,10 +3,12 @@ export type MediaPreloadKind = 'image' | 'video'
 export type MediaPreloadCandidate = {
   kind: MediaPreloadKind
   url?: string
+  sizes?: string
+  srcSet?: string
 }
 
 export type MediaPreloader = {
-  preloadImage: (url: string) => void
+  preloadImage: (candidate: MediaPreloadCandidate & { url: string }) => void
   preloadVideo: (url: string) => void
 }
 
@@ -14,10 +16,12 @@ export const DEFAULT_PRELOAD_CONCURRENCY = 6
 
 export function createBrowserMediaPreloader(): MediaPreloader {
   return {
-    preloadImage(url) {
+    preloadImage(candidate) {
       const image = new Image()
       image.decoding = 'async'
-      image.src = url
+      if (candidate.sizes) image.sizes = candidate.sizes
+      if (candidate.srcSet) image.srcset = candidate.srcSet
+      image.src = candidate.url
     },
     preloadVideo(url) {
       const link = document.createElement('link')
@@ -63,7 +67,7 @@ export function preloadMediaCandidates(
       continue
     }
 
-    preloader.preloadImage(candidate.url)
+    preloader.preloadImage({ ...candidate, url: candidate.url })
   }
 
   return loadedUrls
