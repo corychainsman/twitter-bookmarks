@@ -69,9 +69,11 @@ describe('BookmarksGrid', () => {
       expect(container.querySelectorAll('.app-ios-static-item')).toHaveLength(80)
     })
     expect(container.querySelectorAll('img[src]')).toHaveLength(80)
+    expect(container.querySelectorAll('img[loading="eager"]')).toHaveLength(80)
 
     fireEvent.click(screen.getByRole('button', { name: 'Load more' }))
     expect(container.querySelectorAll('.app-ios-static-item')).toHaveLength(160)
     expect(container.querySelectorAll('img[src]')).toHaveLength(160)
+    expect(container.querySelectorAll('img[loading="eager"]')).toHaveLength(160)
   })
 })

@@ -30,7 +30,6 @@ type MediaTileProps = {
   item: GridItem
   tweet: TweetDoc | undefined
   immersive: boolean
-  deferImageSrc?: boolean
   loading?: 'eager' | 'lazy'
   fetchPriority?: 'high' | 'low' | 'auto'
   initialMedia?: boolean
@@ -136,7 +135,6 @@ export const MediaTile = memo(function MediaTile({
   item,
   tweet,
   immersive,
-  deferImageSrc = true,
   loading = 'lazy',
   fetchPriority = 'auto',
   initialMedia = false,
@@ -194,12 +192,11 @@ export const MediaTile = memo(function MediaTile({
   const placeholderUrl = thumbhashToDataUrl(item.thumbhash)
   const mediaRef = useRef<HTMLDivElement>(null)
   const [deferredImageSrcReady, setDeferredImageSrcReady] = useState(false)
-  const shouldAttachImageSrc =
-    !deferImageSrc || initialMedia || loading === 'eager' || deferredImageSrcReady
+  const shouldAttachImageSrc = initialMedia || loading === 'eager' || deferredImageSrcReady
   const shouldRenderAvifPicture = isMirroredImageUrl(imageSourceUrl)
 
   useEffect(() => {
-    if (!deferImageSrc || initialMedia || loading === 'eager') {
+    if (initialMedia || loading === 'eager') {
       return undefined
     }
 
@@ -224,7 +221,7 @@ export const MediaTile = memo(function MediaTile({
     return () => {
       observer.disconnect()
     }
-  }, [deferImageSrc, initialMedia, loading])
+  }, [initialMedia, loading])
 
   const handleOpen: MouseEventHandler<HTMLButtonElement> = (event) => {
     captureMediaHandoff(item.gridId, mediaRef.current?.querySelector('video, img') ?? null)

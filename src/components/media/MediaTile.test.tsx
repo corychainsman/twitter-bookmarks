@@ -199,35 +199,6 @@ describe('MediaTile', () => {
     expect(image).toHaveAttribute('src', 'https://pbs.twimg.com/media/thumb.jpg?name=small')
   })
 
-  it('attaches native-lazy image sources without waiting for an observer when deferral is disabled', () => {
-    const observe = vi.fn()
-    vi.stubGlobal('IntersectionObserver', class {
-      disconnect = vi.fn()
-      observe = observe
-    })
-
-    render(
-      <MediaTile
-        item={{
-          ...item,
-          thumbUrl: 'https://pbs.twimg.com/media/thumb.jpg',
-        }}
-        tweet={tweet}
-        immersive
-        deferImageSrc={false}
-        imageDevicePixelRatio={1}
-        imageRenderedWidth={320}
-        imageSizes="320px"
-        onOpen={() => {}}
-      />,
-    )
-
-    const image = screen.getByRole('img', { name: tweet.text })
-    expect(image).toHaveAttribute('loading', 'lazy')
-    expect(image).toHaveAttribute('src', 'https://pbs.twimg.com/media/thumb.jpg?name=small')
-    expect(observe).not.toHaveBeenCalled()
-  })
-
   it('attaches motion posters before loading preview video bytes', () => {
     const disconnect = vi.fn()
     const observe = vi.fn()
