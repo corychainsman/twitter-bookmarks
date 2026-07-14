@@ -1,12 +1,10 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
-import { RouterProvider } from '@tanstack/react-router'
 
-import { router } from '@/app/router'
+import { AppRouter } from '@/app/AppRouter'
 import { registerMediaCacheWorker } from '@/lib/media-cache'
 
 import './index.css'
-import 'yet-another-react-lightbox/styles.css'
 
 const MEDIA_CACHE_WORKER_REGISTRATION_DELAY_MS = 12_000
 
@@ -15,6 +13,6 @@ window.setTimeout(registerMediaCacheWorker, MEDIA_CACHE_WORKER_REGISTRATION_DELA
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <RouterProvider router={router} />
+    <AppRouter />
   </StrictMode>,
 )

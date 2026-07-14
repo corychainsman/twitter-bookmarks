@@ -38,6 +38,8 @@ import { Button } from '@/components/ui/button'
 import { preloadMediaCandidates } from '@/lib/media-preload'
 import { cn } from '@/lib/utils'
 
+import 'yet-another-react-lightbox/styles.css'
+
 type LightboxSelection = {
   tweetId: string
   mediaIndex: number

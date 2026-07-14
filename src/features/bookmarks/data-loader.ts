@@ -6,6 +6,10 @@ import type {
 import type { EmbeddingArtifacts } from '@/features/bookmarks/embedding-artifacts'
 import type { GridItem, Manifest, TweetDoc } from '@/features/bookmarks/model'
 import {
+  resolveArtifactPath,
+  withArtifactVersion,
+} from '@/features/bookmarks/artifact-url'
+import {
   createBookmarksArtifactCache,
   type BookmarksArtifactCache,
 } from '@/features/bookmarks/idb-cache'
@@ -15,6 +19,7 @@ export type JsonFetcher = <T>(path: string) => Promise<T>
 export type DataLoaderOptions = {
   fetchJson?: JsonFetcher
   cache?: BookmarksArtifactCache
+  deferBackgroundUntilPaint?: boolean
 }
 
 let dataUrlBase = ''
@@ -23,20 +28,6 @@ let defaultCache: BookmarksArtifactCache | null = null
 function resolveDataUrl(path: string): string {
   dataUrlBase ||= new URL(import.meta.env.BASE_URL, window.location.origin).toString()
   return `${dataUrlBase}${path.charCodeAt(0) === 47 ? path.slice(1) : path}`
-}
-
-function resolveArtifactPath(path: string): string {
-  return `data/${path.replace(/^\/+/, '')}`
-}
-
-function withVersionQuery(path: string, version: string): string {
-  if (path.indexOf('?') < 0) return `${path}?v=${version}`
-  const [pathname, existingQuery = ''] = path.split('?')
-  const params = new URLSearchParams(existingQuery)
-  params.set('v', version)
-  const query = params.toString()
-
-  return query.length > 0 ? `${pathname}?${query}` : pathname
 }
 
 async function defaultFetchJson<T>(path: string): Promise<T> {
@@ -74,6 +65,14 @@ function getCache(options?: DataLoaderOptions): BookmarksArtifactCache {
   return options?.cache ?? (defaultCache ??= createBookmarksArtifactCache())
 }
 
+function waitForNextPaint(options?: DataLoaderOptions): Promise<void> {
+  if (!options?.deferBackgroundUntilPaint || typeof requestAnimationFrame === 'undefined') {
+    return Promise.resolve()
+  }
+
+  return new Promise((resolve) => requestAnimationFrame(() => resolve()))
+}
+
 export async function loadManifest(options?: DataLoaderOptions): Promise<Manifest> {
   if (!options?.fetchJson) {
     return fetchManifest()
@@ -83,10 +82,15 @@ export async function loadManifest(options?: DataLoaderOptions): Promise<Manifes
 }
 
 export type ProgressiveCoreArtifacts = {
-  /** Ready to render/query; docsChunks is empty on the network path until docsReady resolves. */
-  artifacts: CoreArtifacts
-  /** Resolves with the docs chunks (immediately when served from the IDB cache). */
+  manifest: Manifest
+  /** Default-view slice that can render while the full query artifacts stream in. */
+  firstPaintItems: GridItem[]
+  /** Resolves with the full grid and ordering artifacts. */
+  coreReady: Promise<CoreArtifacts>
+  /** Resolves with TweetDoc chunks independently of the full grid. */
   docsReady: Promise<CoreArtifacts['docsChunks']>
+  /** Best-effort persistence; never blocks the interactive app path. */
+  cacheReady: Promise<void>
 }
 
 /**
@@ -109,60 +113,88 @@ export async function loadCoreArtifactsProgressive(
       ...cached,
       gridOne: [],
     }
-    return { artifacts, docsReady: Promise.resolve(artifacts.docsChunks) }
+    return {
+      manifest,
+      firstPaintItems: artifacts.gridAll,
+      coreReady: Promise.resolve(artifacts),
+      docsReady: Promise.resolve(artifacts.docsChunks),
+      cacheReady: Promise.resolve(),
+    }
   }
 
-  const docsPromise = Promise.all(
-    manifest.files.docs.map((fileName) =>
-      fetchJson<TweetDoc[]>(
-        withVersionQuery(resolveArtifactPath(fileName), manifest.buildId),
+  // Give the tiny default-view slice the connection before starting multi-megabyte
+  // background artifacts. On constrained networks, firing every fetch together
+  // makes the first paint compete with data the current viewport cannot use yet.
+  const firstPaintItems = manifest.files.gridFirst
+    ? await fetchJson<GridItem[]>(
+        withArtifactVersion(resolveArtifactPath(manifest.files.gridFirst), manifest.buildId),
+      )
+    : null
+  const backgroundStart = waitForNextPaint(options)
+  const coreDataPromise = backgroundStart.then(() =>
+    Promise.all([
+      fetchJson<GridItem[]>(
+        withArtifactVersion(resolveArtifactPath(manifest.files.gridAll), manifest.buildId),
+      ),
+      fetchJson<string[]>(
+        withArtifactVersion(resolveArtifactPath(manifest.files.orderBookmarked), manifest.buildId),
+      ),
+      fetchJson<string[]>(
+        withArtifactVersion(resolveArtifactPath(manifest.files.orderPosted), manifest.buildId),
+      ),
+    ]),
+  )
+  const docsPromise = backgroundStart.then(() =>
+    Promise.all(
+      manifest.files.docs.map((fileName) =>
+        fetchJson<TweetDoc[]>(
+          withArtifactVersion(resolveArtifactPath(fileName), manifest.buildId),
+        ),
       ),
     ),
   )
-  const [gridAll, orderBookmarked, orderPosted] = await Promise.all([
-    fetchJson<GridItem[]>(
-      withVersionQuery(resolveArtifactPath(manifest.files.gridAll), manifest.buildId),
-    ),
-    fetchJson<string[]>(
-      withVersionQuery(resolveArtifactPath(manifest.files.orderBookmarked), manifest.buildId),
-    ),
-    fetchJson<string[]>(
-      withVersionQuery(resolveArtifactPath(manifest.files.orderPosted), manifest.buildId),
-    ),
-  ])
 
-  const artifacts: CoreArtifacts = {
+  const coreReady = coreDataPromise.then(([gridAll, orderBookmarked, orderPosted]) => ({
     manifest,
     docsChunks: [],
     gridOne: [],
     gridAll,
     orderBookmarked,
     orderPosted,
-  }
+  }))
 
-  const docsReady = docsPromise.then(async (docs) => {
-    const docsChunks = manifest.files.docs.map((fileName, index) => ({
+  const docsReady = docsPromise.then((docs) =>
+    manifest.files.docs.map((fileName, index) => ({
       fileName,
       docs: docs[index] ?? [],
-    }))
-
-    await cache.setCore(manifest.buildId, {
-      docsChunks,
-      gridOne: [],
-      gridAll,
-      orderBookmarked,
-      orderPosted,
+    })),
+  )
+  const cacheReady = Promise.all([coreReady, docsReady])
+    .then(async ([coreArtifacts, docsChunks]) => {
+      await cache.setCore(manifest.buildId, {
+        docsChunks,
+        gridOne: [],
+        gridAll: coreArtifacts.gridAll,
+        orderBookmarked: coreArtifacts.orderBookmarked,
+        orderPosted: coreArtifacts.orderPosted,
+      })
     })
+    .catch(() => undefined)
 
-    return docsChunks
-  })
-
-  return { artifacts, docsReady }
+  return {
+    manifest,
+    firstPaintItems: firstPaintItems ?? (await coreReady).gridAll,
+    coreReady,
+    docsReady,
+    cacheReady,
+  }
 }
 
 export async function loadCoreArtifacts(options?: DataLoaderOptions): Promise<CoreArtifacts> {
-  const { artifacts, docsReady } = await loadCoreArtifactsProgressive(options)
+  const { coreReady, docsReady, cacheReady } = await loadCoreArtifactsProgressive(options)
+  const artifacts = await coreReady
   const docsChunks = await docsReady
+  await cacheReady
 
   return { ...artifacts, docsChunks }
 }
@@ -179,14 +211,15 @@ export async function loadSearchArtifacts(
     return cached
   }
 
-  const searchArtifacts: SearchArtifacts = {
-    searchIndex: await fetchJson<ExportArtifacts['searchIndex']>(
-      withVersionQuery(resolveArtifactPath(manifest.files.searchIndex), manifest.buildId),
+  const [searchIndex, searchStore] = await Promise.all([
+    fetchJson<ExportArtifacts['searchIndex']>(
+      withArtifactVersion(resolveArtifactPath(manifest.files.searchIndex), manifest.buildId),
     ),
-    searchStore: await fetchJson<ExportArtifacts['searchStore']>(
-      withVersionQuery(resolveArtifactPath(manifest.files.searchStore), manifest.buildId),
+    fetchJson<ExportArtifacts['searchStore']>(
+      withArtifactVersion(resolveArtifactPath(manifest.files.searchStore), manifest.buildId),
     ),
-  }
+  ])
+  const searchArtifacts: SearchArtifacts = { searchIndex, searchStore }
 
   await cache.setSearch(manifest.buildId, searchArtifacts)
 
@@ -211,7 +244,7 @@ export async function loadEmbeddingArtifacts(
 
   const embeddingArtifacts: EmbeddingArtifacts = {
     embeddingIndex: await fetchJson<EmbeddingArtifacts['embeddingIndex']>(
-      withVersionQuery(resolveArtifactPath(manifest.files.embeddings), manifest.buildId),
+      withArtifactVersion(resolveArtifactPath(manifest.files.embeddings), manifest.buildId),
     ),
   }
 

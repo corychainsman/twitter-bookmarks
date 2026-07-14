@@ -1,5 +1,4 @@
 const MEDIA_CACHE_NAME = 'twitter-bookmarks-media-v2'
-// Keep in sync with CACHEABLE_MEDIA_HOSTS in src/lib/media-cache.ts.
 const CACHEABLE_MEDIA_HOSTS = new Set([
   'pbs.twimg.com',
   'video.twimg.com',
@@ -7,7 +6,9 @@ const CACHEABLE_MEDIA_HOSTS = new Set([
 ])
 // High enough to hold the full mirrored thumb tier (~3k tiles) plus overflow.
 const MAX_MEDIA_CACHE_ENTRIES = 4500
-const WARM_BATCH_SIZE = 8
+const MEDIA_CACHE_TRIM_INTERVAL_MS = 60_000
+let lastMediaCacheTrimAt = 0
+let mediaCacheTrimPromise = null
 
 function isCacheableMediaUrl(url) {
   try {
@@ -39,6 +40,18 @@ async function trimMediaCache(cache) {
   }
 }
 
+function scheduleMediaCacheTrim(cache) {
+  const now = Date.now()
+  if (mediaCacheTrimPromise || now - lastMediaCacheTrimAt < MEDIA_CACHE_TRIM_INTERVAL_MS) {
+    return
+  }
+
+  lastMediaCacheTrimAt = now
+  mediaCacheTrimPromise = trimMediaCache(cache).finally(() => {
+    mediaCacheTrimPromise = null
+  })
+}
+
 async function cacheMediaRequest(request) {
   // The Cache API is meaningfully stricter in some browsers (e.g. Safari throws on
   // certain opaque-response writes and on any Cache access in Private Browsing).
@@ -61,40 +74,13 @@ async function cacheMediaRequest(request) {
   if (response.ok || response.type === 'opaque') {
     try {
       await cache.put(request, response.clone())
-      void trimMediaCache(cache)
+      scheduleMediaCacheTrim(cache)
     } catch {
       // Best-effort: ignore cache write failures, still return the real response.
     }
   }
 
   return response
-}
-
-async function warmMediaUrl(url) {
-  if (!isCacheableMediaUrl(url)) {
-    return
-  }
-
-  // Best-effort background warming; failures here must never surface as an error
-  // to the page (this runs detached from any real image request).
-  try {
-    const request = new Request(url, {
-      credentials: 'omit',
-      mode: 'no-cors',
-    })
-    const cache = await caches.open(MEDIA_CACHE_NAME)
-
-    if (await cache.match(request, { ignoreVary: true })) {
-      return
-    }
-
-    const response = await fetch(request)
-    if (response.ok || response.type === 'opaque') {
-      await cache.put(request, response)
-    }
-  } catch {
-    // ignore
-  }
 }
 
 self.addEventListener('install', () => {
@@ -111,22 +97,4 @@ self.addEventListener('fetch', (event) => {
   }
 
   event.respondWith(cacheMediaRequest(event.request))
-})
-
-self.addEventListener('message', (event) => {
-  if (event.data?.type !== 'warm-media-cache' || !Array.isArray(event.data.urls)) {
-    return
-  }
-
-  const urls = [...new Set(event.data.urls.filter((url) => typeof url === 'string'))]
-  event.waitUntil(
-    (async () => {
-      for (let index = 0; index < urls.length; index += WARM_BATCH_SIZE) {
-        await Promise.all(urls.slice(index, index + WARM_BATCH_SIZE).map(warmMediaUrl))
-      }
-
-      const cache = await caches.open(MEDIA_CACHE_NAME)
-      await trimMediaCache(cache)
-    })(),
-  )
 })

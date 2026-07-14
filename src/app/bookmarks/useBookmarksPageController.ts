@@ -2,12 +2,12 @@ import * as React from 'react'
 
 import type { CoreArtifacts } from '@/features/bookmarks/export-artifacts'
 import type { SemanticQuery } from '@/features/bookmarks/embedding-artifacts'
+import { getGridItemIndex, getTweetDocIndex } from '@/features/bookmarks/artifact-indexes'
+import { resolveEmbeddingIndexUrl } from '@/features/bookmarks/artifact-url'
 import type {
   GridItem,
-  Manifest,
   QueryResult,
   QueryState,
-  TweetDoc,
 } from '@/features/bookmarks/model'
 import { loadCoreArtifactsProgressive } from '@/features/bookmarks/data-loader'
 import {
@@ -19,9 +19,7 @@ import {
   applyQueryStatePatch,
   createQuerySeed,
   DEFAULT_QUERY_STATE,
-  parseQueryState,
   rerandomizeQueryState,
-  serializeQueryState,
 } from '@/features/bookmarks/url-state'
 import {
   BOOKMARKS_ZOOM_STEP,
@@ -34,10 +32,22 @@ import {
   type MasonryScrollAnchorRequest,
 } from '@/components/grid/masonry-anchor'
 import {
-  EMBEDDING_ARTIFACTS_NOT_HYDRATED_MESSAGE,
+  isBookmarksQueryError,
   runBookmarksQuery,
-  SEMANTIC_QUERY_VECTOR_NOT_READY_MESSAGE,
 } from '@/features/bookmarks/query-engine'
+import {
+  buildBookmarksLocationPath,
+  parseBookmarksLocation,
+  parseGridSelection,
+} from '@/features/bookmarks/location-state'
+import {
+  bookmarksQueryNeedsDocs,
+  canUseDefaultFirstPaint,
+  createBookmarksQuery,
+  createBookmarksViewKey,
+  createSemanticTextQueryKey,
+  type BookmarksQuery,
+} from '@/features/bookmarks/query-request'
 import { sessionStorageStore } from '@/lib/storage'
 import type {
   QueryWorkerRequest,
@@ -47,86 +57,18 @@ import type {
   EmbeddingWorkerRequest,
   EmbeddingWorkerResponse,
 } from '@/workers/embedding-worker-protocol'
+import { useViewportWidth } from '@/app/bookmarks/useViewportWidth'
 
 type HydratedArtifacts = CoreArtifacts
 
 const SEARCH_QUERY_COMMIT_DELAY_MS = 180
 const QUERY_WORKER_WATCHDOG_MS = 1_500
-const noop = () => {}
-const gridSelectionCache = new Map<string, { tweetId: string; mediaIndex: number }>()
 const visibleItemsCache = new WeakMap<string[], GridItem[]>()
 
-function resolveDataUrl(path: string): string {
-  const appBase = new URL(import.meta.env.BASE_URL, window.location.origin)
-  return new URL(path.replace(/^\//, ''), appBase).toString()
-}
-
-function resolveVersionedArtifactUrl(path: string, version: string): string {
-  const url = new URL(resolveDataUrl(`data/${path.replace(/^\/+/, '')}`))
-  url.searchParams.set('v', version)
-  return url.toString()
-}
-
-function resolveEmbeddingIndexUrl(manifest: Manifest): string {
-  if (!manifest.files.embeddings) {
-    throw new Error('Semantic embeddings are not exported. Run bun run data:embeddings.')
-  }
-
-  return resolveVersionedArtifactUrl(manifest.files.embeddings, manifest.buildId)
-}
-
-function useWindowWidth() {
-  const [width, setWidth] = React.useState(() =>
-    typeof window === 'undefined' ? 1280 : window.innerWidth,
-  )
-
-  React.useEffect(() => {
-    const handleResize = () => setWidth(window.innerWidth)
-    window.addEventListener('resize', handleResize, { passive: true })
-    return () => window.removeEventListener('resize', handleResize)
-  }, [])
-
-  return width
-}
-
 function updateUrlFromState(state: QueryState, selectedGridId: string | null) {
-  const params = serializeQueryState(state)
-  if (selectedGridId) {
-    params.set('selected', selectedGridId)
-  }
-  const nextQuery = params.toString()
-  const nextUrl =
-    nextQuery.length > 0 ? `${window.location.pathname}?${nextQuery}` : window.location.pathname
+  const nextUrl = buildBookmarksLocationPath(window.location.pathname, state, selectedGridId)
   if (nextUrl === `${window.location.pathname}${window.location.search}`) return
   window.history.replaceState(null, '', nextUrl)
-}
-
-function parseGridSelection(gridId: string | null): { tweetId: string; mediaIndex: number } | null {
-  if (!gridId) {
-    return null
-  }
-
-  const cached = gridSelectionCache.get(gridId)
-  if (cached) return cached
-  const [tweetId, mediaIndex] = gridId.split(':')
-  if (!tweetId || mediaIndex == null) {
-    return null
-  }
-
-  const selection = {
-    tweetId,
-    mediaIndex: Number(mediaIndex),
-  }
-  if (!Number.isInteger(selection.mediaIndex) || selection.mediaIndex < 0) {
-    return null
-  }
-  gridSelectionCache.set(gridId, selection)
-  return selection
-}
-
-function parseSelectedGridId(params: URLSearchParams): string | null {
-  const selected = params.get('selected')
-  return parseGridSelection(selected) ? selected : null
 }
 
 export function useBookmarksPageController() {
@@ -134,18 +76,16 @@ export function useBookmarksPageController() {
     () => readBookmarksSessionState(sessionStorageStore),
     [],
   )
-  const initialQueryState = React.useMemo(
-    () =>
-      parseQueryState(new URLSearchParams(window.location.search), {
-        generateSeed: createQuerySeed,
-      }),
+  const initialLocationState = React.useMemo(
+    () => parseBookmarksLocation(new URLSearchParams(window.location.search), {
+      generateSeed: createQuerySeed,
+    }),
     [],
   )
-  const initialSelectedGridId = React.useMemo(
-    () => parseSelectedGridId(new URLSearchParams(window.location.search)),
-    [],
-  )
+  const initialQueryState = initialLocationState.queryState
+  const initialSelectedGridId = initialLocationState.selectedGridId
   const [artifacts, setArtifacts] = React.useState<HydratedArtifacts | null>(null)
+  const [firstPaintItems, setFirstPaintItems] = React.useState<GridItem[]>([])
   const [loadingError, setLoadingError] = React.useState<string | null>(null)
   const [hasFirstQueryResult, setHasFirstQueryResult] = React.useState(false)
   const [queryResult, setQueryResult] = React.useState<QueryResult>({
@@ -165,44 +105,26 @@ export function useBookmarksPageController() {
   const [isEmbeddingPending, setIsEmbeddingPending] = React.useState(false)
   const [scrollAnchorRequest, setScrollAnchorRequest] =
     React.useState<MasonryScrollAnchorRequest | null>(null)
-  const windowWidth = useWindowWidth()
+  const windowWidth = useViewportWidth()
   const deferredQuery = React.useDeferredValue(queryState.q)
-  const effectiveQueryState = React.useMemo(
-    () => ({ ...queryState, q: deferredQuery }),
-    [deferredQuery, queryState],
-  )
-  const {
-    dir: queryRequestDir,
-    keepSeed: queryRequestKeepSeed,
-    mode: queryRequestMode,
-    preferMotion: queryRequestPreferMotion,
-    q: queryRequestText,
-    seed: queryRequestSeed,
-    similarToGridId: queryRequestSimilarToGridId,
-    sort: queryRequestSort,
-  } = effectiveQueryState
   const queryRequestState = React.useMemo(
-    () => ({
-      q: queryRequestText,
-      sort: queryRequestSort,
-      dir: queryRequestDir,
-      mode: queryRequestMode,
-      immersive: DEFAULT_QUERY_STATE.immersive,
-      preferMotion: queryRequestPreferMotion,
-      similarToGridId: queryRequestSimilarToGridId,
-      zoom: DEFAULT_QUERY_STATE.zoom,
-      keepSeed: queryRequestKeepSeed,
-      seed: queryRequestSeed,
+    () => createBookmarksQuery({
+      q: deferredQuery,
+      sort: queryState.sort,
+      dir: queryState.dir,
+      mode: queryState.mode,
+      preferMotion: queryState.preferMotion,
+      similarToGridId: queryState.similarToGridId,
+      seed: queryState.seed,
     }),
     [
-      queryRequestDir,
-      queryRequestKeepSeed,
-      queryRequestMode,
-      queryRequestPreferMotion,
-      queryRequestSeed,
-      queryRequestSimilarToGridId,
-      queryRequestSort,
-      queryRequestText,
+      deferredQuery,
+      queryState.dir,
+      queryState.mode,
+      queryState.preferMotion,
+      queryState.seed,
+      queryState.similarToGridId,
+      queryState.sort,
     ],
   )
   const masonryLayout = React.useMemo(
@@ -216,18 +138,7 @@ export function useBookmarksPageController() {
   // "unloaded" to its real value exactly at that handoff, and artifacts load only
   // once per session, so keying on it forces a remount at the worst moment while
   // never capturing a genuine mid-session dataset change.
-  const viewKey = React.useMemo(() => {
-    const seedPart = queryRequestState.sort === 'random' ? (queryRequestState.seed ?? '') : ''
-    return [
-      queryRequestState.sort,
-      queryRequestState.dir,
-      queryRequestState.mode,
-      queryRequestState.q,
-      queryRequestState.similarToGridId ?? '',
-      queryRequestState.preferMotion ? '1' : '0',
-      seedPart,
-    ].join('|')
-  }, [queryRequestState])
+  const viewKey = React.useMemo(() => createBookmarksViewKey(queryRequestState), [queryRequestState])
   const workerRef = React.useRef<Worker | null>(null)
   const embeddingWorkerRef = React.useRef<Worker | null>(null)
   const workerCoreDocsHydratedRef = React.useRef(false)
@@ -237,12 +148,14 @@ export function useBookmarksPageController() {
   const hasFirstQueryResultRef = React.useRef(false)
   const lastQueryRequestRef = React.useRef<{
     semanticQuery?: SemanticQuery
-    state: QueryState
+    query: BookmarksQuery
   } | null>(null)
   const embeddingHydrationRef = React.useRef(false)
   const embeddingRequestIdRef = React.useRef(0)
   const embeddingRequestKeyRef = React.useRef<string | null>(null)
+  const hasMarkedInitialMediaReadyRef = React.useRef(false)
   const queryStateRef = React.useRef(initialQueryState)
+  const queryRequestStateRef = React.useRef(queryRequestState)
   const scrollAnchorRequestIdRef = React.useRef(0)
   const [isQueryPending, startTransition] = React.useTransition()
 
@@ -260,7 +173,7 @@ export function useBookmarksPageController() {
 
   const runQueryOnMainThread = React.useEffectEvent((input: {
     semanticQuery?: SemanticQuery
-    state: QueryState
+    query: BookmarksQuery
   }) => {
     const currentArtifacts = artifacts
     if (!currentArtifacts) {
@@ -268,14 +181,10 @@ export function useBookmarksPageController() {
     }
 
     try {
-      applyQueryResult(runBookmarksQuery(currentArtifacts, input.state, input.semanticQuery))
+      applyQueryResult(runBookmarksQuery(currentArtifacts, input.query, input.semanticQuery))
     } catch (error) {
-      if (error instanceof Error && error.message === EMBEDDING_ARTIFACTS_NOT_HYDRATED_MESSAGE) {
+      if (isBookmarksQueryError(error, 'embeddings-not-hydrated')) {
         void ensureEmbeddingArtifacts()
-        return
-      }
-
-      if (error instanceof Error && error.message === SEMANTIC_QUERY_VECTOR_NOT_READY_MESSAGE) {
         return
       }
 
@@ -359,20 +268,26 @@ export function useBookmarksPageController() {
     worker.onerror = (event) => {
       workerAvailableRef.current = false
       setLoadingError(event.message || 'Bookmark query worker failed; using in-page fallback.')
-      if (!hasFirstQueryResultRef.current && lastQueryRequestRef.current) {
+      if (lastQueryRequestRef.current) {
         runQueryOnMainThread(lastQueryRequestRef.current)
       }
     }
     worker.onmessageerror = () => {
       workerAvailableRef.current = false
       setLoadingError('Bookmark query worker could not exchange data; using in-page fallback.')
-      if (!hasFirstQueryResultRef.current && lastQueryRequestRef.current) {
+      if (lastQueryRequestRef.current) {
         runQueryOnMainThread(lastQueryRequestRef.current)
       }
     }
     worker.onmessage = (event: MessageEvent<QueryWorkerResponse>) => {
-      workerLastResponseIdRef.current = workerLastRequestIdRef.current
       const message = event.data
+      if ('requestId' in message && message.requestId !== undefined) {
+        workerLastResponseIdRef.current = Math.max(
+          workerLastResponseIdRef.current,
+          message.requestId,
+        )
+        if (message.requestId !== workerLastRequestIdRef.current) return
+      }
 
       if (message.type === 'result') {
         applyQueryResult(message.result)
@@ -388,10 +303,6 @@ export function useBookmarksPageController() {
         embeddingHydrationRef.current = false
         setHasEmbeddingIndex(true)
         setLoadingError(null)
-        return
-      }
-
-      if (message.type === 'needs-semantic-query') {
         return
       }
 
@@ -419,6 +330,10 @@ export function useBookmarksPageController() {
   }, [queryState])
 
   React.useEffect(() => {
+    queryRequestStateRef.current = queryRequestState
+  }, [queryRequestState])
+
+  React.useEffect(() => {
     setSearchInputValue(queryState.q)
   }, [queryState.q])
 
@@ -428,12 +343,12 @@ export function useBookmarksPageController() {
 
   React.useEffect(() => {
     const handlePopState = () => {
-      setQueryState(
-        parseQueryState(new URLSearchParams(window.location.search), {
-          generateSeed: createQuerySeed,
-        }),
+      const locationState = parseBookmarksLocation(
+        new URLSearchParams(window.location.search),
+        { generateSeed: createQuerySeed },
       )
-      setSelectedGridId(parseSelectedGridId(new URLSearchParams(window.location.search)))
+      setQueryState(locationState.queryState)
+      setSelectedGridId(locationState.selectedGridId)
     }
 
     window.addEventListener('popstate', handlePopState)
@@ -442,42 +357,72 @@ export function useBookmarksPageController() {
 
   React.useEffect(() => {
     let cancelled = false
+    let hydratedCoreArtifacts: CoreArtifacts | null = null
+    let pendingDocsChunks: CoreArtifacts['docsChunks'] | null = null
 
-    void loadCoreArtifactsProgressive()
-      .then(({ artifacts: coreArtifacts, docsReady }) => {
-        if (cancelled) {
-          return
+    const applyDocsChunks = (docsChunks: CoreArtifacts['docsChunks']) => {
+      if (cancelled || docsChunks.length === 0) return
+      pendingDocsChunks = docsChunks
+      if (!hydratedCoreArtifacts) return
+
+      if (!workerCoreDocsHydratedRef.current) {
+        postWorkerMessage({
+          type: 'hydrate-docs',
+          buildId: hydratedCoreArtifacts.manifest.buildId,
+          docsChunks,
+        })
+        workerCoreDocsHydratedRef.current = true
+      }
+
+      setArtifacts((current) =>
+        current && current.manifest.buildId === hydratedCoreArtifacts?.manifest.buildId
+          ? { ...current, docsChunks }
+          : current,
+      )
+    }
+
+    void loadCoreArtifactsProgressive({
+      deferBackgroundUntilPaint: canUseDefaultFirstPaint(queryRequestStateRef.current),
+    })
+      .then(({ manifest, firstPaintItems: initialItems, coreReady, docsReady }) => {
+        if (cancelled) return
+
+        if (initialItems.length > 0 && canUseDefaultFirstPaint(queryRequestStateRef.current)) {
+          setFirstPaintItems(initialItems)
+          applyQueryResult({
+            total: manifest.gridItemCountAll,
+            orderedGridIds: initialItems.map((item) => item.gridId),
+          })
         }
 
-        setArtifacts(coreArtifacts)
-        workerCoreDocsHydratedRef.current = false
-        setHasEmbeddingIndex(false)
-        postWorkerMessage({
-          type: 'hydrate-core',
-          artifacts: { ...coreArtifacts, docsChunks: [] },
-        })
+        void coreReady
+          .then((coreArtifacts) => {
+            if (cancelled) return
 
-        docsReady
-          .then((docsChunks) => {
-            if (cancelled || docsChunks.length === 0) {
-              return
-            }
+            hydratedCoreArtifacts = coreArtifacts
+            workerCoreDocsHydratedRef.current = coreArtifacts.docsChunks.length > 0
+            setArtifacts(coreArtifacts)
+            setHasEmbeddingIndex(false)
+            postWorkerMessage({
+              type: 'hydrate-core',
+              artifacts: coreArtifacts,
+            })
 
-            setArtifacts((current) =>
-              current && current.manifest.buildId === coreArtifacts.manifest.buildId
-                ? { ...current, docsChunks }
-                : current,
-            )
+            if (pendingDocsChunks) applyDocsChunks(pendingDocsChunks)
           })
           .catch((error: unknown) => {
-            if (cancelled) {
-              return
-            }
-
+            if (cancelled) return
             setLoadingError(
               error instanceof Error ? error.message : 'Failed to load bookmark data.',
             )
           })
+
+        void docsReady.then(applyDocsChunks).catch((error: unknown) => {
+          if (cancelled) return
+          setLoadingError(
+            error instanceof Error ? error.message : 'Failed to load bookmark data.',
+          )
+        })
       })
       .catch((error) => {
         if (cancelled) {
@@ -498,7 +443,7 @@ export function useBookmarksPageController() {
     }
 
     const trimmedSemanticText = queryRequestState.q.trim()
-    const expectedTextQueryKey = `text:${trimmedSemanticText}`
+    const expectedTextQueryKey = createSemanticTextQueryKey(trimmedSemanticText)
     const semanticQueryForRequest =
       !queryRequestState.similarToGridId
         ? trimmedSemanticText.length > 0
@@ -509,18 +454,7 @@ export function useBookmarksPageController() {
             ? semanticQuery
             : null
         : null
-    const isWaitingForSemanticQuery =
-      !queryRequestState.similarToGridId &&
-      (trimmedSemanticText.length > 0 || semanticImageQueryName !== null) &&
-      !semanticQueryForRequest
-
-    if (isWaitingForSemanticQuery) {
-      void ensureEmbeddingArtifacts()
-      return
-    }
-
-    const queryNeedsDocs =
-      queryRequestState.sort === 'random' || queryRequestState.mode === 'one'
+    const queryNeedsDocs = bookmarksQueryNeedsDocs(queryRequestState)
     if (queryNeedsDocs && artifacts.docsChunks.length === 0) {
       // Docs are still streaming in behind the grid artifacts; this effect re-runs
       // when they land, so hold the query instead of computing an empty result.
@@ -528,7 +462,7 @@ export function useBookmarksPageController() {
     }
 
     const queryRequest = {
-      state: queryRequestState,
+      query: queryRequestState,
       semanticQuery: semanticQueryForRequest ?? undefined,
     }
     lastQueryRequestRef.current = queryRequest
@@ -537,20 +471,16 @@ export function useBookmarksPageController() {
     if (!workerAvailableRef.current) {
       runQueryOnMainThread(queryRequest)
     } else {
-      if (queryNeedsDocs && !workerCoreDocsHydratedRef.current) {
-        postWorkerMessage({ type: 'hydrate-core', artifacts })
-        workerCoreDocsHydratedRef.current = true
-      }
-
       workerLastRequestIdRef.current += 1
       const requestId = workerLastRequestIdRef.current
       postWorkerMessage({
         type: 'query',
+        requestId,
         ...queryRequest,
       })
 
       watchdogTimeoutId = window.setTimeout(() => {
-        if (workerLastResponseIdRef.current >= requestId || hasFirstQueryResultRef.current) {
+        if (workerLastResponseIdRef.current >= requestId) {
           return
         }
 
@@ -593,7 +523,7 @@ export function useBookmarksPageController() {
       return
     }
 
-    const requestKey = `text:${trimmedSemanticText}`
+    const requestKey = createSemanticTextQueryKey(trimmedSemanticText)
     if (semanticQueryKey === requestKey || embeddingRequestKeyRef.current === requestKey) {
       return
     }
@@ -654,23 +584,15 @@ export function useBookmarksPageController() {
     }
   }, [])
 
-  const docsById = React.useMemo(() => {
-    const map = new Map<string, TweetDoc>()
-    for (const chunk of artifacts?.docsChunks ?? []) {
-      for (const doc of chunk.docs) {
-        map.set(doc.id, doc)
-      }
-    }
-    return map
-  }, [artifacts])
+  const docsById = React.useMemo(
+    () => getTweetDocIndex(artifacts?.docsChunks ?? []).byId,
+    [artifacts?.docsChunks],
+  )
 
-  const gridById = React.useMemo(() => {
-    const map = new Map<string, GridItem>()
-    for (const item of artifacts?.gridAll ?? []) {
-      map.set(item.gridId, item)
-    }
-    return map
-  }, [artifacts])
+  const gridById = React.useMemo(
+    () => getGridItemIndex(artifacts?.gridAll ?? firstPaintItems).byId,
+    [artifacts?.gridAll, firstPaintItems],
+  )
 
   const visibleItems = React.useMemo(
     () => {
@@ -791,6 +713,13 @@ export function useBookmarksPageController() {
     })
   }, [])
 
+  const markInitialMediaReady = React.useCallback(() => {
+    if (!hasMarkedInitialMediaReadyRef.current) {
+      hasMarkedInitialMediaReadyRef.current = true
+      performance.mark('bookmarks-initial-media-ready')
+    }
+  }, [])
+
   const queueScrollAnchor = React.useCallback((anchor: MasonryScrollAnchor | null) => {
     if (!anchor) {
       return
@@ -842,7 +771,7 @@ export function useBookmarksPageController() {
     queryResult,
     queryState: displayedQueryState,
     loadingError,
-    hasLoadedArtifacts: artifacts !== null,
+    hasLoadedArtifacts: artifacts !== null || firstPaintItems.length > 0,
     hasFirstQueryResult,
     isQueryPending: isQueryPending || isEmbeddingPending,
     semanticImageQueryName,
@@ -871,7 +800,7 @@ export function useBookmarksPageController() {
     onImmersiveChange: (value: boolean) => patchQueryState({ immersive: value }),
     onImageSearch: requestImageSemanticQuery,
     onClearSemanticSource: clearSemanticSource,
-    onInitialMediaReady: noop,
+    onInitialMediaReady: markInitialMediaReady,
     onBrowseSimilar: browseSimilar,
     onKeepSeedChange: (value: boolean) => patchQueryState({ keepSeed: value }),
     onRerandomize,

@@ -6,7 +6,11 @@ import {
   type EmbeddingIndex,
 } from '@/features/bookmarks/embedding-artifacts'
 import type { RawBookmarkRecord } from '@/features/bookmarks/model'
-import { runBookmarksQuery } from '@/features/bookmarks/query-engine'
+import {
+  BookmarksQueryError,
+  isBookmarksQueryError,
+  runBookmarksQuery,
+} from '@/features/bookmarks/query-engine'
 import { DEFAULT_QUERY_STATE } from '@/features/bookmarks/url-state'
 
 function buildTestEmbeddingIndex(records: EmbeddingIndex['records'], vectors: number[][]): EmbeddingIndex {
@@ -145,19 +149,16 @@ describe('runBookmarksQuery', () => {
     const alphaOne = runBookmarksQuery(artifacts, {
       ...DEFAULT_QUERY_STATE,
       sort: 'random',
-      keepSeed: true,
       seed: 'alpha-seed',
     })
     const alphaTwo = runBookmarksQuery(artifacts, {
       ...DEFAULT_QUERY_STATE,
       sort: 'random',
-      keepSeed: true,
       seed: 'alpha-seed',
     })
     const bravo = runBookmarksQuery(artifacts, {
       ...DEFAULT_QUERY_STATE,
       sort: 'random',
-      keepSeed: true,
       seed: 'bravo-seed',
     })
 
@@ -205,7 +206,7 @@ describe('runBookmarksQuery', () => {
     })
   })
 
-  it('throws a dedicated error when text search is requested before embedding artifacts are hydrated', () => {
+  it('returns immediate lexical text results before embedding artifacts are hydrated', () => {
     const artifacts = buildExportArtifacts(
       [
         {
@@ -224,7 +225,36 @@ describe('runBookmarksQuery', () => {
       },
     )
 
-    expect(() =>
+    const result = runBookmarksQuery(
+      {
+        manifest: artifacts.manifest,
+        docsChunks: artifacts.docsChunks,
+        gridOne: artifacts.gridOne,
+        gridAll: artifacts.gridAll,
+        orderBookmarked: artifacts.orderBookmarked,
+        orderPosted: artifacts.orderPosted,
+      },
+      {
+        ...DEFAULT_QUERY_STATE,
+        q: 'kernel scheduler',
+      },
+    )
+
+    expect(result.orderedGridIds).toEqual(['tweet-core:0'])
+  })
+
+  it('still requires embedding artifacts for visual similarity browsing', () => {
+    const artifacts = buildExportArtifacts(
+      [{
+        id: 'tweet-core',
+        url: 'https://x.com/alice/status/tweet-core',
+        text: 'Kernel scheduler notes',
+        mediaObjects: [{ type: 'photo', url: 'https://img/core.jpg' }],
+      }],
+      { buildId: 'build-core-visual', builtAt: '2026-04-17T19:00:00.000Z' },
+    )
+    let caught: unknown
+    try {
       runBookmarksQuery(
         {
           manifest: artifacts.manifest,
@@ -236,10 +266,44 @@ describe('runBookmarksQuery', () => {
         },
         {
           ...DEFAULT_QUERY_STATE,
-          q: 'kernel',
+          similarToGridId: 'tweet-core:0',
         },
-      ),
-    ).toThrow('Semantic embedding artifacts have not been hydrated')
+      )
+    } catch (error) {
+      caught = error
+    }
+
+    expect(caught).toBeInstanceOf(BookmarksQueryError)
+    expect(isBookmarksQueryError(caught, 'embeddings-not-hydrated')).toBe(true)
+    expect((caught as Error).message).toBe('Semantic embedding artifacts have not been hydrated')
+  })
+
+  it('scopes cached results to the active Manifest even when build ids match', () => {
+    const first = buildExportArtifacts(
+      [{
+        id: 'tweet-first',
+        url: 'https://x.com/a/status/tweet-first',
+        text: 'First',
+        mediaObjects: [{ type: 'photo', url: 'https://img/first.jpg' }],
+      }],
+      { buildId: 'shared-build', builtAt: '2026-07-13T00:00:00.000Z' },
+    )
+    const second = buildExportArtifacts(
+      [{
+        id: 'tweet-second',
+        url: 'https://x.com/b/status/tweet-second',
+        text: 'Second',
+        mediaObjects: [{ type: 'photo', url: 'https://img/second.jpg' }],
+      }],
+      { buildId: 'shared-build', builtAt: '2026-07-13T00:00:00.000Z' },
+    )
+
+    expect(runBookmarksQuery(first, DEFAULT_QUERY_STATE).orderedGridIds).toEqual([
+      'tweet-first:0',
+    ])
+    expect(runBookmarksQuery(second, DEFAULT_QUERY_STATE).orderedGridIds).toEqual([
+      'tweet-second:0',
+    ])
   })
 
   it('ranks semantic search results using text and media embedding records', () => {

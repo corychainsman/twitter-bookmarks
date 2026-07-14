@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import type {
   CoreArtifacts,
@@ -8,6 +8,7 @@ import type { EmbeddingArtifacts } from '@/features/bookmarks/embedding-artifact
 import {
   loadEmbeddingArtifacts,
   loadCoreArtifacts,
+  loadCoreArtifactsProgressive,
   loadSearchArtifacts,
   type JsonFetcher,
 } from '@/features/bookmarks/data-loader'
@@ -24,6 +25,7 @@ const manifest: Manifest = {
     docs: ['tweets/docs-0001.json'],
     gridOne: 'grid/one.json',
     gridAll: 'grid/all.json',
+    gridFirst: 'grid/first.json',
     orderBookmarked: 'order/bookmarked.json',
     orderPosted: 'order/posted.json',
     searchIndex: 'search/index.json',
@@ -33,6 +35,8 @@ const manifest: Manifest = {
 }
 
 describe('data loader', () => {
+  afterEach(() => vi.unstubAllGlobals())
+
   it('loads core artifacts without fetching search files', async () => {
     const requestedPaths: string[] = []
     const fetchJson: JsonFetcher = async <T,>(path: string): Promise<T> => {
@@ -61,6 +65,7 @@ describe('data loader', () => {
         ],
         'data/grid/one.json?v=build-1': [{ gridId: 'tweet-1:0', tweetId: 'tweet-1', mediaIndex: 0, mediaType: 'photo', thumbUrl: 'https://img/1.jpg', fullUrl: 'https://img/1.jpg' }],
         'data/grid/all.json?v=build-1': [{ gridId: 'tweet-1:0', tweetId: 'tweet-1', mediaIndex: 0, mediaType: 'photo', thumbUrl: 'https://img/1.jpg', fullUrl: 'https://img/1.jpg' }],
+        'data/grid/first.json?v=build-1': [{ gridId: 'tweet-1:0', tweetId: 'tweet-1', mediaIndex: 0, mediaType: 'photo', thumbUrl: 'https://img/1.jpg', fullUrl: 'https://img/1.jpg' }],
         'data/order/bookmarked.json?v=build-1': ['tweet-1'],
         'data/order/posted.json?v=build-1': ['tweet-1'],
         'search/index.json': { shouldNotLoad: true },
@@ -84,12 +89,79 @@ describe('data loader', () => {
     expect(artifacts.manifest.buildId).toBe('build-1')
     expect(requestedPaths).toEqual([
       'data/manifest.json',
-      'data/tweets/docs-0001.json?v=build-1',
+      'data/grid/first.json?v=build-1',
       'data/grid/all.json?v=build-1',
       'data/order/bookmarked.json?v=build-1',
       'data/order/posted.json?v=build-1',
+      'data/tweets/docs-0001.json?v=build-1',
     ])
     expect(cache.setCore).toHaveBeenCalledTimes(1)
+  })
+
+  it('exposes the small first-paint grid without waiting for full core artifacts', async () => {
+    const firstItem = {
+      gridId: 'tweet-1:0',
+      tweetId: 'tweet-1',
+      mediaIndex: 0,
+      mediaType: 'photo' as const,
+      thumbUrl: 'https://img/1.jpg',
+      fullUrl: 'https://img/1.jpg',
+    }
+    let resolveGridAll: (items: typeof firstItem[]) => void = () => undefined
+    const gridAllReady = new Promise<typeof firstItem[]>((resolve) => {
+      resolveGridAll = resolve
+    })
+    const requestedPaths: string[] = []
+    let paintCallback: FrameRequestCallback | null = null
+    vi.stubGlobal('requestAnimationFrame', (callback: FrameRequestCallback) => {
+      paintCallback = callback
+      return 1
+    })
+    const fetchJson: JsonFetcher = <T,>(path: string): Promise<T> => {
+      requestedPaths.push(path)
+      const response =
+        path === 'data/manifest.json'
+          ? Promise.resolve(manifest)
+          : path === 'data/grid/first.json?v=build-1'
+            ? Promise.resolve([firstItem])
+            : path === 'data/grid/all.json?v=build-1'
+              ? gridAllReady
+              : path.includes('/tweets/')
+                ? Promise.resolve([])
+                : Promise.resolve(['tweet-1'])
+      return response as Promise<T>
+    }
+    const cache = {
+      getCore: vi.fn(async () => null),
+      setCore: vi.fn(async () => undefined),
+      getSearch: vi.fn(async () => null),
+      setSearch: vi.fn(async () => undefined),
+      getEmbeddings: vi.fn(async () => null),
+      setEmbeddings: vi.fn(async () => undefined),
+    }
+
+    const progressive = await loadCoreArtifactsProgressive({
+      fetchJson,
+      cache,
+      deferBackgroundUntilPaint: true,
+    })
+
+    expect(progressive.firstPaintItems).toEqual([firstItem])
+    expect(requestedPaths).toEqual([
+      'data/manifest.json',
+      'data/grid/first.json?v=build-1',
+    ])
+    let coreSettled = false
+    void progressive.coreReady.then(() => { coreSettled = true })
+    await Promise.resolve()
+    expect(coreSettled).toBe(false)
+
+    const scheduledPaint = paintCallback as FrameRequestCallback | null
+    scheduledPaint?.(0)
+    await Promise.resolve()
+    expect(requestedPaths).toContain('data/grid/all.json?v=build-1')
+    resolveGridAll([firstItem])
+    await expect(progressive.coreReady).resolves.toMatchObject({ gridAll: [firstItem] })
   })
 
   it('loads search artifacts on demand and reuses the cache on repeat calls', async () => {
@@ -133,6 +205,37 @@ describe('data loader', () => {
       'data/search/index.json?v=build-1',
       'data/search/store.json?v=build-1',
     ])
+  })
+
+  it('fetches both search artifacts concurrently', async () => {
+    const requestedPaths: string[] = []
+    let resolveIndex: (value: unknown) => void = () => undefined
+    let resolveStore: (value: unknown) => void = () => undefined
+    const indexReady = new Promise<unknown>((resolve) => { resolveIndex = resolve })
+    const storeReady = new Promise<unknown>((resolve) => { resolveStore = resolve })
+    const fetchJson: JsonFetcher = <T,>(path: string): Promise<T> => {
+      requestedPaths.push(path)
+      return (path.includes('index.json') ? indexReady : storeReady) as Promise<T>
+    }
+    const cache = {
+      getCore: vi.fn(async (): Promise<CoreArtifacts | null> => null),
+      setCore: vi.fn(async () => undefined),
+      getSearch: vi.fn(async () => null),
+      setSearch: vi.fn(async () => undefined),
+      getEmbeddings: vi.fn(async (): Promise<EmbeddingArtifacts | null> => null),
+      setEmbeddings: vi.fn(async () => undefined),
+    }
+
+    const loading = loadSearchArtifacts(manifest, { fetchJson, cache })
+    await Promise.resolve()
+    expect(requestedPaths).toEqual([
+      'data/search/index.json?v=build-1',
+      'data/search/store.json?v=build-1',
+    ])
+
+    resolveIndex({ serialized: true })
+    resolveStore([])
+    await expect(loading).resolves.toEqual({ searchIndex: { serialized: true }, searchStore: [] })
   })
 
   it('loads embedding artifacts on demand and reuses the cache on repeat calls', async () => {

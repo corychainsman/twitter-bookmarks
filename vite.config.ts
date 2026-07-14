@@ -22,12 +22,8 @@ export default defineConfig({
       },
       output: {
         manualChunks(id) {
-          if (id.includes('/node_modules/react') || id.includes('/node_modules/react-dom')) {
+          if (/\/node_modules\/(?:react|react-dom|scheduler)(?:\/|$)/.test(id)) {
             return 'react-vendor'
-          }
-
-          if (id.includes('/node_modules/@tanstack/react-router')) {
-            return 'router-vendor'
           }
 
           if (
@@ -37,12 +33,6 @@ export default defineConfig({
             return 'embedding-vendor'
           }
 
-          if (
-            id.includes('/node_modules/yet-another-react-lightbox') ||
-            id.includes('/node_modules/@virtuoso.dev')
-          ) {
-            return 'media-vendor'
-          }
         },
       },
     },

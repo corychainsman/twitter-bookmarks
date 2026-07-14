@@ -157,6 +157,7 @@ describe('MediaTile', () => {
   })
 
   it('attaches deferred image sources when the tile enters the viewport', () => {
+    vi.useFakeTimers()
     let intersectionCallback: IntersectionObserverCallback | null = null
     vi.stubGlobal('IntersectionObserver', class {
       disconnect = vi.fn()
@@ -183,6 +184,9 @@ describe('MediaTile', () => {
     )
 
     const image = screen.getByRole('img', { name: tweet.text })
+    expect(image).not.toHaveAttribute('src')
+
+    act(() => vi.advanceTimersByTime(30_000))
     expect(image).not.toHaveAttribute('src')
 
     act(() => {

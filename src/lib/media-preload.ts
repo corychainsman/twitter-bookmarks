@@ -1,5 +1,3 @@
-import { warmMediaCache } from '@/lib/media-cache'
-
 export type MediaPreloadKind = 'image' | 'video'
 
 export type MediaPreloadCandidate = {
@@ -37,7 +35,6 @@ export function preloadMediaCandidates(
     concurrency?: number
     preloader?: MediaPreloader
     seen?: Set<string>
-    warmCache?: boolean
   } = {},
 ): string[] {
   if (typeof document === 'undefined' && !options.preloader) {
@@ -68,8 +65,6 @@ export function preloadMediaCandidates(
 
     preloader.preloadImage(candidate.url)
   }
-
-  if (options.warmCache && loadedUrls.length > 0) warmMediaCache(loadedUrls)
 
   return loadedUrls
 }

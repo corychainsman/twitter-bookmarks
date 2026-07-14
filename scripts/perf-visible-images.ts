@@ -1,6 +1,7 @@
 import { spawn, spawnSync } from 'node:child_process'
 import { once } from 'node:events'
 import process from 'node:process'
+import { fileURLToPath } from 'node:url'
 
 type DeviceProfile = {
   name: string
@@ -11,13 +12,22 @@ type ScenarioResult = {
   device: string
   scenario: string
   durationMs: number
+  initialMediaReadyMs: number
   imageCount: number
   pendingCount: number
+  artifactBytes: number
+  artifactRequests: number
+  mediaRequests: number
+  thirdPartyRequests: number
+  renderedCells: number
+  attachedImages: number
+  attachedVideos: number
 }
 
 const PREVIEW_PORT = 4173
 const PREVIEW_URL = `http://127.0.0.1:${PREVIEW_PORT}/`
 const SESSION_PREFIX = `visible-images-${Date.now()}`
+const BROWSER_CONFIG_PATH = fileURLToPath(new URL('./agent-browser-perf.json', import.meta.url))
 const SCENARIO_TIMEOUT_MS = 45_000
 
 const devices: DeviceProfile[] = [
@@ -60,13 +70,26 @@ function run(command: string, args: string[], options: { timeoutMs?: number } = 
 function runAgentBrowser(session: string, commandLine: string, options: { timeoutMs?: number } = {}) {
   return run(
     'agent-browser',
-    ['--session', session, ...commandLine.match(/(?:[^\s"]+|"[^"]*")+/g)!.map((part) => part.replace(/^"|"$/g, ''))],
+    [
+      '--config',
+      BROWSER_CONFIG_PATH,
+      '--session',
+      session,
+      ...commandLine.match(/(?:[^\s"]+|"[^"]*")+/g)!.map((part) => part.replace(/^"|"$/g, '')),
+    ],
     options,
   )
 }
 
 function evalInBrowser<T>(session: string, script: string): T {
-  const result = spawnSync('agent-browser', ['--session', session, 'eval', '--stdin'], {
+  const result = spawnSync('agent-browser', [
+    '--config',
+    BROWSER_CONFIG_PATH,
+    '--session',
+    session,
+    'eval',
+    '--stdin',
+  ], {
     encoding: 'utf8',
     input: script,
     stdio: ['pipe', 'pipe', 'pipe'],
@@ -109,7 +132,10 @@ async function startPreviewServer() {
 const settleScript = String.raw`
 async (scenario) => {
   const timeoutMs = 30000;
-  const startedAt = performance.now();
+  const waitStartedAt = performance.now();
+  // page-load begins at navigationStart (performance.now() === 0 there). Other
+  // scenarios begin when their interaction is dispatched below.
+  const metricStartedAt = scenario === 'page-load' ? 0 : waitStartedAt;
   const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
   const waitForStableFrame = async () => {
@@ -146,7 +172,7 @@ async (scenario) => {
     let lastSignature = '';
     let stableRounds = 0;
 
-    while (performance.now() - startedAt < timeoutMs) {
+    while (performance.now() - waitStartedAt < timeoutMs) {
       await waitForStableFrame();
       const records = visibleImageRecords();
       const pending = records.filter(({ img }) => !img.complete || img.naturalWidth === 0);
@@ -159,11 +185,7 @@ async (scenario) => {
       }
 
       if (stableRounds >= 2) {
-        return {
-          durationMs: performance.now() - startedAt,
-          imageCount: records.length,
-          pendingCount: pending.length,
-        };
+        return { imageCount: records.length, pendingCount: pending.length };
       }
 
       lastSignature = signature;
@@ -172,7 +194,6 @@ async (scenario) => {
 
     const records = visibleImageRecords();
     return {
-      durationMs: timeoutMs,
       imageCount: records.length,
       pendingCount: records.filter(({ img }) => !img.complete || img.naturalWidth === 0).length,
     };
@@ -201,13 +222,56 @@ async (scenario) => {
     dispatchEvent(new PopStateEvent('popstate'));
   }
 
-  return waitForVisibleImages();
+  if (scenario === 'text-search') {
+    history.replaceState(null, '', '/?q=design');
+    dispatchEvent(new PopStateEvent('popstate'));
+  }
+
+  const visibleImages = await waitForVisibleImages();
+  const resources = performance.getEntriesByType('resource');
+  const artifactResources = resources.filter((entry) => entry.name.includes('/data/'));
+  const mediaResources = resources.filter((entry) => {
+    try {
+      return ['pbs.twimg.com', 'video.twimg.com', 'tbmedia.corychainsman.com']
+        .includes(new URL(entry.name).hostname);
+    } catch {
+      return false;
+    }
+  });
+  const thirdPartyResources = resources.filter((entry) => {
+    try {
+      return ['platform.twitter.com', 'platform.x.com'].includes(new URL(entry.name).hostname);
+    } catch {
+      return false;
+    }
+  });
+
+  return {
+    durationMs: performance.now() - metricStartedAt,
+    initialMediaReadyMs:
+      performance.getEntriesByName('bookmarks-initial-media-ready', 'mark')[0]?.startTime ?? 0,
+    ...visibleImages,
+    artifactBytes: artifactResources.reduce(
+      (total, entry) => total + (entry.encodedBodySize || entry.transferSize || 0),
+      0,
+    ),
+    artifactRequests: artifactResources.length,
+    mediaRequests: mediaResources.length,
+    thirdPartyRequests: thirdPartyResources.length,
+    renderedCells: document.querySelectorAll('[data-grid-id]').length,
+    attachedImages: document.querySelectorAll('img[src]').length,
+    attachedVideos: document.querySelectorAll('video[src]').length,
+  };
 }
 `
 
 async function measureScenario(device: DeviceProfile, session: string, scenario: string) {
   runAgentBrowser(session, `open ${PREVIEW_URL}`, { timeoutMs: SCENARIO_TIMEOUT_MS })
-  runAgentBrowser(session, 'wait --load networkidle', { timeoutMs: SCENARIO_TIMEOUT_MS })
+  // Waiting for network-idle before measuring page-load hides progressive render
+  // wins by forcing every background artifact and media request to finish first.
+  if (scenario !== 'page-load') {
+    runAgentBrowser(session, 'wait --load networkidle', { timeoutMs: SCENARIO_TIMEOUT_MS })
+  }
 
   const result = evalInBrowser<Omit<ScenarioResult, 'device' | 'scenario'>>(
     session,
@@ -229,6 +293,11 @@ function percentile(values: number[], p: number) {
 
 async function main() {
   run('bun', ['run', 'build'], { timeoutMs: 120_000 })
+  run(
+    'agent-browser',
+    ['--config', BROWSER_CONFIG_PATH, 'close', '--all'],
+    { timeoutMs: 20_000 },
+  )
   const server = await startPreviewServer()
   const results: ScenarioResult[] = []
 
@@ -245,11 +314,18 @@ async function main() {
         runAgentBrowser(session, setupCommand, { timeoutMs: 20_000 })
       }
 
-      for (const scenario of ['page-load', 'scroll', 'sort-posted', 'similar-filter', 'mode-one']) {
+      for (const scenario of [
+        'page-load',
+        'scroll',
+        'sort-posted',
+        'similar-filter',
+        'mode-one',
+        'text-search',
+      ]) {
         const result = await measureScenario(device, session, scenario)
         results.push(result)
         console.log(
-          `PERF_SCENARIO device=${result.device} scenario=${result.scenario} durationMs=${result.durationMs.toFixed(1)} imageCount=${result.imageCount} pendingCount=${result.pendingCount}`,
+          `PERF_SCENARIO device=${result.device} scenario=${result.scenario} durationMs=${result.durationMs.toFixed(1)} initialMediaReadyMs=${result.initialMediaReadyMs.toFixed(1)} imageCount=${result.imageCount} pendingCount=${result.pendingCount} artifactBytes=${result.artifactBytes} artifactRequests=${result.artifactRequests} mediaRequests=${result.mediaRequests} thirdPartyRequests=${result.thirdPartyRequests} renderedCells=${result.renderedCells} attachedImages=${result.attachedImages} attachedVideos=${result.attachedVideos}`,
         )
       }
 
@@ -258,7 +334,11 @@ async function main() {
   } finally {
     server.kill()
     await once(server, 'exit').catch(() => undefined)
-    run('agent-browser', ['close', '--all'], { timeoutMs: 20_000 })
+    run(
+      'agent-browser',
+      ['--config', BROWSER_CONFIG_PATH, 'close', '--all'],
+      { timeoutMs: 20_000 },
+    )
   }
 
   const durations = results.map((result) => result.durationMs)

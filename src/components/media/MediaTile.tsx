@@ -18,8 +18,7 @@ import {
 } from '@/components/media/autoplay'
 
 const MEDIA_TYPE_LABEL = { animated_gif: 'animated gif', photo: 'photo', video: 'video' }
-const IMAGE_SRC_ATTACH_DELAY_MS = 12_000
-const IMAGE_SRC_ATTACH_ROOT_MARGIN = '900px 0px'
+const IMAGE_SRC_ATTACH_ROOT_MARGIN = '150px 0px'
 const aspectRatioStyleCache = new WeakMap<GridItem, CSSProperties | null>()
 const postedDateCache = new WeakMap<TweetDoc, string>()
 const imageSourcesCache = new WeakMap<
@@ -208,12 +207,10 @@ export const MediaTile = memo(function MediaTile({
       return undefined
     }
 
-    const timeoutId = window.setTimeout(() => setDeferredImageSrcReady(true), IMAGE_SRC_ATTACH_DELAY_MS)
     const observer = new IntersectionObserver(
       (entries) => {
         if (entries.some((entry) => entry.isIntersecting)) {
           setDeferredImageSrcReady(true)
-          window.clearTimeout(timeoutId)
           observer.disconnect()
         }
       },
@@ -222,7 +219,6 @@ export const MediaTile = memo(function MediaTile({
     observer.observe(element)
 
     return () => {
-      window.clearTimeout(timeoutId)
       observer.disconnect()
     }
   }, [initialMedia, loading])

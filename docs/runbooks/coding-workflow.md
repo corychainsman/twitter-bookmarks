@@ -13,7 +13,7 @@ Use this runbook for agents making React, TypeScript, worker, query, grid, media
 
 - Bookmark state, artifact loading, URL state, query behavior, and exported contracts live in `src/features/bookmarks`.
 - UI behavior is split by surface: toolbar in `src/components/toolbar`, grid in `src/components/grid`, media in `src/components/media`, and lightbox in `src/components/lightbox`.
-- Route and app composition live in `src/app` and `src/routes`.
+- Route and app composition live in `src/app`.
 - Worker message contracts and worker implementations live in `src/workers`.
 - Data pipeline code lives in `scripts`, with shared app-facing types in `src/features/bookmarks`.
 

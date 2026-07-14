@@ -810,7 +810,7 @@ export function ThemeStudio() {
                 Download
               </Button>
               <Button asChild variant="outline">
-                <a href="/" target="_blank" rel="noreferrer">
+                <a href={import.meta.env.BASE_URL} target="_blank" rel="noreferrer">
                   <ExternalLinkIcon data-icon="inline-start" />
                   Open Grid
                 </a>

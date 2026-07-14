@@ -4,8 +4,7 @@
   "compatibility_date": "2026-07-01",
   "assets": {
     "directory": "./dist",
-    // index.html and 404.html are the same static shell; the client-side
-    // TanStack Router resolves the actual route from window.location.
+    // index.html and 404.html share the client-side two-path route switch.
     "not_found_handling": "single-page-application"
   },
   "routes": [

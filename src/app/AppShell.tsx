@@ -1,7 +1,14 @@
-import { BookmarksLightbox } from '@/components/lightbox/BookmarksLightbox'
+import * as React from 'react'
+
 import { BookmarksToolbar } from '@/components/toolbar/BookmarksToolbar'
 import { BookmarksPageContent } from '@/app/bookmarks/BookmarksPageContent'
 import { useBookmarksPageController } from '@/app/bookmarks/useBookmarksPageController'
+
+const BookmarksLightbox = React.lazy(() =>
+  import('@/components/lightbox/BookmarksLightbox').then((module) => ({
+    default: module.BookmarksLightbox,
+  })),
+)
 
 export function AppShell() {
   const {
@@ -83,13 +90,17 @@ export function AppShell() {
         />
       </div>
 
-      <BookmarksLightbox
-        docsById={docsById}
-        selection={selection}
-        onClose={onCloseLightbox}
-        onBrowseSimilar={onBrowseSimilar}
-        onSelectionChange={onLightboxSelectionChange}
-      />
+      {selection ? (
+        <React.Suspense fallback={null}>
+          <BookmarksLightbox
+            docsById={docsById}
+            selection={selection}
+            onClose={onCloseLightbox}
+            onBrowseSimilar={onBrowseSimilar}
+            onSelectionChange={onLightboxSelectionChange}
+          />
+        </React.Suspense>
+      ) : null}
     </div>
   )
 }

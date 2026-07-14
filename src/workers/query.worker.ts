@@ -3,9 +3,8 @@
 import type { CoreArtifacts } from '@/features/bookmarks/export-artifacts'
 import type { EmbeddingArtifacts } from '@/features/bookmarks/embedding-artifacts'
 import {
-  EMBEDDING_ARTIFACTS_NOT_HYDRATED_MESSAGE,
+  isBookmarksQueryError,
   runBookmarksQuery,
-  SEMANTIC_QUERY_VECTOR_NOT_READY_MESSAGE,
 } from '@/features/bookmarks/query-engine'
 import type {
   QueryWorkerRequest,
@@ -45,6 +44,22 @@ workerScope.addEventListener('message', (event: MessageEvent<QueryWorkerRequest>
   if (message.type === 'hydrate-core') {
     hydratedArtifacts = message.artifacts
     embeddingHydrationPromise = null
+    return
+  }
+
+  if (message.type === 'hydrate-docs') {
+    if (!hydratedArtifacts || hydratedArtifacts.manifest.buildId !== message.buildId) {
+      workerScope.postMessage({
+        type: 'error',
+        message: 'Query worker received TweetDoc artifacts for a different core build.',
+      } satisfies QueryWorkerResponse)
+      return
+    }
+
+    hydratedArtifacts = {
+      ...hydratedArtifacts,
+      docsChunks: message.docsChunks,
+    }
     return
   }
 
@@ -88,6 +103,7 @@ workerScope.addEventListener('message', (event: MessageEvent<QueryWorkerRequest>
     workerScope.postMessage({
       type: 'error',
       message: 'Query worker received a query before hydration completed.',
+      requestId: message.requestId,
     } satisfies QueryWorkerResponse)
     return
   }
@@ -95,19 +111,14 @@ workerScope.addEventListener('message', (event: MessageEvent<QueryWorkerRequest>
   try {
     workerScope.postMessage({
       type: 'result',
-      result: runBookmarksQuery(hydratedArtifacts, message.state, message.semanticQuery),
+      requestId: message.requestId,
+      result: runBookmarksQuery(hydratedArtifacts, message.query, message.semanticQuery),
     } satisfies QueryWorkerResponse)
   } catch (error) {
-    if (error instanceof Error && error.message === EMBEDDING_ARTIFACTS_NOT_HYDRATED_MESSAGE) {
+    if (isBookmarksQueryError(error, 'embeddings-not-hydrated')) {
       workerScope.postMessage({
         type: 'needs-embeddings',
-      } satisfies QueryWorkerResponse)
-      return
-    }
-
-    if (error instanceof Error && error.message === SEMANTIC_QUERY_VECTOR_NOT_READY_MESSAGE) {
-      workerScope.postMessage({
-        type: 'needs-semantic-query',
+        requestId: message.requestId,
       } satisfies QueryWorkerResponse)
       return
     }
@@ -115,6 +126,7 @@ workerScope.addEventListener('message', (event: MessageEvent<QueryWorkerRequest>
     workerScope.postMessage({
       type: 'error',
       message: error instanceof Error ? error.message : 'Unknown query worker error',
+      requestId: message.requestId,
     } satisfies QueryWorkerResponse)
   }
 })

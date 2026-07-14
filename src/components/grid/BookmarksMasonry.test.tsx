@@ -435,8 +435,8 @@ describe('BookmarksMasonry', () => {
     })
 
     const reorderCallCount = reactVirtualizedMocks.createMasonryCellPositioner.mock.calls.length
-    const recomputeCallCountBeforeReorder =
-      reactVirtualizedMocks.masonryHandle.recomputeCellPositions.mock.calls.length
+    const clearCallCountBeforeReorder =
+      reactVirtualizedMocks.masonryHandle.clearCellPositions.mock.calls.length
 
     rerender(
       <BookmarksMasonry
@@ -460,12 +460,15 @@ describe('BookmarksMasonry', () => {
 
     // Regression: react-virtualized's Masonry keeps its own internal position
     // cache that a new cellPositioner prop doesn't invalidate on its own — without
-    // an explicit recomputeCellPositions() call here, items keep stale positions
-    // from before the view's content changed (same viewKey, no remount).
+    // an explicit clearCellPositions() call here, items keep stale positions from
+    // before the view's content changed (same viewKey, no remount). Uses
+    // clearCellPositions (not recomputeCellPositions, which repopulates only up to
+    // the previous _positionCache.count and can corrupt cumulative column-height
+    // state if it fires more than once in quick succession).
     await waitFor(() => {
       expect(
-        reactVirtualizedMocks.masonryHandle.recomputeCellPositions.mock.calls.length,
-      ).toBeGreaterThan(recomputeCallCountBeforeReorder)
+        reactVirtualizedMocks.masonryHandle.clearCellPositions.mock.calls.length,
+      ).toBeGreaterThan(clearCallCountBeforeReorder)
     })
 
     expect(reactVirtualizedMocks.onChildScroll).not.toHaveBeenCalled()
@@ -594,7 +597,7 @@ describe('BookmarksMasonry', () => {
     ).toHaveLength(0)
   })
 
-  it('prefetches the greater of one-and-a-half viewport-heights or eighteen items beyond the viewport', async () => {
+  it('prefetches the greater of one viewport-height or twelve items beyond the viewport', async () => {
     const { rerender } = render(
       <BookmarksMasonry
         columnCount={3}
@@ -615,7 +618,7 @@ describe('BookmarksMasonry', () => {
 
     expect(reactVirtualizedMocks.lastMasonryProps).toMatchObject({
       height: 900,
-      overscanByPixels: 2727,
+      overscanByPixels: 1818,
     })
 
     rerender(
@@ -635,7 +638,7 @@ describe('BookmarksMasonry', () => {
     await waitFor(() => {
       expect(reactVirtualizedMocks.lastMasonryProps).toMatchObject({
         height: 900,
-        overscanByPixels: 1350,
+        overscanByPixels: 900,
       })
     })
   })
@@ -814,6 +817,25 @@ describe('BookmarksMasonry', () => {
     })
   })
 
+  it('keeps media more than two viewports ahead out of the eager queue', () => {
+    expect(
+      resolveBookmarksMasonryImageLoadingStrategy({
+        cellHeight: 300,
+        cellTop: 7_700,
+        eagerItemCount: 36,
+        index: 60,
+        isPositioned: true,
+        scrollDirection: 'down',
+        viewportHeight: 900,
+        viewportScrollTop: 4_800,
+      }),
+    ).toEqual({
+      fetchPriority: 'low',
+      initialMedia: false,
+      loading: 'lazy',
+    })
+  })
+
   it('restores the anchored item near its previous viewport position after zoom relayout', async () => {
     const onScrollAnchorApplied = vi.fn()
     const scrollTo = vi.fn()
@@ -927,80 +949,4 @@ describe('BookmarksMasonry', () => {
     expect(zoomInEvent.defaultPrevented).toBe(true)
   })
 
-  it('uses a static grid fallback on iOS WebKit', async () => {
-    Object.defineProperty(navigator, 'userAgent', {
-      configurable: true,
-      value:
-        'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1',
-    })
-
-    const { container } = render(
-      <BookmarksMasonry
-        columnCount={2}
-        docsById={docsById}
-        immersive
-        items={items}
-        onOpen={() => {}}
-        onPinchZoom={() => {}}
-        onScrollAnchorApplied={() => {}}
-        scrollAnchorRequest={null}
-        viewKey="test-view"
-      />,
-    )
-
-    await waitFor(() => {
-      expect(container.querySelector('.app-ios-static-grid')).not.toBeNull()
-    })
-
-    expect(container.querySelector('[data-testid="mock-masonry"]')).toBeNull()
-    expect(container.querySelectorAll('.app-ios-static-item')).toHaveLength(items.length)
-  })
-
-  it('bumps the iOS static batch up when the real query result replaces firstPaintItems', async () => {
-    Object.defineProperty(navigator, 'userAgent', {
-      configurable: true,
-      value:
-        'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1',
-    })
-
-    const firstPaintItems = createItems(5)
-    const { container, rerender } = render(
-      <BookmarksMasonry
-        columnCount={2}
-        docsById={docsById}
-        immersive
-        items={firstPaintItems}
-        onOpen={() => {}}
-        onPinchZoom={() => {}}
-        onScrollAnchorApplied={() => {}}
-        scrollAnchorRequest={null}
-        viewKey="test-view"
-      />,
-    )
-
-    await waitFor(() => {
-      expect(container.querySelectorAll('.app-ios-static-item')).toHaveLength(5)
-    })
-
-    // Same viewKey as the real query result for the same default view — no remount,
-    // so visibleCount must not stay stuck at the small first-paint count.
-    const realItems = createItems(300)
-    rerender(
-      <BookmarksMasonry
-        columnCount={2}
-        docsById={docsById}
-        immersive
-        items={realItems}
-        onOpen={() => {}}
-        onPinchZoom={() => {}}
-        onScrollAnchorApplied={() => {}}
-        scrollAnchorRequest={null}
-        viewKey="test-view"
-      />,
-    )
-
-    await waitFor(() => {
-      expect(container.querySelectorAll('.app-ios-static-item')).toHaveLength(240)
-    })
-  })
 })

@@ -10,6 +10,7 @@ Twitter Bookmarks is a static, media-first browser for X bookmarks exported thro
 - `GridItem`: media-level record rendered in the masonry grid. It points back to a tweet and one media index.
 - `Manifest`: public data index under `public/data` that names exported artifact files and build metadata.
 - `QueryState`: URL-backed search and display state, including text query, sort, direction, media mode, immersive state, zoom, random seed, and semantic similarity target.
+- `BookmarksQuery`: query-engine projection of `QueryState`; it contains only ordering, media-selection, and semantic-ranking inputs that cross the query worker seam.
 - Semantic embeddings: static CLIP-derived artifacts exported into `public/data` and loaded client-side for concept search, image search, and similar-media browsing.
 - One/all media modes: one mode renders a representative media item per tweet; all mode renders every media item.
 - Public derived artifacts: files under `public/data` generated from local Field Theory data and served by the static app.
@@ -18,11 +19,11 @@ Twitter Bookmarks is a static, media-first browser for X bookmarks exported thro
 
 ## System Flow
 
-Field Theory sync writes raw local cache data into `.data/fieldtheory`. The refresh pipeline owns the ordering and preflight checks for media mirroring, remote rclone sync, export, validation, and build. Export scripts normalize cache data into derived static artifacts under `public/data`. Vite builds the React app and copies those artifacts into `dist`. GitHub Pages serves the static app. In the browser, data loaders hydrate artifacts, query and embedding workers do search/ranking work, and React components render toolbar, masonry grid, media tiles, lightbox, and Theme Studio.
+Field Theory sync writes raw local cache data into `.data/fieldtheory`. The refresh pipeline owns the ordering and preflight checks for media mirroring, remote rclone sync, export, validation, and build. Export scripts normalize cache data into derived static artifacts under `public/data`. Vite builds the React app and copies those artifacts into `dist`. GitHub Pages serves the static app. In the browser, the data loader renders the default view from the small first-grid artifact, waits one paint, then hydrates full grid/order artifacts and streamed `TweetDoc` chunks. Text search returns lexical `TweetDoc` matches immediately and refines them when the embedding worker produces a semantic vector. Desktop loads the virtualized masonry module; iOS uses a bounded static grid without downloading desktop virtualization. Feature modules for Theme Studio, the lightbox, tweet widgets, and semantic inference load only when requested.
 
 ## Edit Map
 
-- App shell and routes: `src/app`, `src/routes`, and `src/main.tsx`.
+- App shell and the two-path static route switch: `src/app` and `src/main.tsx`.
 - Bookmark data model, URL state, artifact loading, cache, query engine, and export contracts: `src/features/bookmarks`.
 - Grid behavior and masonry sizing: `src/components/grid`.
 - Media rendering, autoplay, tweet embeds, and lightbox behavior: `src/components/media` and `src/components/lightbox`.

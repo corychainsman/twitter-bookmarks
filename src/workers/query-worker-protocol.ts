@@ -3,12 +3,18 @@ import type {
   EmbeddingArtifacts,
   SemanticQuery,
 } from '@/features/bookmarks/embedding-artifacts'
-import type { QueryResult, QueryState } from '@/features/bookmarks/model'
+import type { QueryResult } from '@/features/bookmarks/model'
+import type { BookmarksQuery } from '@/features/bookmarks/query-request'
 
 export type QueryWorkerRequest =
   | {
       type: 'hydrate-core'
       artifacts: CoreArtifacts
+    }
+  | {
+      type: 'hydrate-docs'
+      buildId: string
+      docsChunks: CoreArtifacts['docsChunks']
     }
   | {
       type: 'hydrate-embeddings'
@@ -20,20 +26,20 @@ export type QueryWorkerRequest =
     }
   | {
       type: 'query'
-      state: QueryState
+      requestId: number
+      query: BookmarksQuery
       semanticQuery?: SemanticQuery
     }
 
 export type QueryWorkerResponse =
   | {
       type: 'result'
+      requestId: number
       result: QueryResult
     }
   | {
       type: 'needs-embeddings'
-    }
-  | {
-      type: 'needs-semantic-query'
+      requestId: number
     }
   | {
       type: 'embeddings-hydrated'
@@ -41,4 +47,5 @@ export type QueryWorkerResponse =
   | {
       type: 'error'
       message: string
+      requestId?: number
     }

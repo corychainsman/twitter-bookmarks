@@ -30,14 +30,9 @@ import {
 } from '@/components/grid/masonry-image-loading'
 import { createMasonryMediaPreloadCandidates } from '@/components/grid/masonry-media-preload'
 import { preloadMediaCandidates } from '@/lib/media-preload'
-import {
-  BACKGROUND_WARM_MOBILE_TILE_CAP,
-  BACKGROUND_WARM_MOBILE_VIEWPORT_MAX_PX,
-  isConnectionEligibleForBackgroundWarm,
-  warmMediaCache,
-} from '@/lib/media-cache'
+import { useInitialMediaReady } from '@/components/grid/useInitialMediaReady'
 
-type BookmarksMasonryProps = {
+export type BookmarksMasonryProps = {
   items: GridItem[]
   columnCount: number
   docsById: Map<string, TweetDoc>
@@ -51,31 +46,20 @@ type BookmarksMasonryProps = {
 }
 
 const ANCHOR_RESTORE_ATTEMPTS = 3
-const MINIMUM_PREFETCH_ITEMS = 18
+const MINIMUM_PREFETCH_ITEMS = 12
 const MINIMUM_EAGER_ITEMS = 12
 const IDLE_PRELOAD_DELAY_MS = 8_000
 const IDLE_PRELOAD_ITEM_COUNT = 16
 const IDLE_PRELOAD_CONCURRENCY = 4
-const FULL_CACHE_WARM_DELAY_MS = 20_000
-const IOS_STATIC_BATCH_SIZE = 240
 const MINIMUM_PINCH_DISTANCE_PX = 16
 const PINCH_ZOOM_STEP_RATIO = 1.16
-const VIEWPORT_PREFETCH_MULTIPLIER = 1.5
-const noop = () => {}
+const VIEWPORT_PREFETCH_MULTIPLIER = 1
 const overscanPxCache = new WeakMap<GridItem[], Map<string, number>>()
 const combinedRefsCache = new WeakMap<
   (element?: Element | null) => void,
   (node: HTMLDivElement | null) => void
 >()
 let toolbarElement: HTMLElement | null = null
-
-function isIOSWebKit(): boolean {
-  if (typeof navigator === 'undefined') {
-    return false
-  }
-
-  return /iP(?:hone|ad|od)/.test(navigator.userAgent) && /WebKit/.test(navigator.userAgent)
-}
 
 function resolveToolbarBottom(): number {
   toolbarElement ??= document.querySelector<HTMLElement>('.app-toolbar')
@@ -213,74 +197,6 @@ function resolveBookmarksMasonryOverscanPx(input: {
   return overscanPx
 }
 
-function BookmarksIOSStaticGrid({
-  columnCount,
-  docsById,
-  immersive,
-  items,
-  onOpen,
-}: Pick<BookmarksMasonryProps, 'columnCount' | 'docsById' | 'immersive' | 'items' | 'onOpen'>) {
-  // Tracks only how many extra "Load more" batches the user has requested; the
-  // effective count is derived below so it naturally stays in sync when `items`
-  // grows for the same view (e.g. firstPaintItems handing off to the real query
-  // result), instead of a separately-stored count getting stuck at a stale value.
-  const [loadMoreBatchCount, setLoadMoreBatchCount] = React.useState(0)
-  const visibleCount = Math.min(
-    items.length,
-    IOS_STATIC_BATCH_SIZE * (1 + loadMoreBatchCount),
-  )
-  const visibleItems = items.slice(0, visibleCount)
-  const columnWidth =
-    typeof window === 'undefined'
-      ? 320
-      : Math.max(240, Math.floor(window.innerWidth / Math.max(1, columnCount)))
-  const handleTileOpen = React.useCallback(
-    (event: React.MouseEvent<HTMLButtonElement>) => {
-      const gridId = event.currentTarget.dataset.gridId
-      if (gridId) onOpen(gridId)
-    },
-    [onOpen],
-  )
-
-  return (
-    <div className="app-masonry">
-      <div
-        className="app-ios-static-grid"
-        style={{ columnCount: Math.max(1, columnCount) }}
-      >
-        {visibleItems.map((item, index) => (
-          <div className="app-ios-static-item" key={item.gridId}>
-            <MediaTile
-              item={item}
-              tweet={docsById.get(item.tweetId)}
-              immersive={immersive}
-              loading={index < MINIMUM_EAGER_ITEMS ? 'eager' : 'lazy'}
-              fetchPriority={index < MINIMUM_EAGER_ITEMS ? 'high' : 'low'}
-              initialMedia={index < MINIMUM_EAGER_ITEMS}
-              imageDevicePixelRatio={1}
-              imageRenderedWidth={columnWidth}
-              imageSizes={`${columnWidth}px`}
-              onOpen={handleTileOpen}
-            />
-          </div>
-        ))}
-      </div>
-
-      {visibleCount < items.length ? (
-        <div className="flex justify-center px-4 pt-2 pb-8">
-          <button
-            type="button"
-            className="app-control min-h-11 px-4 text-sm font-medium"
-            onClick={() => setLoadMoreBatchCount((current) => current + 1)}
-          >
-            Load more
-          </button>
-        </div>
-      ) : null}
-    </div>
-  )
-}
-
 export function BookmarksMasonry({
   items,
   columnCount,
@@ -300,15 +216,12 @@ export function BookmarksMasonry({
   const renderedCellKeyAllocatorRef = React.useRef(
     createBookmarksMasonryRenderedCellKeyAllocator(),
   )
-  const hasReportedInitialMediaReadyRef = React.useRef(false)
   const preloadedMediaUrlsRef = React.useRef(new Set<string>())
-  const [initialMediaReady, setInitialMediaReady] = React.useState(false)
   const viewportRef = React.useRef({
     height: 0,
     scrollDirection: 'none' as MasonryScrollDirection,
     scrollTop: 0,
   })
-  const handleInitialMediaReady = onInitialMediaReady ?? noop
   const handleTileOpen = React.useCallback(
     (event: React.MouseEvent<HTMLButtonElement>) => {
       const gridId = event.currentTarget.dataset.gridId
@@ -442,15 +355,6 @@ export function BookmarksMasonry({
     [cellMeasurerCache, columnCount, columnWidth],
   )
   const masonryRef = React.useRef<Masonry>(null)
-  // Masonry keeps its own internal position cache, separate from the cellPositioner
-  // prop — swapping in a new positioner (e.g. cellMeasurerCache growing as
-  // firstPaintItems hands off to the real query result for the same view, without
-  // a key-driven remount) doesn't invalidate it on its own and leaves stale
-  // positions in place. recomputeCellPositions() is react-virtualized's documented
-  // way to invalidate it without remounting/re-fetching every tile's media.
-  React.useEffect(() => {
-    masonryRef.current?.recomputeCellPositions()
-  }, [cellPositioner])
   const masonryRenderKey = React.useMemo(
     () =>
       resolveBookmarksMasonryRenderKey({
@@ -461,9 +365,27 @@ export function BookmarksMasonry({
       }),
     [columnCount, columnWidth, renderedImmersive, viewKey],
   )
+  const previousMasonryLayoutRef = React.useRef({
+    cellPositioner,
+    masonryRenderKey,
+  })
+  React.useLayoutEffect(() => {
+    const previousLayout = previousMasonryLayoutRef.current
+    previousMasonryLayoutRef.current = { cellPositioner, masonryRenderKey }
+
+    // A key change remounts Masonry with an empty internal position cache. When
+    // only the positioner changes (for example, because items were reordered in
+    // the same view), explicitly clear the cache so it cannot retain old indices.
+    if (
+      previousLayout.masonryRenderKey === masonryRenderKey &&
+      previousLayout.cellPositioner !== cellPositioner
+    ) {
+      masonryRef.current?.clearCellPositions()
+    }
+  }, [cellPositioner, masonryRenderKey])
   const eagerItemCount = Math.min(
     items.length,
-    Math.max(MINIMUM_EAGER_ITEMS, columnCount * 6),
+    Math.max(MINIMUM_EAGER_ITEMS, columnCount * 4),
   )
   const imageDevicePixelRatio = 1
   const imageSizes = `${columnWidth}px`
@@ -492,76 +414,11 @@ export function BookmarksMasonry({
     return () => window.cancelAnimationFrame(frameId)
   }, [onScrollAnchorApplied, scrollAnchorRequest])
 
-  React.useEffect(() => {
-    if (
-      hasReportedInitialMediaReadyRef.current ||
-      !containerElement ||
-      containerWidth <= 0 ||
-      isResettingImmersiveLayout
-    ) {
-      return
-    }
-
-    let frameId = 0
-    const cleanupCallbacks: Array<() => void> = []
-
-    const reportReady = () => {
-      if (hasReportedInitialMediaReadyRef.current) {
-        return
-      }
-
-      hasReportedInitialMediaReadyRef.current = true
-      setInitialMediaReady(true)
-      handleInitialMediaReady()
-    }
-
-    frameId = window.requestAnimationFrame(() => {
-      const images = containerElement.querySelectorAll<HTMLImageElement>(
-        'img[data-initial-media="true"]',
-      )
-      let remaining = 0
-
-      for (const image of images) {
-        if (!image.complete) remaining += 1
-      }
-
-      if (images.length === 0 || remaining === 0) {
-        reportReady()
-        return
-      }
-
-      const handleSettled = () => {
-        remaining -= 1
-        if (remaining <= 0) {
-          reportReady()
-        }
-      }
-
-      for (const image of images) {
-        if (image.complete) {
-          continue
-        }
-
-        image.addEventListener('load', handleSettled, { once: true })
-        image.addEventListener('error', handleSettled, { once: true })
-        cleanupCallbacks.push(() => {
-          image.removeEventListener('load', handleSettled)
-          image.removeEventListener('error', handleSettled)
-        })
-      }
-    })
-
-    return () => {
-      window.cancelAnimationFrame(frameId)
-      cleanupCallbacks.forEach((cleanup) => cleanup())
-    }
-  }, [
+  const initialMediaReady = useInitialMediaReady({
     containerElement,
-    containerWidth,
-    isResettingImmersiveLayout,
-    handleInitialMediaReady,
-    masonryRenderKey,
-  ])
+    enabled: containerWidth > 0 && !isResettingImmersiveLayout,
+    onReady: onInitialMediaReady,
+  })
 
   const cellRenderer = React.useCallback(
     ({ index, key, parent, style }: MasonryCellProps) => {
@@ -668,63 +525,6 @@ export function BookmarksMasonry({
     }
   }, [columnWidth, eagerItemCount, imageDevicePixelRatio, initialMediaReady, items])
 
-  // Once the visible viewport is handled, warm the rest of the current view's thumb
-  // tier in the background via the service worker so scrolling, re-sorting, and
-  // filtering stay instant. Runs after the windowed idle preload above and skips
-  // metered/slow connections.
-  React.useEffect(() => {
-    if (!initialMediaReady || columnWidth <= 0 || items.length === 0) {
-      return undefined
-    }
-
-    if (!isConnectionEligibleForBackgroundWarm()) {
-      return undefined
-    }
-
-    const warm = () => {
-      const take =
-        window.innerWidth <= BACKGROUND_WARM_MOBILE_VIEWPORT_MAX_PX
-          ? Math.min(items.length, BACKGROUND_WARM_MOBILE_TILE_CAP)
-          : items.length
-      const candidates = createMasonryMediaPreloadCandidates({
-        devicePixelRatio: imageDevicePixelRatio,
-        items,
-        renderedWidth: columnWidth,
-        startIndex: 0,
-        take,
-      })
-      const urls = candidates
-        .map((candidate) => candidate.url)
-        .filter((url): url is string => Boolean(url))
-      warmMediaCache(urls)
-    }
-
-    const idleWindow = window as Window & {
-      requestIdleCallback?: (
-        callback: IdleRequestCallback,
-        options?: IdleRequestOptions,
-      ) => number
-      cancelIdleCallback?: (handle: number) => void
-    }
-
-    let idleId: number | null = null
-    const timeoutId = window.setTimeout(() => {
-      if (idleWindow.requestIdleCallback) {
-        idleId = idleWindow.requestIdleCallback(warm, { timeout: 5_000 })
-        return
-      }
-
-      warm()
-    }, FULL_CACHE_WARM_DELAY_MS)
-
-    return () => {
-      window.clearTimeout(timeoutId)
-      if (idleId !== null) {
-        idleWindow.cancelIdleCallback?.(idleId)
-      }
-    }
-  }, [columnWidth, imageDevicePixelRatio, initialMediaReady, items])
-
   if (items.length === 0) {
     return (
       <div className="px-4 py-10 sm:px-6">
@@ -740,19 +540,6 @@ export function BookmarksMasonry({
           </EmptyHeader>
         </Empty>
       </div>
-    )
-  }
-
-  if (isIOSWebKit()) {
-    return (
-      <BookmarksIOSStaticGrid
-        key={masonryRenderKey}
-        columnCount={columnCount}
-        docsById={docsById}
-        immersive={immersive}
-        items={items}
-        onOpen={onOpen}
-      />
     )
   }
 
@@ -791,7 +578,6 @@ export function BookmarksMasonry({
                   items,
                   viewportHeight: effectiveHeight,
                 })
-
                 return (
                   <Masonry
                     ref={masonryRef}

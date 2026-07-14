@@ -1,4 +1,4 @@
-import { BookmarksMasonry } from '@/components/grid/BookmarksMasonry'
+import { BookmarksGrid } from '@/components/grid/BookmarksGrid'
 import type { MasonryScrollAnchorRequest } from '@/components/grid/masonry-anchor'
 import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from '@/components/ui/empty'
 import type { GridItem, TweetDoc } from '@/features/bookmarks/model'
@@ -62,7 +62,7 @@ export function BookmarksPageContent({
   }
 
   return (
-    <BookmarksMasonry
+    <BookmarksGrid
       columnCount={columnCount}
       items={items}
       docsById={docsById}
