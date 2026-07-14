@@ -23,11 +23,16 @@ function createItems(count: number): GridItem[] {
 describe('BookmarksGrid', () => {
   afterEach(() => {
     vi.restoreAllMocks()
+    vi.unstubAllGlobals()
     vi.resetModules()
   })
 
   it('uses bounded static batches on iOS without loading desktop virtualization', async () => {
     vi.spyOn(window.navigator, 'userAgent', 'get').mockReturnValue(IOS_USER_AGENT)
+    vi.stubGlobal('IntersectionObserver', class {
+      disconnect = vi.fn()
+      observe = vi.fn()
+    })
     const { BookmarksGrid } = await import('@/components/grid/BookmarksGrid')
     const firstPaintItems = createItems(5)
     const { container, rerender } = render(
@@ -63,8 +68,10 @@ describe('BookmarksGrid', () => {
     await waitFor(() => {
       expect(container.querySelectorAll('.app-ios-static-item')).toHaveLength(80)
     })
+    expect(container.querySelectorAll('img[src]')).toHaveLength(80)
 
     fireEvent.click(screen.getByRole('button', { name: 'Load more' }))
     expect(container.querySelectorAll('.app-ios-static-item')).toHaveLength(160)
+    expect(container.querySelectorAll('img[src]')).toHaveLength(160)
   })
 })

@@ -77,6 +77,10 @@ function BookmarksIOSStaticGrid({
               item={item}
               tweet={docsById.get(item.tweetId)}
               immersive={immersive}
+              // Safari can miss IntersectionObserver transitions for fragments in
+              // a CSS multi-column layout. Let its native lazy loader own this
+              // bounded batch after attaching each image source up front.
+              deferImageSrc={false}
               loading={index < MINIMUM_EAGER_ITEMS ? 'eager' : 'lazy'}
               fetchPriority={index < MINIMUM_EAGER_ITEMS ? 'high' : 'low'}
               initialMedia={index < MINIMUM_EAGER_ITEMS}
