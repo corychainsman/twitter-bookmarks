@@ -119,17 +119,16 @@ record's `previewKey`; the grid uses `previewUrl ?? fullUrl`. `bun run refresh`
 runs `data:mirror → data:backfill-image-variants → data:video-previews →
 mirror:sync → data:export → …`.
 
-**Grid tiles** (`VideoGridTile` in `MediaTile.tsx`): the preview clip autoplays
-muted and looping for every tile in the active band (currently ≥35% visible
-plus a 180px prewarm margin). Each tile drives its own `IntersectionObserver`;
-there is no global concurrency cap. Deferred tiles detach the video source;
-admitted tiles use `preload="metadata"`. The desired policy is 10% to start
-and 0% to stop, centralized for tuning; implementation still needs to be
-aligned. The desktop virtualized grid also has a known cell-remount defect that
-resets visible previews during scrolling. See `docs/system-architecture.md`.
+**Grid tiles** (`GridVideoPreview.tsx`): the preview clip autoplays muted and
+looping after at least 10% of its tile is visible, then continues until 0% is
+visible. The values live together in `autoplay.ts`. Deferred tiles attach
+neither `src` nor `poster`; admission is monotonic for the lifetime of a
+mounted tile, so later scroll-priority changes do not reset playback. Hidden
+measurement tiles do not create playback observers. Opening the lightbox
+temporarily disables all grid playback.
 
-**Lightbox**: plays the full-resolution original (`media.fullUrl`), not the
-preview. All video slides autoplay muted via the HTML `autoPlay` attribute
+**Lightbox**: plays and loops the full-resolution original (`media.fullUrl`),
+not the preview. All video slides autoplay muted via the HTML `autoPlay` attribute
 (`muted` is required by the iOS Safari autoplay policy); native controls let
 the user unmute, pause, and seek.
 

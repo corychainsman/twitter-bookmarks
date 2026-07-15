@@ -7,6 +7,11 @@ export function useMediaAdmission(
   visibleCount: number,
 ): ReadonlySet<string> {
   const [admittedIds, setAdmittedIds] = React.useState<ReadonlySet<string>>(() => new Set())
+  const admittedIdsRef = React.useRef(admittedIds)
+
+  React.useEffect(() => {
+    admittedIdsRef.current = admittedIds
+  }, [admittedIds])
 
   React.useEffect(() => {
     if (!containerElement) {
@@ -17,7 +22,7 @@ export function useMediaAdmission(
       .slice(0, visibleCount)
       .filter((element) => {
         const id = element.dataset.mediaAdmissionId
-        return Boolean(id && !admittedIds.has(id))
+        return Boolean(id && !admittedIdsRef.current.has(id))
       })
 
     if (elements.length === 0) {
@@ -56,6 +61,7 @@ export function useMediaAdmission(
           setAdmittedIds((current) => {
             const next = new Set(current)
             for (const id of newlyAdmittedIds) next.add(id)
+            admittedIdsRef.current = next
             return next
           })
         }
@@ -65,7 +71,7 @@ export function useMediaAdmission(
 
     for (const element of elements) observer.observe(element)
     return () => observer.disconnect()
-  }, [admittedIds, containerElement, visibleCount])
+  }, [containerElement, visibleCount])
 
   return admittedIds
 }

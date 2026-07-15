@@ -287,8 +287,9 @@ load based on the user agent:
   CSS-column grid in batches of 80 and exposes a Load more button.
 
 The first 12 or first four rows (whichever is larger on desktop) receive
-initial priority. Images use native browser lazy loading. Custom request
-admission remains relevant to video source attachment.
+initial image priority. Images use native browser lazy loading. Video sources
+use geometric admission: iOS observes only motion tiles, while desktop derives
+admission from the virtualized viewport and overscan range.
 
 ### Image delivery
 
@@ -309,34 +310,26 @@ by the grid and lightbox.
 
 ### Video delivery and autoplay
 
-`VideoGridTile` in `src/components/media/MediaTile.tsx` renders the small
-preview URL, muted, looping, and inline. Each tile has an IntersectionObserver.
-The current implementation starts/continues playback at 35% intersection with
-a 180px vertical root margin. `requestState === deferred` removes the video
-source; all other states attach it.
+`GridVideoPreview` in `src/components/media/GridVideoPreview.tsx` owns the
+complete preview lifecycle behind one interface: one-way source admission,
+viewport eligibility, page visibility, bounded pause recovery, and looping.
+`src/components/media/autoplay.ts` centralizes the policy: start at 10% tile
+visibility and continue until the tile reaches 0%. This hysteresis avoids
+play/pause churn at the entry threshold.
 
-The lightbox plays the full-resolution URL with native controls and transfers
-the grid video's current playback time when possible.
+Deferred previews attach neither `src` nor `poster`. Once admitted, a preview
+keeps its source for the lifetime of that mounted tile, so changing scroll
+priority cannot reset `currentTime`. Hidden react-virtualized measurement
+cells never create playback observers. A single shared page-visibility Module
+notifies grid and lightbox playback; opening the lightbox disables grid
+playback so covered previews do not continue decoding underneath it.
 
-#### Active video scrolling defect
-
-The desktop virtualized grid currently remounts retained video cells during
-scroll-range updates. Live instrumentation shows a visible `<video>` node
-being disconnected and replaced while it remains in the viewport; its
-`currentTime` resets to zero and autoplay starts it again. This produces the
-repeated opening frames perceived as scroll stutter.
-
-The likely seam is the stateful duplicate-key allocator in
-`BookmarksMasonry.tsx` interacting with react-virtualized's two-phase
-measurement and repeated cell render calls. Fix cell identity first: use
-deterministic logical keys and deduplicate exact repeated render calls while
-preserving distinct measurement/positioned phases. Do not mask the defect by
-persisting playback time across routine scroll remounts.
-
-There is also a behavioral mismatch with the intended policy: the desired
-policy is start muted previews at 10% tile visibility and stop at 0%, with the
-values centralized for easy tuning. The current implementation uses a single
-35% threshold. Treat this as follow-up work separate from the remount fix.
+The lightbox plays and loops the full-resolution URL with native controls. It
+transfers the grid video's current playback time when possible and preserves
+page-hide/page-show intent. Open and close use a same-document View Transition
+when supported, pairing only the selected grid media with the lightbox media;
+reduced-motion and unsupported browsers fall back to an immediate state
+change.
 
 ## Deployment
 

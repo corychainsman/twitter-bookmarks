@@ -2,6 +2,7 @@ import { BookmarksGrid } from '@/components/grid/BookmarksGrid'
 import type { MasonryScrollAnchorRequest } from '@/components/grid/masonry-anchor'
 import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from '@/components/ui/empty'
 import type { GridItem, TweetDoc } from '@/features/bookmarks/model'
+import { GridMediaLifecycleProvider } from '@/components/media/GridMediaLifecycle'
 
 type BookmarksPageContentProps = {
   columnCount: number
@@ -10,11 +11,13 @@ type BookmarksPageContentProps = {
   immersive: boolean
   items: GridItem[]
   loadingError: string | null
+  mediaMorphGridId: string | null
   onInitialMediaReady: () => void
   onOpen: (gridId: string) => void
   onPinchZoom: (deltaColumns: number) => void
   onScrollAnchorApplied: (requestId: number) => void
   ready: boolean
+  playbackEnabled: boolean
   scrollAnchorRequest: MasonryScrollAnchorRequest | null
   viewKey: string
 }
@@ -45,10 +48,12 @@ export function BookmarksPageContent({
   immersive,
   items,
   loadingError,
+  mediaMorphGridId,
   onInitialMediaReady,
   onOpen,
   onPinchZoom,
   onScrollAnchorApplied,
+  playbackEnabled,
   ready,
   scrollAnchorRequest,
   viewKey,
@@ -62,17 +67,22 @@ export function BookmarksPageContent({
   }
 
   return (
-    <BookmarksGrid
-      columnCount={columnCount}
-      items={items}
-      docsById={docsById}
-      immersive={immersive}
-      onInitialMediaReady={onInitialMediaReady}
-      onOpen={onOpen}
-      onPinchZoom={onPinchZoom}
-      onScrollAnchorApplied={onScrollAnchorApplied}
-      scrollAnchorRequest={scrollAnchorRequest}
-      viewKey={viewKey}
-    />
+    <GridMediaLifecycleProvider
+      mediaMorphGridId={mediaMorphGridId}
+      playbackEnabled={playbackEnabled}
+    >
+      <BookmarksGrid
+        columnCount={columnCount}
+        items={items}
+        docsById={docsById}
+        immersive={immersive}
+        onInitialMediaReady={onInitialMediaReady}
+        onOpen={onOpen}
+        onPinchZoom={onPinchZoom}
+        onScrollAnchorApplied={onScrollAnchorApplied}
+        scrollAnchorRequest={scrollAnchorRequest}
+        viewKey={viewKey}
+      />
+    </GridMediaLifecycleProvider>
   )
 }

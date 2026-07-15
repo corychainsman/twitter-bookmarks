@@ -13,7 +13,11 @@ function isIOSWebKit(): boolean {
     return false
   }
 
-  return /iP(?:hone|ad|od)/.test(navigator.userAgent) && /WebKit/.test(navigator.userAgent)
+  const userAgent = navigator.userAgent
+  const isIOSDevice = /iP(?:hone|ad|od)/.test(userAgent)
+  const isIPadOSDesktopMode =
+    /Macintosh/.test(userAgent) && navigator.maxTouchPoints > 1
+  return (isIOSDevice || isIPadOSDesktopMode) && /WebKit/.test(userAgent)
 }
 
 // Start the desktop chunk alongside artifact loading, but never request it on
@@ -40,7 +44,12 @@ function BookmarksIOSStaticGrid({
   onOpen,
 }: Pick<
   BookmarksMasonryProps,
-  'columnCount' | 'docsById' | 'immersive' | 'items' | 'onInitialMediaReady' | 'onOpen'
+  | 'columnCount'
+  | 'docsById'
+  | 'immersive'
+  | 'items'
+  | 'onInitialMediaReady'
+  | 'onOpen'
 >) {
   const [containerElement, setContainerElement] = React.useState<HTMLDivElement | null>(null)
   const [gridElement, setGridElement] = React.useState<HTMLDivElement | null>(null)
@@ -77,7 +86,11 @@ function BookmarksIOSStaticGrid({
         {visibleItems.map((item, index) => (
           <div
             className="app-ios-static-item"
-            data-media-admission-id={index < MINIMUM_EAGER_ITEMS ? undefined : item.gridId}
+            data-media-admission-id={
+              item.mediaType === 'video' || item.mediaType === 'animated_gif'
+                ? item.gridId
+                : undefined
+            }
             key={item.gridId}
           >
             <MediaTile
@@ -85,11 +98,13 @@ function BookmarksIOSStaticGrid({
               tweet={docsById.get(item.tweetId)}
               immersive={immersive}
               requestState={
-                index < MINIMUM_EAGER_ITEMS
-                  ? 'initial'
-                  : admittedIds.has(item.gridId)
+                item.mediaType === 'video' || item.mediaType === 'animated_gif'
+                  ? admittedIds.has(item.gridId)
                     ? 'admitted'
                     : 'deferred'
+                  : index < MINIMUM_EAGER_ITEMS
+                    ? 'initial'
+                    : 'admitted'
               }
               imageDevicePixelRatio={imageDevicePixelRatio}
               imageRenderedWidth={columnWidth}

@@ -407,3 +407,28 @@ body {
     background-attachment: scroll;
   }
 }
+/* Shared-element morph between a masonry tile and its lightbox media. */
+[data-media-morph-source='true'] .app-media-image,
+[data-media-morph-target='true'] [data-lightbox-media-content],
+[data-media-morph-target='true'] .yarl__slide_image {
+  view-transition-name: bookmark-media-morph;
+}
+
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+
+::view-transition-group(bookmark-media-morph) {
+  z-index: 2147483647;
+  overflow: clip;
+  animation-duration: 360ms;
+  animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-group(bookmark-media-morph) {
+    animation-duration: 0.01ms;
+  }
+}

@@ -253,7 +253,7 @@ describe('MediaTile', () => {
     const video = document.querySelector('video')
     expect(video).not.toBeNull()
     expect(video).not.toHaveAttribute('src')
-    expect(video).toHaveAttribute('poster', 'https://pbs.twimg.com/media/poster.jpg?name=small')
+    expect(video).not.toHaveAttribute('poster')
   })
 
   it('loads initial motion preview video immediately', () => {

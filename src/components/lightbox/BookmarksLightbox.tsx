@@ -37,6 +37,7 @@ import {
 import { Button } from '@/components/ui/button'
 import { preloadMediaCandidates } from '@/lib/media-preload'
 import { cn } from '@/lib/utils'
+import { usePageVisible } from '@/components/media/usePageVisible'
 
 import 'yet-another-react-lightbox/styles.css'
 
@@ -47,6 +48,7 @@ type LightboxSelection = {
 
 type BookmarksLightboxProps = {
   docsById: Map<string, TweetDoc>
+  mediaMorphGridId?: string | null
   selection: LightboxSelection | null
   onClose: () => void
   onBrowseSimilar: (gridId: string) => void
@@ -97,6 +99,13 @@ function LightboxVideo({
 }) {
   const videoRef = useRef<HTMLVideoElement | null>(null)
   const seekedRef = useRef(false)
+  const resumeAfterPageVisibleRef = useRef(false)
+  const pageVisible = usePageVisible()
+  const pageVisibleRef = useRef(pageVisible)
+
+  useEffect(() => {
+    pageVisibleRef.current = pageVisible
+  }, [pageVisible])
 
   useEffect(() => {
     seekedRef.current = false
@@ -108,19 +117,33 @@ function LightboxVideo({
       return undefined
     }
 
-    video.muted = muted ?? false
-
-    if (!isActive) {
+    if (!isActive || !pageVisibleRef.current) {
       video.pause()
       return undefined
     }
 
-    void video.play().catch(() => {})
+    void video.play()?.catch(() => {})
 
     return () => {
       video.pause()
     }
-  }, [isActive, muted, src])
+  }, [isActive, src])
+
+  useEffect(() => {
+    const video = videoRef.current
+    if (!video) return
+
+    if (!pageVisible) {
+      resumeAfterPageVisibleRef.current = isActive && !video.paused
+      video.pause()
+      return
+    }
+
+    if (isActive && resumeAfterPageVisibleRef.current) {
+      resumeAfterPageVisibleRef.current = false
+      void video.play()?.catch(() => {})
+    }
+  }, [isActive, pageVisible])
 
   return (
     <video
@@ -145,8 +168,8 @@ function LightboxVideo({
           }
         }
         seekedRef.current = true
-        if (isActive) {
-          void video.play().catch(() => {})
+        if (isActive && pageVisibleRef.current) {
+          void video.play()?.catch(() => {})
         }
       }}
       className="max-h-full max-w-full bg-black object-contain"
@@ -309,6 +332,7 @@ function TweetDetailsPanel({
 
 export function BookmarksLightbox({
   docsById,
+  mediaMorphGridId,
   selection,
   onClose,
   onBrowseSimilar,
@@ -536,6 +560,9 @@ export function BookmarksLightbox({
           const placeholderSrc = handoff?.kind === 'image' ? handoff.src : undefined
           return (
           <div
+            data-media-morph-target={
+              slide.gridId === mediaMorphGridId ? 'true' : undefined
+            }
             className="relative box-border flex h-full w-full touch-pan-y items-center justify-center"
             style={{
               paddingBottom,

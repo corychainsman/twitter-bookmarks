@@ -136,7 +136,7 @@ describe('createBookmarksLightboxSlides', () => {
         poster: 'https://pbs.twimg.com/ext_tw_video_thumb/poster.jpg',
         width: 1280,
         height: 720,
-        loop: false,
+        loop: true,
         muted: false,
       },
     ])

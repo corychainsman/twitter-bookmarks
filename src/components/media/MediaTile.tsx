@@ -1,4 +1,4 @@
-import { memo, type CSSProperties, type MouseEventHandler, useEffect, useRef, useState } from 'react'
+import { memo, type CSSProperties, type MouseEventHandler, useRef, useState } from 'react'
 
 import type { GridItem, TweetDoc } from '@/features/bookmarks/model'
 import { formatPostedDate } from '@/lib/format'
@@ -9,11 +9,8 @@ import {
   type MediaRequestState,
 } from '@/features/bookmarks/media-delivery'
 import { Badge } from '@/components/ui/badge'
-import {
-  candidateFromEntry,
-  AUTOPLAY_ROOT_MARGIN,
-  AUTOPLAY_THRESHOLD,
-} from '@/components/media/autoplay'
+import { GridVideoPreview } from '@/components/media/GridVideoPreview'
+import { useGridMediaLifecycle } from '@/components/media/grid-media-lifecycle-context'
 
 const MEDIA_TYPE_LABEL = { animated_gif: 'animated gif', photo: 'photo', video: 'video' }
 const aspectRatioStyleCache = new WeakMap<GridItem, CSSProperties | null>()
@@ -30,74 +27,6 @@ type MediaTileProps = {
   onOpen: MouseEventHandler<HTMLButtonElement>
 }
 
-type VideoGridTileProps = {
-  src: string
-  poster?: string
-  aspectRatio?: number
-  width?: number
-  height?: number
-  gridId: string
-  requestState: MediaRequestState
-}
-
-function VideoGridTile({
-  src,
-  poster,
-  aspectRatio,
-  width,
-  height,
-  gridId,
-  requestState,
-}: VideoGridTileProps) {
-  const videoRef = useRef<HTMLVideoElement>(null)
-  const [shouldPlay, setShouldPlay] = useState(false)
-  const canAttachSrc = requestState !== 'deferred'
-
-  useEffect(() => {
-    const el = videoRef.current
-    if (!el) return
-    if (typeof IntersectionObserver === 'undefined') {
-      return
-    }
-    const observer = new IntersectionObserver(
-      (entries) => {
-        for (const entry of entries) {
-          setShouldPlay(candidateFromEntry(gridId, entry).isActiveBand)
-        }
-      },
-      { threshold: [0, AUTOPLAY_THRESHOLD, 1], rootMargin: AUTOPLAY_ROOT_MARGIN },
-    )
-    observer.observe(el)
-    return () => observer.disconnect()
-  }, [gridId])
-
-  useEffect(() => {
-    const video = videoRef.current
-    if (!video) return
-    if (shouldPlay && canAttachSrc) {
-      void video.play().catch(() => {})
-    } else {
-      video.pause()
-    }
-  }, [canAttachSrc, shouldPlay])
-
-  return (
-    <video
-      ref={videoRef}
-      src={canAttachSrc ? src : undefined}
-      poster={poster}
-      muted
-      loop
-      playsInline
-      preload={canAttachSrc ? 'metadata' : 'none'}
-      width={width}
-      height={height}
-      style={aspectRatio ? { aspectRatio } : undefined}
-      className="app-media-image relative block h-auto w-full"
-    />
-  )
-}
-
 export const MediaTile = memo(function MediaTile({
   item,
   tweet,
@@ -108,6 +37,7 @@ export const MediaTile = memo(function MediaTile({
   imageSizes,
   onOpen,
 }: MediaTileProps) {
+  const { mediaMorphGridId, playbackEnabled } = useGridMediaLifecycle()
   const initialMedia = requestState === 'initial'
   // Images always expose their concrete R2 original and srcset to the browser.
   // Native lazy loading owns request admission; requestState remains relevant
@@ -157,7 +87,11 @@ export const MediaTile = memo(function MediaTile({
         data-grid-id={item.gridId}
         onClick={handleOpen}
       >
-        <div ref={mediaRef} className="relative overflow-hidden bg-black">
+        <div
+          ref={mediaRef}
+          className="relative overflow-hidden bg-black"
+          data-media-morph-source={mediaMorphGridId === item.gridId ? 'true' : undefined}
+        >
           {placeholderUrl ? (
             <div
               aria-hidden
@@ -170,13 +104,14 @@ export const MediaTile = memo(function MediaTile({
             />
           ) : null}
           {delivery.isMotion ? (
-            <VideoGridTile
+            <GridVideoPreview
               src={delivery.previewUrl ?? item.fullUrl}
               poster={delivery.image.src}
               aspectRatio={aspectRatio}
               width={item.width}
               height={item.height}
               gridId={item.gridId}
+              playbackEnabled={playbackEnabled}
               requestState={requestState}
             />
           ) : delivery.renderOptimizedPicture && !useImageFallback ? (

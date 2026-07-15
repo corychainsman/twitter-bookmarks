@@ -1,8 +1,10 @@
 import * as React from 'react'
+import { flushSync } from 'react-dom'
 
 import { BookmarksToolbar } from '@/components/toolbar/BookmarksToolbar'
 import { BookmarksPageContent } from '@/app/bookmarks/BookmarksPageContent'
 import { useBookmarksPageController } from '@/app/bookmarks/useBookmarksPageController'
+import { startMediaViewTransition } from '@/lib/media-view-transition'
 
 const BookmarksLightbox = React.lazy(() =>
   import('@/components/lightbox/BookmarksLightbox').then((module) => ({
@@ -46,6 +48,44 @@ export function AppShell() {
     scrollAnchorRequest,
     viewKey,
   } = useBookmarksPageController()
+  const [mediaMorphGridId, setMediaMorphGridId] = React.useState<string | null>(null)
+
+  const openLightbox = React.useCallback(
+    (gridId: string) => {
+      flushSync(() => setMediaMorphGridId(gridId))
+      startMediaViewTransition(() => {
+        flushSync(() => onOpenLightbox(gridId))
+      })
+    },
+    [onOpenLightbox],
+  )
+
+  const closeLightbox = React.useCallback(() => {
+    const transition = startMediaViewTransition(() => {
+      flushSync(onCloseLightbox)
+    })
+    if (transition) {
+      void transition.finally(() => setMediaMorphGridId(null))
+    } else {
+      setMediaMorphGridId(null)
+    }
+  }, [onCloseLightbox])
+
+  const changeLightboxSelection = React.useCallback(
+    (gridId: string) => {
+      setMediaMorphGridId(gridId)
+      onLightboxSelectionChange(gridId)
+    },
+    [onLightboxSelectionChange],
+  )
+
+  const browseSimilar = React.useCallback(
+    (gridId: string) => {
+      setMediaMorphGridId(null)
+      onBrowseSimilar(gridId)
+    },
+    [onBrowseSimilar],
+  )
 
   return (
     <div className="isolate min-h-svh">
@@ -80,9 +120,11 @@ export function AppShell() {
           immersive={queryState.immersive}
           items={visibleItems}
           loadingError={loadingError}
+          mediaMorphGridId={selection ? null : mediaMorphGridId}
           onInitialMediaReady={onInitialMediaReady}
-          onOpen={onOpenLightbox}
+          onOpen={openLightbox}
           onPinchZoom={onPinchZoom}
+          playbackEnabled={!selection}
           onScrollAnchorApplied={onScrollAnchorApplied}
           ready={hasLoadedArtifacts}
           scrollAnchorRequest={scrollAnchorRequest}
@@ -94,10 +136,11 @@ export function AppShell() {
         <React.Suspense fallback={null}>
           <BookmarksLightbox
             docsById={docsById}
+            mediaMorphGridId={mediaMorphGridId}
             selection={selection}
-            onClose={onCloseLightbox}
-            onBrowseSimilar={onBrowseSimilar}
-            onSelectionChange={onLightboxSelectionChange}
+            onClose={closeLightbox}
+            onBrowseSimilar={browseSimilar}
+            onSelectionChange={changeLightboxSelection}
           />
         </React.Suspense>
       ) : null}

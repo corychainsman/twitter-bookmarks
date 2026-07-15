@@ -58,4 +58,26 @@ describe('createBookmarksLightboxSlides', () => {
       },
     ])
   })
+
+  it('loops direct videos in the lightbox', () => {
+    const [slide] = createBookmarksLightboxSlides({
+      ...tweet,
+      id: 'tweet-video',
+      media: [
+        {
+          type: 'video',
+          thumbUrl: 'https://pbs.twimg.com/media/poster.jpg',
+          fullUrl: 'https://video.twimg.com/ext_tw_video/example/pu/vid/video.mp4',
+          width: 1280,
+          height: 720,
+          aspectRatio: 16 / 9,
+        },
+      ],
+    })
+
+    expect(slide).toMatchObject({
+      type: 'video',
+      loop: true,
+    })
+  })
 })

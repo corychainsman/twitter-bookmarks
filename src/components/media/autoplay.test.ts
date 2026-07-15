@@ -3,14 +3,11 @@ import { describe, expect, it } from 'vitest'
 import { measureAutoplayCandidate } from '@/components/media/autoplay'
 
 describe('autoplay band', () => {
-  it('treats the viewport plus prewarm margin as the active autoplay band', () => {
+  it('starts playback when at least ten percent of a tile is visible', () => {
     expect(
       measureAutoplayCandidate('inside', {
         isIntersecting: true,
-        intersectionRatio: 0.6,
-        top: -120,
-        height: 200,
-        viewportHeight: 900,
+        intersectionRatio: 0.1,
       }),
     ).toEqual({
       id: 'inside',
@@ -20,10 +17,7 @@ describe('autoplay band', () => {
     expect(
       measureAutoplayCandidate('outside', {
         isIntersecting: true,
-        intersectionRatio: 0.6,
-        top: -400,
-        height: 120,
-        viewportHeight: 900,
+        intersectionRatio: 0.09,
       }),
     ).toEqual({
       id: 'outside',
@@ -31,14 +25,20 @@ describe('autoplay band', () => {
     })
   })
 
-  it('excludes tiles below the visibility threshold', () => {
+  it('keeps an active preview playing until it is fully outside the viewport', () => {
     expect(
-      measureAutoplayCandidate('barely-visible', {
+      measureAutoplayCandidate('still-visible', {
         isIntersecting: true,
-        intersectionRatio: 0.1,
-        top: 100,
-        height: 200,
-        viewportHeight: 900,
+        intersectionRatio: 0.01,
+        wasActive: true,
+      }).isActiveBand,
+    ).toBe(true)
+
+    expect(
+      measureAutoplayCandidate('outside', {
+        isIntersecting: false,
+        intersectionRatio: 0,
+        wasActive: true,
       }).isActiveBand,
     ).toBe(false)
   })

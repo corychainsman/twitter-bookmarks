@@ -27,7 +27,7 @@ function buildBookmarksLightboxSlides(tweet: TweetDoc | undefined) {
           poster: delivery.poster,
           width: media.width,
           height: media.height,
-          loop: media.type === 'animated_gif',
+          loop: true,
           muted: false,
         }
   }

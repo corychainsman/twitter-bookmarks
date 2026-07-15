@@ -1,5 +1,14 @@
-export const AUTOPLAY_ROOT_MARGIN = '180px 0px'
-export const AUTOPLAY_THRESHOLD = 0.35
+export const GRID_VIDEO_AUTOPLAY = {
+  rootMargin: '0px',
+  startVisibility: 0.1,
+  stopVisibility: 0,
+} as const
+
+export const AUTOPLAY_OBSERVER_THRESHOLDS = [
+  GRID_VIDEO_AUTOPLAY.stopVisibility,
+  GRID_VIDEO_AUTOPLAY.startVisibility,
+  1,
+]
 
 export type AutoplayBandState = {
   id: string
@@ -11,21 +20,15 @@ export function measureAutoplayCandidate(
   options: {
     isIntersecting: boolean
     intersectionRatio: number
-    top: number
-    height: number
-    viewportHeight: number
-    prewarmPx?: number
-    threshold?: number
+    wasActive?: boolean
   },
 ): AutoplayBandState {
-  const prewarmPx = options.prewarmPx ?? 180
-  const threshold = options.threshold ?? AUTOPLAY_THRESHOLD
-  const itemCenter = options.top + options.height / 2
-  const isActiveBand =
+  const isVisible =
     options.isIntersecting &&
-    options.intersectionRatio >= threshold &&
-    itemCenter >= -prewarmPx &&
-    itemCenter <= options.viewportHeight + prewarmPx
+    options.intersectionRatio > GRID_VIDEO_AUTOPLAY.stopVisibility
+  const isActiveBand = options.wasActive
+    ? isVisible
+    : isVisible && options.intersectionRatio >= GRID_VIDEO_AUTOPLAY.startVisibility
 
   return {
     id,
@@ -37,18 +40,13 @@ export function candidateFromEntry(
   id: string,
   entry: Pick<
     IntersectionObserverEntry,
-    'isIntersecting' | 'intersectionRatio' | 'boundingClientRect' | 'rootBounds'
+    'isIntersecting' | 'intersectionRatio'
   >,
+  wasActive = false,
 ): AutoplayBandState {
-  const viewportHeight =
-    entry.rootBounds?.height ??
-    (typeof window === 'undefined' ? entry.boundingClientRect.height : window.innerHeight)
-
   return measureAutoplayCandidate(id, {
     isIntersecting: entry.isIntersecting,
     intersectionRatio: entry.intersectionRatio,
-    top: entry.boundingClientRect.top,
-    height: entry.boundingClientRect.height,
-    viewportHeight,
+    wasActive,
   })
 }
