@@ -17,6 +17,13 @@ function createItems(count: number): GridItem[] {
     width: 1200,
     height: 800,
     aspectRatio: 1.5,
+    imageRenditions: [
+      {
+        url: `https://tbmedia.corychainsman.com/pbs/media/${index + 1}/renditions/v2/w320-test.avif`,
+        width: 320,
+        contentType: 'image/avif',
+      },
+    ],
   }))
 }
 
@@ -76,12 +83,12 @@ describe('BookmarksGrid', () => {
     await waitFor(() => {
       expect(container.querySelectorAll('.app-ios-static-item')).toHaveLength(80)
     })
-    expect(container.querySelectorAll('img[src]')).toHaveLength(12)
+    expect(container.querySelectorAll('img[src]')).toHaveLength(80)
     expect(container.querySelectorAll('img[loading="eager"]')).toHaveLength(12)
     expect(container.querySelectorAll('img[loading="lazy"]')).toHaveLength(68)
     expect(container.querySelector('source[type="image/avif"]')).toHaveAttribute(
       'srcset',
-      'https://tbmedia.corychainsman.com/pbs/media/1/w320.avif',
+      'https://tbmedia.corychainsman.com/pbs/media/1/renditions/v2/w320-test.avif',
     )
 
     const thirteenthTile = container.querySelector<HTMLElement>(
@@ -93,12 +100,12 @@ describe('BookmarksGrid', () => {
         {} as IntersectionObserver,
       )
     })
-    expect(container.querySelectorAll('img[src]')).toHaveLength(13)
+    expect(container.querySelectorAll('img[src]')).toHaveLength(80)
 
     fireEvent.click(screen.getByRole('button', { name: 'Load more' }))
     expect(container.querySelectorAll('.app-ios-static-item')).toHaveLength(160)
-    expect(container.querySelectorAll('img[src]')).toHaveLength(13)
-    expect(container.querySelectorAll('img[loading="eager"]')).toHaveLength(13)
-    expect(container.querySelectorAll('img[loading="lazy"]')).toHaveLength(147)
+    expect(container.querySelectorAll('img[src]')).toHaveLength(160)
+    expect(container.querySelectorAll('img[loading="eager"]')).toHaveLength(12)
+    expect(container.querySelectorAll('img[loading="lazy"]')).toHaveLength(148)
   })
 })

@@ -7,6 +7,7 @@ export type RefreshPipelineStepId =
   | 'sync:ft:resume'
   | 'sync:ft:full'
   | 'data:mirror'
+  | 'data:image-renditions'
   | 'data:video-previews'
   | 'mirror:sync'
   | 'data:export'
@@ -33,6 +34,7 @@ export type RefreshPipelineRunner = {
 
 const REFRESH_STEP_SEQUENCE: RefreshPipelineStepId[] = [
   'data:mirror',
+  'data:image-renditions',
   'data:video-previews',
   'mirror:sync',
   'data:export',
@@ -61,6 +63,11 @@ const REFRESH_STEPS: Record<RefreshPipelineStepId, RefreshPipelineStep> = {
     id: 'data:mirror',
     label: 'Media mirror',
     packageScript: 'data:mirror',
+  },
+  'data:image-renditions': {
+    id: 'data:image-renditions',
+    label: 'Content-addressed image renditions',
+    packageScript: 'data:backfill-image-variants',
   },
   'data:video-previews': {
     id: 'data:video-previews',

@@ -26,9 +26,12 @@ function imageRenditionsFor(
 
   return record.variants
     .map((variant) => ({
-      url: `${baseUrl}/${variant.key}`,
+      url: `${baseUrl}/${variant.key}${variant.digest ? `?v=${variant.digest}` : ''}`,
       width: variant.width,
-      contentType: 'image/avif' as const,
+      ...(variant.height ? { height: variant.height } : {}),
+      ...(variant.bytes ? { bytes: variant.bytes } : {}),
+      ...(variant.digest ? { digest: variant.digest } : {}),
+      contentType: variant.contentType ?? ('image/avif' as const),
     }))
     .sort((left, right) => left.width - right.width)
 }
@@ -48,7 +51,9 @@ function createMirrorLookup(manifest: MirrorManifest, baseUrl: string): MirrorLo
     recordFor,
     urlFor(sourceUrl) {
       const record = recordFor(sourceUrl)
-      return record ? `${normalizedBase}/${record.key}` : undefined
+      return record
+        ? `${normalizedBase}/${record.key}${record.digest ? `?v=${record.digest}` : ''}`
+        : undefined
     },
   }
 }
@@ -158,7 +163,7 @@ export function applyMirrorRewrite(
   }
 
   artifacts.manifest.mediaBaseUrl = normalizedBase
-  artifacts.manifest.mediaCatalogVersion = 1
+  artifacts.manifest.mediaCatalogVersion = 2
 
   return stats
 }

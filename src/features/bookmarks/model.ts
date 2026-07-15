@@ -9,6 +9,9 @@ export type MediaVariant = {
 export type ImageRendition = {
   url: string
   width: number
+  height?: number
+  bytes?: number
+  digest?: string
   contentType: 'image/avif'
 }
 
@@ -77,7 +80,9 @@ export type Manifest = {
   /** Origin serving self-hosted media, e.g. https://tbmedia.corychainsman.com */
   mediaBaseUrl?: string
   /** Version of the explicit media rendition catalog embedded in exported records. */
-  mediaCatalogVersion?: 1
+  mediaCatalogVersion?: 1 | 2
+  /** SHA-256 of the verified mirror manifest used to build this catalog. */
+  mediaCatalogGeneration?: string
   files: {
     docs: string[]
     gridOne: string

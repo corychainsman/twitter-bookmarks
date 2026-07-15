@@ -1,7 +1,6 @@
 import type { GridItem, ImageRendition, MediaItem } from '@/features/bookmarks/model'
 import {
   isMirroredImageUrl,
-  resolveMirroredImageFallbackSourceSet,
   resolveTwitterImageSourceSet,
   withTwitterOriginalJpg,
   withTwitterSize,
@@ -113,23 +112,16 @@ export function resolveGridMediaDelivery(
   const isMotion = item.mediaType === 'video' || item.mediaType === 'animated_gif'
   const sourceUrl = isMotion ? item.posterUrl ?? item.thumbUrl : item.thumbUrl
   const publishedImage = resolveGridRenditions(item.imageRenditions ?? [], options)
-  const image =
-    publishedImage ??
-    resolveTwitterImageSourceSet(sourceUrl, {
-      devicePixelRatio: options.devicePixelRatio,
-      renderedWidth: options.renderedWidth,
-      sizes: options.sizes,
-    })
-  const renderOptimizedPicture = Boolean(publishedImage) || isMirroredImageUrl(sourceUrl)
-  const fallback = isMirroredImageUrl(sourceUrl)
-    ? resolveMirroredImageFallbackSourceSet(sourceUrl, {
+  const image = publishedImage ??
+    (isMirroredImageUrl(sourceUrl)
+      ? { src: sourceUrl }
+      : resolveTwitterImageSourceSet(sourceUrl, {
         devicePixelRatio: options.devicePixelRatio,
         renderedWidth: options.renderedWidth,
         sizes: options.sizes,
-      })
-    : publishedImage
-      ? { src: sourceUrl }
-      : undefined
+      }))
+  const renderOptimizedPicture = Boolean(publishedImage)
+  const fallback = publishedImage ? { src: sourceUrl } : undefined
   const delivery: GridMediaDelivery = {
     fallback,
     image,

@@ -11,6 +11,7 @@ describe('refresh pipeline', () => {
     expect(buildRefreshPipeline().map((step) => step.packageScript)).toEqual([
       'sync:ft',
       'data:mirror',
+      'data:backfill-image-variants',
       'data:video-previews',
       'mirror:sync',
       'data:export',
@@ -54,6 +55,7 @@ describe('refresh pipeline', () => {
     expect(packageScripts).toEqual([
       'sync:ft:full',
       'data:mirror',
+      'data:backfill-image-variants',
       'data:video-previews',
       'mirror:sync',
       'data:export',

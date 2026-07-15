@@ -51,8 +51,11 @@ async function main() {
 
   const flattenedDocs = docs.flat()
 
-  if (manifest.mediaCatalogVersion === 1) {
+  if (manifest.mediaCatalogVersion === 1 || manifest.mediaCatalogVersion === 2) {
     const mediaBaseUrl = assertNonEmptyString(manifest.mediaBaseUrl, 'mediaBaseUrl')
+    if (manifest.mediaCatalogVersion === 2) {
+      assertNonEmptyString(manifest.mediaCatalogGeneration, 'mediaCatalogGeneration')
+    }
     const assertRenditions = (renditions: ImageRendition[] | undefined, label: string) => {
       assert.ok(renditions?.length, `${label} has no published image renditions`)
       let previousWidth = 0
@@ -62,6 +65,15 @@ async function main() {
         assert.ok(rendition.url.startsWith(`${mediaBaseUrl}/`), `${label} rendition is off mirror`)
         assert.ok(rendition.width > previousWidth, `${label} renditions are not width-sorted`)
         assert.ok(!widths.has(rendition.width), `${label} has a duplicate rendition width`)
+        if (manifest.mediaCatalogVersion === 2) {
+          assert.ok(rendition.height && rendition.height > 0, `${label} rendition has no height`)
+          assert.ok(rendition.bytes && rendition.bytes > 0, `${label} rendition has no byte size`)
+          assert.match(rendition.digest ?? '', /^[a-f0-9]{64}$/, `${label} rendition has no digest`)
+          assert.ok(
+            rendition.url.includes(rendition.digest!.slice(0, 16)),
+            `${label} rendition URL is not content-addressed`,
+          )
+        }
         widths.add(rendition.width)
         previousWidth = rendition.width
       }
@@ -108,6 +120,9 @@ async function main() {
   const presentUrls = mediaUrls.filter((url) => url.length > 0)
   const twimgUrls = presentUrls.filter((url) => url.includes('.twimg.com'))
   const coverage = presentUrls.length - twimgUrls.length
+  if (manifest.mediaCatalogVersion === 2) {
+    assert.equal(twimgUrls.length, 0, 'media catalog v2 cannot publish runtime twimg fallbacks')
+  }
 
   console.log(
     `Validated export: ${manifest.tweetCount} tweets, ${manifest.gridItemCountAll} media tiles.`,

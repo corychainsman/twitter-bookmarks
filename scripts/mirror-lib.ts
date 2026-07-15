@@ -1,4 +1,5 @@
-import { mkdir, readFile, rename, writeFile } from 'node:fs/promises'
+import { createHash, randomUUID } from 'node:crypto'
+import { mkdir, readFile, rename, rm, writeFile } from 'node:fs/promises'
 import path from 'node:path'
 
 export type MirrorAssetKind = 'image' | 'video'
@@ -6,12 +7,18 @@ export type MirrorAssetKind = 'image' | 'video'
 export type MirrorVariant = {
   key: string
   width: number
+  height?: number
+  bytes?: number
+  contentType?: 'image/avif'
+  digest?: string
 }
 
 export type MirrorAssetRecord = {
   status: 'ok' | 'failed'
   kind: MirrorAssetKind
   key: string
+  /** SHA-256 of the archived original bytes. */
+  digest?: string
   bytes?: number
   contentType?: string
   width?: number
@@ -39,10 +46,8 @@ const MIRROR_HOST_PREFIXES: Record<string, string> = {
   'video.twimg.com': 'vid',
 }
 
-// Keep in sync with MIRROR_IMAGE_WIDTHS in src/lib/twitter-media-url.ts; the app
-// derives these URLs by convention, so every width here must exist on R2 for
-// every mirrored image (scripts/backfill-image-variants.ts backfills new widths).
-export const MIRROR_VARIANT_WIDTHS = [320, 480, 680, 960, 1280] as const
+export const MIRROR_RENDITION_VERSION = 2 as const
+export const MIRROR_VARIANT_WIDTHS = [320, 680, 1280, 2048] as const
 
 export function mirrorKeyForUrl(sourceUrl: string): string | null {
   let parsed: URL
@@ -60,10 +65,22 @@ export function mirrorKeyForUrl(sourceUrl: string): string | null {
   return `${prefix}${parsed.pathname}`
 }
 
-export function mirrorVariantKey(originalKey: string, width: number): string {
+export function mirrorVariantKey(originalKey: string, width: number, digest?: string): string {
   const extension = path.extname(originalKey)
   const stem = extension ? originalKey.slice(0, -extension.length) : originalKey
-  return `${stem}/w${width}.avif`
+  return digest
+    ? `${stem}/renditions/v${MIRROR_RENDITION_VERSION}/w${width}-${digest}.avif`
+    : `${stem}/w${width}.avif`
+}
+
+export function mirrorContentKey(sourceKey: string, digest: string): string {
+  const extension = path.extname(sourceKey)
+  const stem = extension ? sourceKey.slice(0, -extension.length) : sourceKey
+  return `${stem}/objects/${digest}${extension}`
+}
+
+export function isContentAddressedMirrorKey(key: string, digest: string | undefined): boolean {
+  return Boolean(digest && key.includes(`/objects/${digest}`))
 }
 
 // Grid autoplay preview clip key, derived from the original video key by
@@ -80,10 +97,26 @@ export function videoPlaybackKey(originalKey: string): string {
   return `${stem}/playback.mp4`
 }
 
-// Every image gets all tiers (withoutEnlargement caps the actual pixels)
-// so the app can derive variant URLs from the original URL by convention alone.
+// Rendition generation filters this ladder against the oriented source width
+// and records the actual output dimensions in the explicit catalog.
 export function mirrorVariantWidths(): number[] {
   return [...MIRROR_VARIANT_WIDTHS]
+}
+
+export function sha256(buffer: Uint8Array): string {
+  return createHash('sha256').update(buffer).digest('hex')
+}
+
+export async function writeFileAtomically(filePath: string, buffer: Uint8Array): Promise<void> {
+  await mkdir(path.dirname(filePath), { recursive: true })
+  const temporaryPath = `${filePath}.${process.pid}.${randomUUID()}.tmp`
+
+  try {
+    await writeFile(temporaryPath, buffer)
+    await rename(temporaryPath, filePath)
+  } finally {
+    await rm(temporaryPath, { force: true })
+  }
 }
 
 export function imageDownloadUrl(sourceUrl: string): string {

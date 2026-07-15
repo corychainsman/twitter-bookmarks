@@ -680,9 +680,9 @@ describe('BookmarksMasonry', () => {
     expect(initialImage).toHaveAttribute('data-initial-media', 'true')
 
     expect(overscanImage).toHaveAttribute('loading', 'lazy')
-    expect(overscanImage).toHaveAttribute('fetchpriority', 'low')
+    expect(overscanImage).toHaveAttribute('fetchpriority', 'auto')
     expect(overscanImage).not.toHaveAttribute('data-initial-media')
-    expect(overscanImage).not.toHaveAttribute('src')
+    expect(overscanImage).toHaveAttribute('src')
   })
 
   it('prioritizes the current scroll viewport instead of the first dataset batch', async () => {
@@ -718,12 +718,12 @@ describe('BookmarksMasonry', () => {
     )
 
     expect(offscreenInitialImage).toHaveAttribute('loading', 'lazy')
-    expect(offscreenInitialImage).toHaveAttribute('fetchpriority', 'low')
+    expect(offscreenInitialImage).toHaveAttribute('fetchpriority', 'auto')
     expect(offscreenInitialImage).not.toHaveAttribute('data-initial-media')
-    expect(offscreenInitialImage).not.toHaveAttribute('src')
+    expect(offscreenInitialImage).toHaveAttribute('src')
 
-    expect(viewportImage).toHaveAttribute('loading', 'eager')
-    expect(viewportImage).toHaveAttribute('fetchpriority', 'high')
+    expect(viewportImage).toHaveAttribute('loading', 'lazy')
+    expect(viewportImage).toHaveAttribute('fetchpriority', 'auto')
   })
 
   it('keeps hidden measurement cells out of the eager image queue', async () => {
@@ -755,8 +755,8 @@ describe('BookmarksMasonry', () => {
       repeatedImages.some(
         (image) =>
           image.getAttribute('loading') === 'lazy' &&
-          image.getAttribute('fetchpriority') === 'low' &&
-          !image.hasAttribute('src') &&
+          image.getAttribute('fetchpriority') === 'auto' &&
+          image.hasAttribute('src') &&
           !image.hasAttribute('data-initial-media'),
       ),
     ).toBe(true)

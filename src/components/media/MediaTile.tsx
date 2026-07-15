@@ -109,14 +109,12 @@ export const MediaTile = memo(function MediaTile({
   onOpen,
 }: MediaTileProps) {
   const initialMedia = requestState === 'initial'
-  const shouldAttachImageSrc = requestState !== 'deferred'
-  const loading = requestState === 'deferred' ? 'lazy' : 'eager'
-  const fetchPriority =
-    initialMedia || requestState === 'priority'
-      ? 'high'
-      : requestState === 'admitted'
-        ? 'auto'
-        : 'low'
+  // Images always expose their concrete R2 original and srcset to the browser.
+  // Native lazy loading owns request admission; requestState remains relevant
+  // only to video source attachment and the small first-paint priority set.
+  const shouldAttachImageSrc = true
+  const loading = initialMedia ? 'eager' : 'lazy'
+  const fetchPriority = initialMedia ? 'high' : 'auto'
   let aspectRatioStyle = aspectRatioStyleCache.get(item)
   if (aspectRatioStyle === undefined) {
     const aspectRatio =

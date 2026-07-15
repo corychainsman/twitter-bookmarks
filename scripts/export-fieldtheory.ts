@@ -2,6 +2,7 @@ import path from 'node:path'
 
 import { buildExportArtifacts } from '../src/features/bookmarks/export-artifacts'
 import { readJsonLines, writeExportArtifacts } from './export-lib'
+import { assertVerifiedMediaPublication } from './media-publication'
 import { readMirrorManifest } from './mirror-lib'
 import { applyMirrorRewrite, DEFAULT_MEDIA_BASE_URL } from './mirror-rewrite'
 
@@ -25,7 +26,9 @@ async function main() {
 
   if (mirroredAssetCount > 0) {
     const mediaBaseUrl = process.env.MEDIA_BASE_URL || DEFAULT_MEDIA_BASE_URL
+    const publication = await assertVerifiedMediaPublication({ mediaBaseUrl })
     const stats = applyMirrorRewrite(artifacts, mirrorManifest, mediaBaseUrl)
+    artifacts.manifest.mediaCatalogGeneration = publication.manifestDigest
     console.log(
       `Mirror rewrite: ${stats.rewrittenUrls}/${stats.totalUrls} media URLs now served from ${mediaBaseUrl} ` +
         `(${stats.thumbhashedGridItems} grid items thumbhashed, ${stats.previewGridItems} with autoplay previews).`,

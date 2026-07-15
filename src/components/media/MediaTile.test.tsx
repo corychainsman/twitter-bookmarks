@@ -123,12 +123,24 @@ describe('MediaTile', () => {
     expect(image).toHaveAttribute('sizes', '342px')
   })
 
-  it('renders mirrored image AVIF candidates with responsive Twitter fallbacks', () => {
+  it('renders explicit AVIF candidates with the mirrored original fallback', () => {
     render(
       <MediaTile
         item={{
           ...item,
           thumbUrl: 'https://tbmedia.corychainsman.com/pbs/media/thumb.jpg',
+          imageRenditions: [
+            {
+              url: 'https://tbmedia.corychainsman.com/pbs/media/thumb/renditions/v2/w320-a.avif',
+              width: 320,
+              contentType: 'image/avif',
+            },
+            {
+              url: 'https://tbmedia.corychainsman.com/pbs/media/thumb/renditions/v2/w680-b.avif',
+              width: 680,
+              contentType: 'image/avif',
+            },
+          ],
         }}
         tweet={tweet}
         immersive
@@ -144,12 +156,12 @@ describe('MediaTile', () => {
     const image = screen.getByRole('img', { name: tweet.text })
     expect(source).toHaveAttribute(
       'srcset',
-      'https://tbmedia.corychainsman.com/pbs/media/thumb/w320.avif 320w, https://tbmedia.corychainsman.com/pbs/media/thumb/w480.avif 480w, https://tbmedia.corychainsman.com/pbs/media/thumb/w680.avif 680w',
+      'https://tbmedia.corychainsman.com/pbs/media/thumb/renditions/v2/w320-a.avif 320w, https://tbmedia.corychainsman.com/pbs/media/thumb/renditions/v2/w680-b.avif 680w',
     )
     expect(source).toHaveAttribute('sizes', '320px')
     expect(image).toHaveAttribute(
       'src',
-      'https://pbs.twimg.com/media/thumb.jpg?name=small',
+      'https://tbmedia.corychainsman.com/pbs/media/thumb.jpg',
     )
     expect(image).not.toHaveAttribute('srcset')
   })
@@ -160,6 +172,13 @@ describe('MediaTile', () => {
         item={{
           ...item,
           thumbUrl: 'https://tbmedia.corychainsman.com/pbs/media/thumb.jpg',
+          imageRenditions: [
+            {
+              url: 'https://tbmedia.corychainsman.com/pbs/media/thumb/renditions/v2/w320-a.avif',
+              width: 320,
+              contentType: 'image/avif',
+            },
+          ],
         }}
         tweet={tweet}
         immersive
@@ -175,10 +194,10 @@ describe('MediaTile', () => {
     fireEvent.error(image)
 
     expect(document.querySelector('source[type="image/avif"]')).toBeNull()
-    expect(image).toHaveAttribute('src', 'https://pbs.twimg.com/media/thumb.jpg?name=small')
+    expect(image).toHaveAttribute('src', 'https://tbmedia.corychainsman.com/pbs/media/thumb.jpg')
   })
 
-  it('leaves deferred image sources detached until the caller admits the tile', () => {
+  it('exposes deferred image sources to native lazy loading', () => {
     render(
       <MediaTile
         item={{
@@ -196,8 +215,7 @@ describe('MediaTile', () => {
     )
 
     const image = screen.getByRole('img', { name: tweet.text })
-    expect(image).not.toHaveAttribute('src')
-
+    expect(image).toHaveAttribute('src', 'https://pbs.twimg.com/media/thumb.jpg?name=small')
     expect(image).toHaveAttribute('loading', 'lazy')
   })
 

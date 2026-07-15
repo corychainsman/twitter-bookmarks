@@ -2,16 +2,11 @@ export type TwitterImageSize = 'small' | 'medium' | 'large' | 'orig'
 
 const TWITTER_IMAGE_HOST = 'pbs.twimg.com'
 const TWITTER_RESIZABLE_PATH_PREFIX = '/media/'
-const MIRRORED_TWITTER_MEDIA_PATH_PREFIX = '/pbs/media/'
 const twitterOriginalJpgCache = new Map<string, string>()
 const mirroredTwitterSourceSetCache = new Map<string, Map<number | string, TwitterImageSourceSet>>()
 const twitterSizeCache = new Map<string, Map<TwitterImageSize, string>>()
 
-// Self-hosted mirror images live at <base>/pbs/<twimg-path>; resized AVIF
-// variants always exist at <base>/pbs/<path-without-extension>/w{N}.avif.
-// Keep in sync with MIRROR_VARIANT_WIDTHS in scripts/mirror-lib.ts.
 const MIRROR_IMAGE_PATH_PREFIX = '/pbs/'
-export const MIRROR_IMAGE_WIDTHS = [320, 480, 680, 960, 1280] as const
 
 // Above 2x, extra physical pixels are visually indistinguishable in grid tiles
 // but roughly double the bytes; cap the multiplier used for tier selection.
@@ -34,42 +29,6 @@ export function isMirroredImageUrl(url: string): boolean {
   )
 }
 
-export function mirroredVariantUrl(url: string, width: number): string {
-  let parsed: URL
-  try {
-    parsed = new URL(url)
-  } catch {
-    return url
-  }
-
-  const stem = parsed.pathname.replace(/\.[a-z0-9]+$/i, '')
-  parsed.pathname = `${stem}/w${width}.avif`
-  parsed.search = ''
-  return parsed.toString()
-}
-
-function mirroredTwitterMediaUrl(url: string): string | null {
-  let parsed: URL
-  try {
-    parsed = new URL(url)
-  } catch {
-    return null
-  }
-
-  if (!parsed.pathname.startsWith(MIRRORED_TWITTER_MEDIA_PATH_PREFIX)) {
-    return null
-  }
-
-  const mediaPath = parsed.pathname.slice('/pbs'.length)
-  return `https://${TWITTER_IMAGE_HOST}${mediaPath}`
-}
-
-const MIRROR_SIZE_WIDTHS: Record<Exclude<TwitterImageSize, 'orig'>, number> = {
-  small: 680,
-  medium: 1280,
-  large: 1280,
-}
-
 export function withTwitterSize(url: string, size: TwitterImageSize): string {
   if (!url) {
     return url
@@ -89,7 +48,10 @@ export function withTwitterSize(url: string, size: TwitterImageSize): string {
   }
 
   if (isMirroredImageUrl(url)) {
-    return size === 'orig' ? url : mirroredVariantUrl(url, MIRROR_SIZE_WIDTHS[size])
+    // The explicit media rendition catalog is the only source of derived R2
+    // URLs. Legacy records safely use the archived original instead of guessing
+    // a path that may not exist.
+    return url
   }
 
   let parsed: URL
@@ -203,35 +165,6 @@ function hasRenderedWidthOption(options: TwitterImageSourceSetOptions): boolean 
   )
 }
 
-function resolveMirroredImageSourceSet(
-  url: string,
-  options: TwitterImageSourceSetOptions,
-): TwitterImageSourceSet {
-  const candidates = MIRROR_IMAGE_WIDTHS.map((width) => ({
-    width,
-    url: mirroredVariantUrl(url, width),
-  }))
-
-  const devicePixelRatio = resolveEffectiveDevicePixelRatio(options.devicePixelRatio)
-  const renderedWidth = hasRenderedWidthOption(options) ? options.renderedWidth : undefined
-  const targetPixelWidth = renderedWidth
-    ? Math.ceil(renderedWidth * devicePixelRatio)
-    : MIRROR_SIZE_WIDTHS[options.maxSize ?? 'medium']
-  const selected =
-    candidates.find(({ width }) => width >= targetPixelWidth) ?? candidates[candidates.length - 1]
-  const selectedIndex = candidates.indexOf(selected)
-  const eligibleCandidates = candidates.slice(0, selectedIndex + 1)
-
-  return {
-    src: selected.url,
-    srcSet:
-      eligibleCandidates.length > 1
-        ? eligibleCandidates.map((candidate) => `${candidate.url} ${candidate.width}w`).join(', ')
-        : undefined,
-    sizes: eligibleCandidates.length > 1 ? options.sizes ?? RESPONSIVE_SIZES : undefined,
-  }
-}
-
 export function resolveMirroredImageFallbackSourceSet(
   url: string,
   options: TwitterImageSourceSetOptions = {},
@@ -243,10 +176,7 @@ export function resolveMirroredImageFallbackSourceSet(
   const cached = cachedByOptions.get(cacheKey)
   if (cached) return cached
 
-  const twitterUrl = mirroredTwitterMediaUrl(url)
-  const sourceSet = twitterUrl
-    ? resolveTwitterImageSourceSet(twitterUrl, options)
-    : { src: url }
+  const sourceSet = { src: url }
   cachedByOptions.set(cacheKey, sourceSet)
   return sourceSet
 }
@@ -263,7 +193,7 @@ export function resolveTwitterImageSourceSet(
   if (cached) return cached
 
   if (isMirroredImageUrl(url)) {
-    const sourceSet = resolveMirroredImageSourceSet(url, options)
+    const sourceSet = { src: url }
     cachedByOptions.set(cacheKey, sourceSet)
     return sourceSet
   }

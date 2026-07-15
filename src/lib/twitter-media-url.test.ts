@@ -143,27 +143,15 @@ describe('resolveTwitterImageSourceSet', () => {
 describe('mirrored media URLs', () => {
   const mirroredUrl = 'https://tbmedia.corychainsman.com/pbs/media/abc.jpg'
 
-  it('maps twitter sizes onto mirrored AVIF variants', () => {
-    expect(withTwitterSize(mirroredUrl, 'small')).toBe(
-      'https://tbmedia.corychainsman.com/pbs/media/abc/w680.avif',
-    )
-    expect(withTwitterSize(mirroredUrl, 'medium')).toBe(
-      'https://tbmedia.corychainsman.com/pbs/media/abc/w1280.avif',
-    )
-    expect(withTwitterSize(mirroredUrl, 'large')).toBe(
-      'https://tbmedia.corychainsman.com/pbs/media/abc/w1280.avif',
-    )
+  it('never guesses rendition URLs for mirrored originals', () => {
+    expect(withTwitterSize(mirroredUrl, 'small')).toBe(mirroredUrl)
+    expect(withTwitterSize(mirroredUrl, 'medium')).toBe(mirroredUrl)
+    expect(withTwitterSize(mirroredUrl, 'large')).toBe(mirroredUrl)
     expect(withTwitterSize(mirroredUrl, 'orig')).toBe(mirroredUrl)
-  })
-
-  it('treats the mirrored URL as the original image', () => {
     expect(withTwitterOriginalJpg(mirroredUrl)).toBe(mirroredUrl)
   })
 
-  const cappedGridSrcSet =
-    'https://tbmedia.corychainsman.com/pbs/media/abc/w320.avif 320w, https://tbmedia.corychainsman.com/pbs/media/abc/w480.avif 480w, https://tbmedia.corychainsman.com/pbs/media/abc/w680.avif 680w'
-
-  it('caps the AVIF source set at the selected grid rendition', () => {
+  it('uses only the mirrored original when no explicit catalog is present', () => {
     expect(
       resolveTwitterImageSourceSet(mirroredUrl, {
         devicePixelRatio: 2,
@@ -171,31 +159,8 @@ describe('mirrored media URLs', () => {
         sizes: '300px',
       }),
     ).toEqual({
-      src: 'https://tbmedia.corychainsman.com/pbs/media/abc/w680.avif',
-      srcSet: cappedGridSrcSet,
-      sizes: '300px',
+      src: mirroredUrl,
     })
-  })
-
-  it('selects the intermediate tiers for mid-size targets', () => {
-    expect(
-      resolveTwitterImageSourceSet(mirroredUrl, {
-        devicePixelRatio: 1,
-        renderedWidth: 390,
-        sizes: '390px',
-      }).src,
-    ).toBe('https://tbmedia.corychainsman.com/pbs/media/abc/w480.avif')
-  })
-
-  it('caps the effective device pixel ratio at 2 when selecting a tier', () => {
-    expect(
-      resolveTwitterImageSourceSet(mirroredUrl, {
-        devicePixelRatio: 3,
-        renderedWidth: 300,
-        sizes: '300px',
-      }).src,
-      // 300px at DPR 3 would pick w960; capped to DPR 2 it stays at w680.
-    ).toBe('https://tbmedia.corychainsman.com/pbs/media/abc/w680.avif')
   })
 
   it('builds a responsive Twitter fallback source set for mirrored media URLs', () => {
@@ -206,7 +171,7 @@ describe('mirrored media URLs', () => {
         sizes: '300px',
       }),
     ).toEqual({
-      src: 'https://pbs.twimg.com/media/abc.jpg?name=small',
+      src: mirroredUrl,
     })
   })
 
@@ -228,9 +193,7 @@ describe('mirrored media URLs', () => {
 
   it('handles mirrored video poster paths', () => {
     const posterUrl = 'https://tbmedia.corychainsman.com/pbs/ext_tw_video_thumb/123/pu/img/x.jpg'
-    expect(withTwitterSize(posterUrl, 'medium')).toBe(
-      'https://tbmedia.corychainsman.com/pbs/ext_tw_video_thumb/123/pu/img/x/w1280.avif',
-    )
+    expect(withTwitterSize(posterUrl, 'medium')).toBe(posterUrl)
   })
 
 })

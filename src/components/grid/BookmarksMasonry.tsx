@@ -28,8 +28,6 @@ import {
   resolveBookmarksMasonryImageLoadingStrategy,
   type MasonryScrollDirection,
 } from '@/components/grid/masonry-image-loading'
-import { createMasonryMediaPreloadCandidates } from '@/components/grid/masonry-media-preload'
-import { preloadMediaCandidates } from '@/lib/media-preload'
 import { useInitialMediaReady } from '@/components/grid/useInitialMediaReady'
 
 export type BookmarksMasonryProps = {
@@ -48,9 +46,6 @@ export type BookmarksMasonryProps = {
 const ANCHOR_RESTORE_ATTEMPTS = 3
 const MINIMUM_PREFETCH_ITEMS = 12
 const MINIMUM_EAGER_ITEMS = 12
-const IDLE_PRELOAD_DELAY_MS = 8_000
-const IDLE_PRELOAD_ITEM_COUNT = 16
-const IDLE_PRELOAD_CONCURRENCY = 4
 const MINIMUM_PINCH_DISTANCE_PX = 16
 const PINCH_ZOOM_STEP_RATIO = 1.16
 const VIEWPORT_PREFETCH_MULTIPLIER = 1
@@ -216,7 +211,6 @@ export function BookmarksMasonry({
   const renderedCellKeyAllocatorRef = React.useRef(
     createBookmarksMasonryRenderedCellKeyAllocator(),
   )
-  const preloadedMediaUrlsRef = React.useRef(new Set<string>())
   const viewportRef = React.useRef({
     height: 0,
     scrollDirection: 'none' as MasonryScrollDirection,
@@ -387,7 +381,8 @@ export function BookmarksMasonry({
     items.length,
     Math.max(MINIMUM_EAGER_ITEMS, columnCount * 4),
   )
-  const imageDevicePixelRatio = 1
+  const imageDevicePixelRatio =
+    typeof window === 'undefined' ? 1 : Math.max(1, window.devicePixelRatio || 1)
   const imageSizes = `${columnWidth}px`
 
   React.useEffect(() => {
@@ -414,7 +409,7 @@ export function BookmarksMasonry({
     return () => window.cancelAnimationFrame(frameId)
   }, [onScrollAnchorApplied, scrollAnchorRequest])
 
-  const initialMediaReady = useInitialMediaReady({
+  useInitialMediaReady({
     containerElement,
     enabled: containerWidth > 0 && !isResettingImmersiveLayout,
     onReady: onInitialMediaReady,
@@ -475,53 +470,6 @@ export function BookmarksMasonry({
       renderedImmersive,
     ],
   )
-
-  React.useEffect(() => {
-    if (!initialMediaReady || columnWidth <= 0 || items.length === 0) {
-      return undefined
-    }
-
-    const preload = () => {
-      preloadMediaCandidates(
-        createMasonryMediaPreloadCandidates({
-          devicePixelRatio: imageDevicePixelRatio,
-          items,
-          renderedWidth: columnWidth,
-          startIndex: 0,
-          take: Math.min(items.length, eagerItemCount + IDLE_PRELOAD_ITEM_COUNT),
-        }),
-        {
-          concurrency: IDLE_PRELOAD_CONCURRENCY,
-          seen: preloadedMediaUrlsRef.current,
-        },
-      )
-    }
-
-    const idleWindow = window as Window & {
-      requestIdleCallback?: (
-        callback: IdleRequestCallback,
-        options?: IdleRequestOptions,
-      ) => number
-      cancelIdleCallback?: (handle: number) => void
-    }
-
-    let idleId: number | null = null
-    const timeoutId = window.setTimeout(() => {
-      if (idleWindow.requestIdleCallback) {
-        idleId = idleWindow.requestIdleCallback(preload, { timeout: 2_000 })
-        return
-      }
-
-      preload()
-    }, IDLE_PRELOAD_DELAY_MS)
-
-    return () => {
-      window.clearTimeout(timeoutId)
-      if (idleId !== null) {
-        idleWindow.cancelIdleCallback?.(idleId)
-      }
-    }
-  }, [columnWidth, eagerItemCount, imageDevicePixelRatio, initialMediaReady, items])
 
   if (items.length === 0) {
     return (

@@ -1,20 +1,21 @@
-import { mkdir, stat, writeFile } from 'node:fs/promises'
+import { readFile, stat } from 'node:fs/promises'
 import path from 'node:path'
 
-import sharp from 'sharp'
-
+import { generateImageRenditions, imageRenditionWidths } from './image-renditions'
 import {
-  mirrorVariantKey,
-  mirrorVariantWidths,
+  isContentAddressedMirrorKey,
+  mirrorContentKey,
+  mirrorKeyForUrl,
   readMirrorManifest,
   runWithConcurrency,
+  sha256,
+  writeFileAtomically,
   writeMirrorManifest,
   type MirrorManifest,
 } from './mirror-lib'
 
-// Generates any AVIF variant widths that were added to MIRROR_VARIANT_WIDTHS after
-// an image was originally mirrored, sourcing from the local archived original.
-// Incremental and idempotent: existing variant files are left untouched.
+// Migrates legacy convention-based AVIF files to the explicit, content-addressed
+// rendition catalog. Existing objects remain in place for old deployed catalogs.
 
 const projectRoot = process.cwd()
 const mirrorRoot = path.join(projectRoot, '.data/media')
@@ -62,14 +63,38 @@ async function fileExists(filePath: string): Promise<boolean> {
 type BackfillJob = {
   sourceUrl: string
   inputPath: string
-  missingWidths: number[]
+}
+
+async function hasCurrentRenditions(record: MirrorManifest['assets'][string]): Promise<boolean> {
+  const expectedWidths = imageRenditionWidths(record.width ?? 0)
+  if (!record.digest || !record.variants || record.variants.length !== expectedWidths.length) {
+    return false
+  }
+  if (!isContentAddressedMirrorKey(record.key, record.digest)) return false
+
+  const metadataIsCurrent = record.variants.every(
+    (variant, index) =>
+      variant.width === expectedWidths[index] &&
+      Boolean(
+        variant.digest &&
+          variant.bytes &&
+          variant.height &&
+          variant.contentType === 'image/avif' &&
+          variant.key.includes('/renditions/v2/'),
+      ),
+  )
+  if (!metadataIsCurrent) return false
+
+  return (
+    await Promise.all(
+      record.variants.map((variant) => fileExists(path.join(assetsRoot, variant.key))),
+    )
+  ).every(Boolean)
 }
 
 async function main() {
   const options = parseCliOptions(process.argv.slice(2))
   const manifest: MirrorManifest = await readMirrorManifest(manifestPath)
-  const allWidths = mirrorVariantWidths()
-
   const jobs: BackfillJob[] = []
   let missingOriginal = 0
 
@@ -78,24 +103,17 @@ async function main() {
       continue
     }
 
-    const inputPath = path.join(assetsRoot, record.key)
-    const missingWidths: number[] = []
-    for (const width of allWidths) {
-      if (!(await fileExists(path.join(assetsRoot, mirrorVariantKey(record.key, width))))) {
-        missingWidths.push(width)
-      }
-    }
-
-    if (missingWidths.length === 0) {
+    if (await hasCurrentRenditions(record)) {
       continue
     }
 
+    const inputPath = path.join(assetsRoot, record.key)
     if (!(await fileExists(inputPath))) {
       missingOriginal += 1
       continue
     }
 
-    jobs.push({ sourceUrl, inputPath, missingWidths })
+    jobs.push({ sourceUrl, inputPath })
   }
 
   console.log(
@@ -113,20 +131,22 @@ async function main() {
   await runWithConcurrency(jobs, options.concurrency, async (job) => {
     const record = manifest.assets[job.sourceUrl]
     try {
-      const variants = [...(record.variants ?? [])]
-      for (const width of job.missingWidths) {
-        const variantKey = mirrorVariantKey(record.key, width)
-        const avifBuffer = await sharp(job.inputPath)
-          .rotate()
-          .resize({ width, withoutEnlargement: true })
-          .avif({ quality: 60, effort: 4 })
-          .toBuffer()
-        const filePath = path.join(assetsRoot, variantKey)
-        await mkdir(path.dirname(filePath), { recursive: true })
-        await writeFile(filePath, avifBuffer)
-        variants.push({ key: variantKey, width })
-      }
-      record.variants = variants.sort((left, right) => left.width - right.width)
+      const buffer = await readFile(job.inputPath)
+      const sourceKey = mirrorKeyForUrl(job.sourceUrl)
+      if (!sourceKey) throw new Error(`Cannot derive mirror key for ${job.sourceUrl}`)
+      const contentKey = mirrorContentKey(sourceKey, sha256(buffer))
+      await writeFileAtomically(path.join(assetsRoot, contentKey), buffer)
+      const generated = await generateImageRenditions({
+        assetsRoot,
+        buffer,
+        originalKey: contentKey,
+      })
+      record.key = contentKey
+      record.digest = generated.digest
+      record.width = generated.width
+      record.height = generated.height
+      record.variants = generated.variants
+      record.thumbhash = generated.thumbhash
       completed += 1
     } catch (error) {
       failed += 1
