@@ -6,32 +6,31 @@ pipeline and the one-time Cloudflare/Namecheap/Drive setup.
 
 ## Architecture
 
-- **Local archive (source of truth)**: `.data/media/assets/` — originals at
-  full fidelity (`pbs/<twimg-path>`, `vid/<twimg-path>`) plus pre-generated
-  AVIF variants at every width in `MIRROR_VARIANT_WIDTHS`
-  (`scripts/mirror-lib.ts`; keep in sync with `MIRROR_IMAGE_WIDTHS` in
-  `src/lib/twitter-media-url.ts`) and a per-asset status manifest at
-  `.data/media/mirror-manifest.json`. `bun run data:backfill-image-variants`
-  generates any widths added after an image was first mirrored, from the
-  locally archived original — it's a one-time catch-up step after changing
-  the width ladder, not part of the regular refresh pipeline.
+- **Local archive (source of truth)**: `.data/media/assets/` — full-fidelity
+  originals plus generated AVIF renditions, video previews, and playback
+  assets. Image originals and v2 renditions are content-addressed; rendition
+  records carry truthful dimensions, bytes, MIME type, and digest in
+  `.data/media/mirror-manifest.json`. The width ladder is centralized in
+  `scripts/mirror-lib.ts` and capped at the oriented source width.
 - **Serving**: Cloudflare R2 bucket `twitter-bookmarks`, public at
   `https://tbmedia.corychainsman.com` (custom domain on the Cloudflare CDN).
 - **Backup**: Google Drive at `corychainsman.com/media/twitter-bookmarks/`
   (originals + manifest + exported JSON; AVIF variants are regenerable and
   excluded).
-- **Export rewrite**: `data:export` rewrites `thumbUrl`/`fullUrl`/`posterUrl`
-  in the exported JSON to mirror URLs for every asset confirmed in the
-  manifest; failed/unmirrored assets keep their twimg URLs. Docs keep the
-  original URL in `originUrl`; grid items gain a `thumbhash`.
-- The app derives AVIF tiers from mirrored URLs by convention (path starts
-  with `/pbs/`); `MEDIA_BASE_URL` env overrides the default base URL at
-  export time.
+- **Publication gate**: R2 is hash-checked and every manifest-referenced URL is
+  verified through the public media origin before export receives a matching
+  local attestation.
+- **Export rewrite**: `data:export` rewrites media URLs to concrete mirrored
+  originals and attaches the explicit rendition catalog. Runtime code never
+  guesses v2 paths from URL conventions and never falls back from a mirrored
+  item to twimg. Docs keep the upstream URL in `originUrl`; grid items gain a
+  `thumbhash`.
 
 ## Pipeline
 
-`bun run refresh` now runs: `sync:ft → data:mirror → mirror:sync →
-data:export → data:embeddings → data:validate → build`.
+`bun run refresh` runs: `sync:ft → data:mirror →
+data:backfill-image-variants → data:video-previews → mirror:sync → data:export
+→ data:embeddings → data:validate → build`.
 
 - `bun run data:mirror` — incremental; downloads only assets not yet mirrored.
   Flags: `--limit N`, `--concurrency N`, `--retry-failed`, `--dry-run`.
@@ -85,7 +84,9 @@ The `gdrive:` rclone remote exists; if the token has expired run
 ### 4. First publish
 
 ```bash
-bun run mirror:sync          # upload archive to R2 + Drive
+bun run data:backfill-image-variants
+bun run data:video-previews
+bun run mirror:sync          # upload and verify newly generated objects
 bun run data:export && bun run data:embeddings && bun run data:validate
 bun run build                # then deploy as usual
 ```
@@ -115,15 +116,17 @@ from the Google Drive cold backup.
 
 `data:export` (`mirror-rewrite.ts`) sets `GridItem.previewUrl` from the video
 record's `previewKey`; the grid uses `previewUrl ?? fullUrl`. `bun run refresh`
-runs `data:mirror → data:video-previews → mirror:sync → data:export → …`.
+runs `data:mirror → data:backfill-image-variants → data:video-previews →
+mirror:sync → data:export → …`.
 
 **Grid tiles** (`VideoGridTile` in `MediaTile.tsx`): the preview clip autoplays
-muted and looping for every tile in the active band (≥35% visible plus a 180px
-prewarm margin). Each tile drives its own `IntersectionObserver` — all visible
-videos play; there is no global concurrency cap. Videos use `preload="none"`
-so nothing loads until a tile enters the band (above-the-fold initial tiles use
-`preload="metadata"`). The ThumbHash placeholder shows underneath until the
-first frame paints.
+muted and looping for every tile in the active band (currently ≥35% visible
+plus a 180px prewarm margin). Each tile drives its own `IntersectionObserver`;
+there is no global concurrency cap. Deferred tiles detach the video source;
+admitted tiles use `preload="metadata"`. The desired policy is 10% to start
+and 0% to stop, centralized for tuning; implementation still needs to be
+aligned. The desktop virtualized grid also has a known cell-remount defect that
+resets visible previews during scrolling. See `docs/system-architecture.md`.
 
 **Lightbox**: plays the full-resolution original (`media.fullUrl`), not the
 preview. All video slides autoplay muted via the HTML `autoPlay` attribute

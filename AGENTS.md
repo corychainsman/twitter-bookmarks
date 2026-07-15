@@ -4,6 +4,7 @@
 
 Keep this file as a lightweight routing layer. For architecture or coding work, read `CONTEXT.md` first. For procedural workflows, use the focused runbooks:
 
+- Whole-system architecture and invariants: `docs/system-architecture.md`
 - Coding changes: `docs/runbooks/coding-workflow.md`
 - Data refresh/export work: `docs/runbooks/data-refresh.md`
 
