@@ -13,7 +13,7 @@ import {
   BOOKMARKS_EMBEDDING_DIMENSIONS,
   BOOKMARKS_EMBEDDING_INDEX_VERSION,
   BOOKMARKS_EMBEDDING_MODEL_ID,
-} from '../src/features/bookmarks/embedding-config'
+} from './catalog/embedding-config'
 import {
   buildTweetEmbeddingText,
   encodeInt8Base64,
@@ -21,8 +21,8 @@ import {
   quantizeUnitVector,
   type EmbeddingIndex,
   type EmbeddingRecord,
-} from '../src/features/bookmarks/embedding-artifacts'
-import type { Manifest, MediaItem, TweetDoc } from '../src/features/bookmarks/model'
+} from './catalog/embedding-artifacts'
+import type { Manifest, MediaItem, TweetDoc } from './catalog/model'
 
 const projectRoot = process.cwd()
 const outputDirectory = path.join(projectRoot, 'public/data')

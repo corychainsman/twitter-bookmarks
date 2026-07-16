@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 
-import type { ExportArtifacts } from '../src/features/bookmarks/export-artifacts'
-import type { GridItem, TweetDoc } from '../src/features/bookmarks/model'
+import type { ExportArtifacts } from './catalog/export-artifacts'
+import type { GridItem, TweetDoc } from './catalog/model'
 import type { MirrorManifest } from './mirror-lib'
 import { applyMirrorRewrite } from './mirror-rewrite'
 

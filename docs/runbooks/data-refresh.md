@@ -62,12 +62,13 @@ bun run data:validate
 bun run build
 ```
 
-Convenience commands:
+Convenience commands all preserve the complete mirror/publication/export chain:
 
-- `bun run refresh`: sync, export, embeddings, validate, and build.
-- `bun run refresh:resume`: resume sync, then export, embeddings, validate, and build.
-- `bun run refresh:full`: full sync, then export, embeddings, validate, and build.
-- `bun run refresh:embeddings`: sync, export, embeddings, validate, and build.
+- `bun run refresh`: incremental sync followed by the full pipeline.
+- `bun run refresh:resume`: resume the sync adapter, then run the full pipeline.
+- `bun run refresh:full`: full sync followed by the full pipeline.
+- `bun run refresh:embeddings`: compatibility alias for the complete pipeline;
+  it does not bypass media publication or validation.
 
 Before any refresh step runs, the pipeline preflights `mirror:sync`
 dependencies and fails if `rclone` or either required remote (`r2:`,

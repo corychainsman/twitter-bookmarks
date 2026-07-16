@@ -2,8 +2,8 @@ import { randomUUID } from 'node:crypto'
 import { mkdir, readFile, rename, rm, writeFile } from 'node:fs/promises'
 import path from 'node:path'
 
-import type { ExportArtifacts } from '../src/features/bookmarks/export-artifacts'
-import type { RawBookmarkRecord } from '../src/features/bookmarks/model'
+import type { ExportArtifacts } from './catalog/export-artifacts'
+import type { RawBookmarkRecord } from './catalog/model'
 
 export async function readJsonLines(filePath: string): Promise<RawBookmarkRecord[]> {
   const fileContents = await readFile(filePath, 'utf8')

@@ -1,5 +1,5 @@
-import type { ExportArtifacts } from '../src/features/bookmarks/export-artifacts'
-import type { GridItem, ImageRendition, MediaItem } from '../src/features/bookmarks/model'
+import type { ExportArtifacts } from './catalog/export-artifacts'
+import type { GridItem, ImageRendition, MediaItem } from './catalog/model'
 import type { MirrorAssetRecord, MirrorManifest } from './mirror-lib'
 
 export const DEFAULT_MEDIA_BASE_URL = 'https://tbmedia.corychainsman.com'

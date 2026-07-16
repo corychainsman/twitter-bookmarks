@@ -4,7 +4,7 @@ import path from 'node:path'
 
 import { describe, expect, it } from 'vitest'
 
-import { buildExportArtifacts } from '../src/features/bookmarks/export-artifacts'
+import { buildExportArtifacts } from './catalog/export-artifacts'
 import { writeExportArtifacts } from './export-lib'
 
 describe('atomic export artifact publication', () => {
