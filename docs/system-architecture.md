@@ -90,7 +90,9 @@ TanStack Router defines two routes in `src/greenfield/router/router.tsx`:
 - `/media/$mediaId` renders the same wall with an addressable lightbox over it.
 
 The root owns `GreenfieldApp`; route leaves are intentionally empty so route
-changes never unmount the wall. Router scroll restoration remains enabled.
+changes never unmount the wall. Router scroll restoration remains enabled,
+while lightbox overlay navigations explicitly suppress scroll reset so Motion
+measures both shared elements in the same viewport coordinate space.
 
 `validateWallSearch` is the only normalization boundary for committed state.
 It tolerates malformed external links and always produces renderable defaults.
@@ -201,6 +203,12 @@ observation, and direct `top`/`left` placement (`useTransform={false}`). Stable
 `data-grid-groupkey` values allow independent append groups and reliable
 recycling. Detached recycling is not enabled.
 
+An incomplete trailing composition group is buffered while another cursor page
+exists, with a compact loading status after the stable wall. This prevents a
+single remainder item from temporarily becoming a full-width justified row.
+At the terminal page, the remainder joins the preceding group so the grid
+balances the final rows once without cropping or stretching.
+
 JustifiedInfiniteGrid alone owns placement, measurement, request-append, and
 recycling. TanStack Virtual is intentionally absent. Do not wrap this wall in
 another virtual list or add a competing masonry algorithm.
@@ -211,8 +219,9 @@ Cropping and stretching are disabled. The grid varies row heights to fill
 completed rows while preserving every tile ratio, and applies one uniform 4px
 inter-tile gap. Wall images,
 videos, and lightbox media retain `object-contain` as a defensive guarantee
-against crop or distortion. Rows admit at most four tiles below 640px and at
-most eight on wider walls, preventing illegibly small portrait-heavy rows.
+against crop or distortion. Rows admit at most four tiles below 640px and up to
+the 20-tile composition-group size on wider walls, allowing density to remain
+effective on ultrawide displays.
 Images expose explicit responsive width candidates; videos use posters and
 admitted preview sources. The first visible group receives eager image
 priority, while the rest use native lazy loading and decoding.

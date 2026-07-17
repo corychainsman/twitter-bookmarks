@@ -8,7 +8,7 @@ import type {
   WallTile,
 } from "../../contracts/domain"
 
-const DEFAULT_LAYOUT_GROUP_SIZE = 20
+export const DEFAULT_LAYOUT_GROUP_SIZE = 20
 const DEFAULT_MAX_LARGE_PER_GROUP = 4
 
 interface DraftTile {
@@ -22,6 +22,51 @@ interface DraftTile {
 export interface CompositionOptions {
   layoutGroupSize?: number
   maxLargePerGroup?: number
+}
+
+export interface StableWallTail {
+  tiles: WallTile[]
+  bufferedTileCount: number
+}
+
+/**
+ * Keeps an incomplete append group out of JustifiedInfiniteGrid until enough
+ * items arrive to lay it out without a transient full-width terminal row.
+ * Once pagination ends, the remainder joins the preceding group so the grid
+ * can balance the final rows as one stable layout problem.
+ */
+export function stabilizeWallTail(
+  tiles: WallTile[],
+  hasNextPage: boolean,
+  groupSize = DEFAULT_LAYOUT_GROUP_SIZE,
+): StableWallTail {
+  const lastTile = tiles.at(-1)
+  if (!lastTile) return { tiles, bufferedTileCount: 0 }
+
+  let tailStart = tiles.length - 1
+  while (tailStart > 0 && tiles[tailStart - 1]?.groupKey === lastTile.groupKey) {
+    tailStart -= 1
+  }
+
+  const tailSize = tiles.length - tailStart
+  if (tailSize >= groupSize) return { tiles, bufferedTileCount: 0 }
+
+  if (hasNextPage) {
+    return {
+      tiles: tiles.slice(0, tailStart),
+      bufferedTileCount: tailSize,
+    }
+  }
+
+  const precedingGroupKey = tiles[tailStart - 1]?.groupKey
+  if (precedingGroupKey === undefined) return { tiles, bufferedTileCount: 0 }
+
+  return {
+    tiles: tiles.map((tile, index) => (
+      index < tailStart ? tile : { ...tile, groupKey: precedingGroupKey }
+    )),
+    bufferedTileCount: 0,
+  }
 }
 
 /**

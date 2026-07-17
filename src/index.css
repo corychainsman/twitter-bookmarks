@@ -82,6 +82,12 @@
   }
 }
 
+@media (pointer: fine) {
+  html {
+    scrollbar-gutter: stable;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,

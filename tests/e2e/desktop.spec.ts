@@ -101,6 +101,41 @@ test.describe("desktop media wall", () => {
     await expect(page.getByRole("list", { name: "Media results" })).toBeVisible()
   })
 
+  test("preserves deep wall scroll throughout the shared-element lightbox transition", async ({
+    page,
+  }) => {
+    await page.goto("/")
+    await waitForMediaWall(page)
+    await expect.poll(async () => {
+      await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight))
+      return page.evaluate(() => window.scrollY)
+    }).toBeGreaterThan(500)
+
+    const mediaId = await page.locator("[data-media-id]").evaluateAll((buttons) => {
+      const viewportCenter = window.innerHeight / 2
+      return buttons
+        .map((button) => ({
+          id: (button as HTMLElement).dataset.mediaId,
+          rect: button.getBoundingClientRect(),
+        }))
+        .filter(({ id, rect }) => Boolean(id) && rect.bottom > 64 && rect.top < window.innerHeight)
+        .toSorted(
+          (left, right) =>
+            Math.abs(left.rect.top - viewportCenter) - Math.abs(right.rect.top - viewportCenter),
+        )[0]?.id
+    })
+    if (!mediaId) throw new Error("No visible deep-scroll media target was found")
+
+    const scrollBeforeOpen = await page.evaluate(() => window.scrollY)
+    await page.locator(`[data-media-id="${mediaId}"]`).click()
+    await expect(page.getByRole("dialog")).toBeVisible()
+    await expect.poll(() => page.evaluate(() => window.scrollY)).toBe(scrollBeforeOpen)
+
+    await page.getByRole("button", { name: "Close lightbox" }).click()
+    await expect(page.getByRole("list", { name: "Media results" })).toBeVisible()
+    await expect.poll(() => page.evaluate(() => window.scrollY)).toBe(scrollBeforeOpen)
+  })
+
   test("zooms the URL lightbox around a ctrl-wheel pointer position", async ({ page }) => {
     await page.goto("/media/record-001-media-1")
     const { dialog, image, layer, viewport } = lightboxMediaLocators(page, "Study 001.1")

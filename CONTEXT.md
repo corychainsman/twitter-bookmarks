@@ -119,7 +119,12 @@ See `docs/system-architecture.md` for the complete boundaries and behavior.
 - Shareable state must round-trip through readable, validated URL parameters.
 - Opening a media route must preserve the mounted wall. Lightbox sibling and
   previous/next navigation replace the lightbox route; close returns through
-  history when it was opened from the wall.
+  history when it was opened from the wall. These overlay route changes must
+  preserve the wall's window scroll position for shared-element measurement.
+- While another cursor page exists, buffer an incomplete trailing composition
+  group instead of exposing it as an unstable justified row. Once pagination
+  ends, merge the remainder into the preceding group for one balanced terminal
+  layout.
 - Preserve intrinsic media aspect ratios. Wall previews use aspect-aware slice
   layouts and `object-contain`, prioritizing complete, undistorted assets.
   JustifiedInfiniteGrid maintains each tile's composite ratio with cropping and

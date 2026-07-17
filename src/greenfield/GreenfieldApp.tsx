@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query"
 import { useNavigate, useRouterState } from "@tanstack/react-router"
 import { useGesture } from "@use-gesture/react"
+import { LoaderCircle } from "lucide-react"
 import { LayoutGroup, useReducedMotion } from "motion/react"
 import {
   lazy,
@@ -31,6 +32,7 @@ import {
 import { VideoPreview } from "@/greenfield/modules/playback/VideoPreview"
 import {
   createCompositionEngine,
+  stabilizeWallTail,
 } from "@/greenfield/modules/composition"
 import type {
   ControlFilterValues,
@@ -247,6 +249,10 @@ export function GreenfieldApp() {
     () => compositionEngine.compose(records, search),
     [records, search],
   )
+  const stableWall = useMemo(
+    () => stabilizeWallTail(tiles, discovery.hasNextPage),
+    [discovery.hasNextPage, tiles],
+  )
   const committedControls = useMemo(
     () => controlsFromFilters(search.filters),
     [search.filters],
@@ -272,10 +278,10 @@ export function GreenfieldApp() {
   const selectedMedia = selectedLoadedMedia ?? directMedia.data
   const navigableMedia = useMemo(() => {
     const seen = new Set<string>()
-    return tiles
+    return stableWall.tiles
       .flatMap((tile) => tile.media)
       .filter((media) => !seen.has(media.id) && seen.add(media.id))
-  }, [tiles])
+  }, [stableWall.tiles])
   const firstPage = discovery.data?.pages[0]
   const committedDensity = search.density === "auto" ? autoDensity : search.density
   const shownDensity = densityPreview?.value ?? search.density
@@ -399,6 +405,7 @@ export function GreenfieldApp() {
         to: "/media/$mediaId",
         params: { mediaId },
         search,
+        resetScroll: false,
       })
     },
     [navigate, search],
@@ -411,6 +418,7 @@ export function GreenfieldApp() {
         params: { mediaId },
         search,
         replace: true,
+        resetScroll: false,
       })
     },
     [navigate, search],
@@ -435,7 +443,7 @@ export function GreenfieldApp() {
       window.history.back()
       return
     }
-    void navigate({ to: "/", search, replace: true })
+    void navigate({ to: "/", search, replace: true, resetScroll: false })
   }, [navigate, openedFromWall, search])
 
   const requestNextPage = useCallback(async () => {
@@ -592,7 +600,7 @@ export function GreenfieldApp() {
           >
             <MediaWall
               ref={wallRef}
-              tiles={tiles}
+              tiles={stableWall.tiles}
               density={committedDensity}
               hasNextPage={discovery.hasNextPage}
               onOpenMedia={openMedia}
@@ -600,6 +608,18 @@ export function GreenfieldApp() {
               renderMedia={renderWallMedia}
               onRequestAppend={requestNextPage}
             />
+            {stableWall.bufferedTileCount > 0 && (
+              <div
+                role="status"
+                className="flex min-h-16 items-center justify-center gap-2 text-sm text-muted-foreground"
+              >
+                <LoaderCircle
+                  aria-hidden="true"
+                  className="size-4 animate-spin motion-reduce:animate-none"
+                />
+                Loading more media…
+              </div>
+            )}
           </div>
         )}
       </MediaWallShell>
