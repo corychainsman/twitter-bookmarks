@@ -66,7 +66,10 @@ describe("mock ApiTransport", () => {
 
     expect(count.count).toBeGreaterThan(0)
     expect(page.records.every((record) => record.tags.includes("design"))).toBe(true)
-    expect(media && (await transport.media(media.id))).toEqual(media)
+    expect(media && (await transport.media(media.id))).toEqual({
+      media,
+      record: page.records[0],
+    })
 
     const relaxed = await transport.discover({
       ...state,

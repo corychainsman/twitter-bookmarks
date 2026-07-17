@@ -14,8 +14,8 @@ media-submission or image-upload flow.
 
 ## Core Concepts
 
-- `MediaRecord`: one searchable result with source, capture date, tags, and an
-  ordered collection of media assets.
+- `MediaRecord`: one searchable result with an X author/profile URL, original
+  post URL and timestamp, tags, and an ordered collection of media assets.
 - `MediaAsset`: one image or video with stable identity, intrinsic dimensions,
   placeholders, wall renditions, lightbox renditions, and optional preview
   video/poster.

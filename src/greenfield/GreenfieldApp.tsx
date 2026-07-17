@@ -269,14 +269,15 @@ export function GreenfieldApp() {
     [records],
   )
   const selectedLoadedMedia = loadedMedia.find((media) => media.id === selectedMediaId)
-  const selectedRecord = records.find((record) =>
+  const selectedLoadedRecord = records.find((record) =>
     record.assets.some((media) => media.id === selectedMediaId),
   )
   const directMedia = useQuery({
     ...mediaOptions(transport, selectedMediaId ?? "__no-media__"),
     enabled: Boolean(selectedMediaId && !selectedLoadedMedia),
   })
-  const selectedMedia = selectedLoadedMedia ?? directMedia.data
+  const selectedMedia = selectedLoadedMedia ?? directMedia.data?.media
+  const selectedRecord = selectedLoadedRecord ?? directMedia.data?.record
   const navigableMedia = useMemo(() => {
     const seen = new Set<string>()
     return stableWall.tiles

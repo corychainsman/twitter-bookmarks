@@ -118,7 +118,9 @@ export function createMockRecords(count = 96): MediaRecord[] {
       title: `${primaryTag[0]?.toUpperCase()}${primaryTag.slice(1)} study ${padded(recordNumber)}`,
       description: `An editorial collection exploring ${primaryTag} and ${secondaryTag}.`,
       sourceLabel: SOURCES[recordIndex % SOURCES.length] ?? SOURCES[0],
-      capturedAt: new Date(MOCK_NOW - recordIndex * DAY_IN_MILLISECONDS).toISOString(),
+      authorUrl: `https://x.com/fixture_${recordNumber}`,
+      sourceUrl: `https://x.com/fixture_${recordNumber}/status/${recordNumber}`,
+      postedAt: new Date(MOCK_NOW - recordIndex * DAY_IN_MILLISECONDS).toISOString(),
       tags: [...new Set([primaryTag, secondaryTag])],
       assets,
       eligibleRepresentativeAssetIds: assets.map((asset) => asset.id),
@@ -144,18 +146,18 @@ function matchesFacet(record: MediaRecord, filter: FacetSelection): boolean {
       })
     case "date":
       return filter.values.some((value) => {
-        const capturedAt = Date.parse(record.capturedAt)
-        if (!Number.isFinite(capturedAt)) return false
-        if (value === "week") return capturedAt >= MOCK_NOW - 7 * DAY_IN_MILLISECONDS
-        if (value === "month") return capturedAt >= MOCK_NOW - 30 * DAY_IN_MILLISECONDS
-        if (value === "year") return capturedAt >= MOCK_NOW - 365 * DAY_IN_MILLISECONDS
+        const postedAt = Date.parse(record.postedAt)
+        if (!Number.isFinite(postedAt)) return false
+        if (value === "week") return postedAt >= MOCK_NOW - 7 * DAY_IN_MILLISECONDS
+        if (value === "month") return postedAt >= MOCK_NOW - 30 * DAY_IN_MILLISECONDS
+        if (value === "year") return postedAt >= MOCK_NOW - 365 * DAY_IN_MILLISECONDS
         if (!value.startsWith("custom:")) return false
 
         const [, from, to] = value.split(":")
         const fromTime = from ? Date.parse(`${from}T00:00:00.000Z`) : Number.NEGATIVE_INFINITY
         const toTime = to ? Date.parse(`${to}T23:59:59.999Z`) : Number.POSITIVE_INFINITY
         return Number.isFinite(fromTime) || Number.isFinite(toTime)
-          ? capturedAt >= fromTime && capturedAt <= toTime
+          ? postedAt >= fromTime && postedAt <= toTime
           : false
       })
     default:
@@ -189,10 +191,10 @@ function searchRecords(
     )
   }
   if (state.sort === "newest") {
-    return filtered.toSorted((left, right) => right.capturedAt.localeCompare(left.capturedAt))
+    return filtered.toSorted((left, right) => right.postedAt.localeCompare(left.postedAt))
   }
   if (state.sort === "oldest") {
-    return filtered.toSorted((left, right) => left.capturedAt.localeCompare(right.capturedAt))
+    return filtered.toSorted((left, right) => left.postedAt.localeCompare(right.postedAt))
   }
   return filtered
 }
@@ -296,7 +298,9 @@ export function createMockApiTransport(options: MockApiTransportOptions = {}): A
       await simulatedDelay(Math.min(latencyMs, 90), signal)
       const media = mediaById.get(mediaId)
       if (!media) throw new Error(`Unknown media asset: ${mediaId}`)
-      return media
+      const record = records.find((candidate) => candidate.id === media.recordId)
+      if (!record) throw new Error(`Unknown media record: ${media.recordId}`)
+      return { media, record }
     },
 
     async suggestSources(query, signal) {

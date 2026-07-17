@@ -18,6 +18,7 @@ const manifest = {
 const documents = [
   {
     id: "record-1",
+    url: "https://x.com/ada/status/record-1",
     text: "Generative architecture",
     authorName: "Ada",
     authorHandle: "ada",
@@ -26,6 +27,7 @@ const documents = [
   },
   {
     id: "record-2",
+    url: "https://x.com/grace/status/record-2",
     text: "Moving image",
     authorName: "Grace",
     authorHandle: "grace",
@@ -111,7 +113,9 @@ describe("production catalog adapter", () => {
         {
           id: "record-1",
           sourceLabel: "@ada",
-          capturedAt: "2026-07-15T00:25:00.000Z",
+          authorUrl: "https://x.com/ada",
+          sourceUrl: "https://x.com/ada/status/record-1",
+          postedAt: "2026-07-15T00:25:00.000Z",
           assets: [
             {
               id: "record-1:0",
@@ -121,6 +125,20 @@ describe("production catalog adapter", () => {
           ],
         },
       ],
+    })
+
+    const directMedia = await handleCatalogApi(
+      new Request("https://elsewhere.test/api/media/record-1%3A0"),
+      ORIGIN,
+    )
+    await expect(directMedia.json()).resolves.toMatchObject({
+      media: { id: "record-1:0" },
+      record: {
+        id: "record-1",
+        authorUrl: "https://x.com/ada",
+        sourceUrl: "https://x.com/ada/status/record-1",
+        postedAt: "2026-07-15T00:25:00.000Z",
+      },
     })
 
     const count = await handleCatalogApi(
@@ -146,19 +164,25 @@ describe("production catalog adapter", () => {
       ORIGIN,
     )
     await expect(media.json()).resolves.toMatchObject({
-      id: "record-2:0",
-      kind: "video",
-      lightbox: [
-        {
-          url: "https://media.test/two.jpg",
-          mimeType: "image/jpeg",
-        },
-        {
-          url: "https://media.test/two.mp4",
-          mimeType: "video/mp4",
-        },
-      ],
-      previewVideoUrl: "https://media.test/two-preview.mp4",
+      media: {
+        id: "record-2:0",
+        kind: "video",
+        lightbox: [
+          {
+            url: "https://media.test/two.jpg",
+            mimeType: "image/jpeg",
+          },
+          {
+            url: "https://media.test/two.mp4",
+            mimeType: "video/mp4",
+          },
+        ],
+        previewVideoUrl: "https://media.test/two-preview.mp4",
+      },
+      record: {
+        id: "record-2",
+        sourceUrl: "https://x.com/grace/status/record-2",
+      },
     })
 
     await expect(getCatalogSocialMetadata(ORIGIN, "record-2:0")).resolves.toEqual({

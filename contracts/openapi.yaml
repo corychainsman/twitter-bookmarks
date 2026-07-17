@@ -141,7 +141,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/MediaAsset'
+                $ref: '#/components/schemas/DirectMedia'
         '404':
           $ref: '#/components/responses/NotFound'
   /media/{mediaId}/social:
@@ -342,7 +342,7 @@ components:
           format: uri
     MediaRecord:
       type: object
-      required: [id, title, description, sourceLabel, capturedAt, tags, assets, eligibleRepresentativeAssetIds]
+      required: [id, title, description, sourceLabel, authorUrl, sourceUrl, postedAt, tags, assets, eligibleRepresentativeAssetIds]
       properties:
         id:
           type: string
@@ -352,7 +352,13 @@ components:
           type: string
         sourceLabel:
           type: string
-        capturedAt:
+        authorUrl:
+          type: string
+          format: uri
+        sourceUrl:
+          type: string
+          format: uri
+        postedAt:
           type: string
           format: date-time
         tags:
@@ -369,6 +375,14 @@ components:
           minItems: 1
           items:
             type: string
+    DirectMedia:
+      type: object
+      required: [media, record]
+      properties:
+        media:
+          $ref: '#/components/schemas/MediaAsset'
+        record:
+          $ref: '#/components/schemas/MediaRecord'
     DiscoveryPage:
       type: object
       required: [records, snapshotExpiresAt, exact, relaxedFilters]

@@ -40,12 +40,25 @@ function Metadata({
   record?: MediaRecord
   onSelectSibling: (mediaId: string) => void
 }) {
+  const postedAt = record ? new Date(record.postedAt) : undefined
+
   return (
     <div className="flex flex-col gap-6">
       <div className="flex flex-col gap-2">
-        <p className="font-mono text-sm tracking-wide text-muted-foreground uppercase">
-          {record?.sourceLabel ?? "Media record"}
-        </p>
+        {record ? (
+          <a
+            className="w-fit font-mono text-sm tracking-wide text-muted-foreground underline-offset-4 transition-colors hover:text-foreground hover:underline focus-visible:rounded-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+            href={record.authorUrl}
+            rel="noreferrer"
+            target="_blank"
+          >
+            {record.sourceLabel}
+          </a>
+        ) : (
+          <p className="font-mono text-sm tracking-wide text-muted-foreground uppercase">
+            Media record
+          </p>
+        )}
         <h2 className="text-balance text-2xl font-semibold tracking-tight">{media.title}</h2>
         <p className="text-pretty text-base text-muted-foreground sm:text-sm">
           {media.description}
@@ -55,8 +68,19 @@ function Metadata({
       <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-2 text-base sm:text-sm">
         {record && (
           <>
-          <dt className="text-muted-foreground">Captured</dt>
-          <dd className="tabular-nums">{new Date(record.capturedAt).toLocaleDateString()}</dd>
+          <dt className="text-muted-foreground">Posted</dt>
+          <dd className="tabular-nums">
+            <a
+              className="underline-offset-4 transition-colors hover:text-primary hover:underline focus-visible:rounded-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+              href={record.sourceUrl}
+              rel="noreferrer"
+              target="_blank"
+            >
+              <time dateTime={record.postedAt}>
+                {postedAt?.toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" })}
+              </time>
+            </a>
+          </dd>
           </>
         )}
         <dt className="text-muted-foreground">Dimensions</dt>

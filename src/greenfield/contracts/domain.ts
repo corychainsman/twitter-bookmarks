@@ -31,10 +31,17 @@ export interface MediaRecord {
   title: string
   description: string
   sourceLabel: string
-  capturedAt: string
+  authorUrl: string
+  sourceUrl: string
+  postedAt: string
   tags: string[]
   assets: MediaAsset[]
   eligibleRepresentativeAssetIds: string[]
+}
+
+export interface DirectMedia {
+  media: MediaAsset
+  record: MediaRecord
 }
 
 export interface FacetSelection {

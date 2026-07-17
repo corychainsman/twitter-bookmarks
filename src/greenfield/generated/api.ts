@@ -186,11 +186,19 @@ export interface components {
             title: string;
             description: string;
             sourceLabel: string;
+            /** Format: uri */
+            authorUrl: string;
+            /** Format: uri */
+            sourceUrl: string;
             /** Format: date-time */
-            capturedAt: string;
+            postedAt: string;
             tags: string[];
             assets: components["schemas"]["MediaAsset"][];
             eligibleRepresentativeAssetIds: string[];
+        };
+        DirectMedia: {
+            media: components["schemas"]["MediaAsset"];
+            record: components["schemas"]["MediaRecord"];
         };
         DiscoveryPage: {
             records: components["schemas"]["MediaRecord"][];
@@ -382,7 +390,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["MediaAsset"];
+                    "application/json": components["schemas"]["DirectMedia"];
                 };
             };
             404: components["responses"]["NotFound"];

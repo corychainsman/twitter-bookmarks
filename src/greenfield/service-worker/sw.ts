@@ -74,7 +74,7 @@ registerRoute(
   ({ request, url }) =>
     request.method === "GET" && url.origin === self.location.origin && (url.pathname === "/api" || url.pathname.startsWith("/api/")),
   new NetworkFirst({
-    cacheName: "elsewhere-recent-results-v2",
+    cacheName: "elsewhere-recent-results-v3",
     networkTimeoutSeconds: 4,
     plugins: [
       new CacheableResponsePlugin({ statuses: [200] }),

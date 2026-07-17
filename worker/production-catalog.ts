@@ -45,6 +45,7 @@ interface CatalogSearchEntry {
 }
 
 interface CatalogDocument extends Omit<CatalogSearchEntry, "folderNames"> {
+  url: string
   postedAt: string
   folderNames: string[]
 }
@@ -81,7 +82,9 @@ interface MediaRecord {
   title: string
   description: string
   sourceLabel: string
-  capturedAt: string
+  authorUrl: string
+  sourceUrl: string
+  postedAt: string
   tags: string[]
   assets: MediaAsset[]
   eligibleRepresentativeAssetIds: string[]
@@ -154,6 +157,10 @@ function mediaId(item: CatalogGridItem): string {
 
 function sourceLabel(entry: CatalogSearchEntry): string {
   return entry.authorHandle ? `@${entry.authorHandle.replace(/^@/, "")}` : entry.authorName
+}
+
+function xAuthorUrl(entry: CatalogSearchEntry): string {
+  return `https://x.com/${encodeURIComponent(entry.authorHandle.replace(/^@/, ""))}`
 }
 
 async function createCatalog(origin: string): Promise<CatalogIndex> {
@@ -328,19 +335,19 @@ function matchesNonDateFilter(
 
 function matchesDate(document: CatalogDocument | undefined, values: string[]): boolean {
   if (!document) return false
-  const capturedAt = Date.parse(document.postedAt)
-  if (!Number.isFinite(capturedAt)) return false
+  const postedAt = Date.parse(document.postedAt)
+  if (!Number.isFinite(postedAt)) return false
   const now = Date.now()
 
   return values.some((value) => {
-    if (value === "week") return capturedAt >= now - 7 * 86_400_000
-    if (value === "month") return capturedAt >= now - 30 * 86_400_000
-    if (value === "year") return capturedAt >= now - 365 * 86_400_000
+    if (value === "week") return postedAt >= now - 7 * 86_400_000
+    if (value === "month") return postedAt >= now - 30 * 86_400_000
+    if (value === "year") return postedAt >= now - 365 * 86_400_000
     if (!value.startsWith("custom:")) return false
     const [, from, to] = value.split(":")
     const minimum = from ? Date.parse(`${from}T00:00:00.000Z`) : Number.NEGATIVE_INFINITY
     const maximum = to ? Date.parse(`${to}T23:59:59.999Z`) : Number.POSITIVE_INFINITY
-    return capturedAt >= minimum && capturedAt <= maximum
+    return postedAt >= minimum && postedAt <= maximum
   })
 }
 
@@ -469,7 +476,7 @@ function createRecord(
   const items = catalog.mediaByRecord.get(id)
   if (!entry || !items?.length) return undefined
   const assets = items.map((item) => itemAsset(item, entry))
-  const capturedAt = document ? new Date(document.postedAt).toISOString() : catalog.manifest.builtAt
+  const postedAt = document ? new Date(document.postedAt).toISOString() : catalog.manifest.builtAt
   const tags = document?.folderNames ?? entry.folderNames.split(/\s*,\s*/).filter(Boolean)
 
   return {
@@ -478,7 +485,9 @@ function createRecord(
     description: [entry.text, entry.quotedText, entry.articleTitle, entry.articleText]
       .filter(Boolean).join("\n\n"),
     sourceLabel: sourceLabel(entry),
-    capturedAt,
+    authorUrl: xAuthorUrl(entry),
+    sourceUrl: document?.url ?? `https://x.com/i/status/${encodeURIComponent(id)}`,
+    postedAt,
     tags,
     assets,
     eligibleRepresentativeAssetIds: assets.map((asset) => asset.id),
@@ -566,7 +575,10 @@ async function mediaResponse(catalog: CatalogIndex, encodedId: string): Promise<
   const item = id ? catalog.mediaById.get(id) : undefined
   const entry = item ? catalog.searchById.get(item.tweetId) : undefined
   if (!item || !entry) return apiError(404, "not_found", "Media was not found.")
-  return json(itemAsset(item, entry), 200, "public, max-age=60, stale-while-revalidate=300")
+  const documents = await loadDocuments(catalog, [item.tweetId])
+  const record = createRecord(catalog, item.tweetId, documents.get(item.tweetId))
+  if (!record) return apiError(404, "not_found", "Media record was not found.")
+  return json({ media: itemAsset(item, entry), record }, 200, "public, max-age=60, stale-while-revalidate=300")
 }
 
 function sourceSuggestions(catalog: CatalogIndex, url: URL): Response {

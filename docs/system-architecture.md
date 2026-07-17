@@ -294,6 +294,10 @@ lightbox provides:
 - Full media in the main viewport.
 - Byte-for-byte mirrored source MP4s in the lightbox; compact preview MP4s
   remain a wall-only optimization.
+- Linked X author handles and linked, localized post timestamps in the metadata
+  rail/drawer; the API supplies canonical profile and post URLs.
+- Direct media lookups return the asset together with its parent record, so a
+  copied lightbox URL has the same metadata as one opened from the wall.
 - Record metadata and sibling assets only in a desktop side rail or mobile
   details drawer.
 
