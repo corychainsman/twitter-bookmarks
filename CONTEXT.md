@@ -71,6 +71,10 @@ shell and keeps bounded recent-result and media caches for resilient revisits.
 Hard entry caps are 40 results, 140
 same-origin images, 12 cross-origin images, and eight same-origin videos;
 storage estimates reduce those limits on constrained devices.
+An update already waiting at navigation, or discovered during initial startup,
+activates silently and performs one controlled reload so the page opens on the
+new application version. Updates discovered later in an active session retain
+the non-disruptive refresh prompt.
 
 See `docs/system-architecture.md` for the complete boundaries and behavior.
 

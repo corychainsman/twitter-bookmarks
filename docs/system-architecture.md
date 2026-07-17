@@ -351,8 +351,9 @@ Vite PWA uses Workbox InjectManifest with
   cross-origin images, and 2/4/8 for videos. Expiration also purges on quota
   errors.
 - Cleans obsolete precaches and claims clients, but does not force an
-  uncontrolled mid-session reload. A waiting update activates only after an
-  explicit `SKIP_WAITING` message.
+  uncontrolled mid-session reload. A waiting update found during navigation or
+  initial registration receives an automatic `SKIP_WAITING` message and one
+  controlled reload; updates found later retain the explicit refresh prompt.
 
 The offline promise is a resilient recent revisit, not a complete downloadable
 archive. An unavailable result that was never cached must surface a clear

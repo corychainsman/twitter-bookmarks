@@ -8,6 +8,29 @@ import {
 } from "./media-interactions"
 
 test.describe("desktop media wall", () => {
+  test("density changes the settled row composition on an ultrawide desktop", async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 3_440, height: 1_000 })
+    await page.goto("/?density=0.6")
+    await waitForMediaWall(page)
+
+    const firstRowCount = async () => page.locator("[data-tile-id]").evaluateAll((tiles) => {
+      const firstTop = tiles[0]?.getBoundingClientRect().top
+      if (firstTop === undefined) return 0
+
+      return tiles.filter(
+        (tile) => Math.abs(tile.getBoundingClientRect().top - firstTop) < 2,
+      ).length
+    })
+    const denseRowCount = await firstRowCount()
+    const slider = page.getByRole("slider", { name: "Wall density" })
+
+    await slider.press("End")
+    await expect(page).toHaveURL((url) => url.searchParams.get("density") === "1.75")
+    await expect.poll(firstRowCount).toBeLessThan(denseRowCount - 4)
+  })
+
   test("uses uniform gutters while preserving native tile ratios", async ({ page }) => {
     await page.goto("/")
     await waitForMediaWall(page)

@@ -1,7 +1,11 @@
 import { describe, expect, it } from "vitest"
 
 import type { MediaAsset, WallTile } from "../../contracts/domain"
-import { getJustifiedSizeRange, getTileDimensions } from "./tileGeometry"
+import {
+  getJustifiedColumnRange,
+  getJustifiedSizeRange,
+  getTileDimensions,
+} from "./tileGeometry"
 
 function media(width = 1_600, height = 900, id = "media-1"): MediaAsset {
   return {
@@ -77,5 +81,13 @@ describe("getJustifiedSizeRange", () => {
     expect(getJustifiedSizeRange("auto")).toEqual([180, 260])
     expect(getJustifiedSizeRange(Number.NaN)).toEqual([180, 260])
     expect(getJustifiedSizeRange(5)).toEqual([316, 454])
+  })
+})
+
+describe("getJustifiedColumnRange", () => {
+  it("keeps mobile rows bounded while allowing density to reshape a full desktop group", () => {
+    expect(getJustifiedColumnRange(390)).toEqual([1, 4])
+    expect(getJustifiedColumnRange(1_440)).toEqual([1, 20])
+    expect(getJustifiedColumnRange(3_440)).toEqual([1, 20])
   })
 })

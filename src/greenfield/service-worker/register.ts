@@ -15,6 +15,20 @@ declare global {
 
 let registrationStarted = false
 
+const STARTUP_UPDATE_WINDOW_MS = 15_000
+
+interface WaitingUpdateContext {
+  elapsedSinceRegistrationMs: number
+  wasWaitingBeforeRegister: boolean
+}
+
+export function shouldActivateWaitingUpdateOnStartup({
+  elapsedSinceRegistrationMs,
+  wasWaitingBeforeRegister,
+}: WaitingUpdateContext) {
+  return wasWaitingBeforeRegister || elapsedSinceRegistrationMs <= STARTUP_UPDATE_WINDOW_MS
+}
+
 function dismissPrompt(prompt: HTMLElement) {
   prompt.remove()
 }
@@ -110,28 +124,44 @@ export function registerServiceWorker() {
   registrationStarted = true
 
   const workbox = new Workbox("/sw.js", { scope: "/" })
+  const registrationStartedAt = performance.now()
   let reloadWhenControlling = false
-  let updatedWorkerControlsPage = false
+  let reloadStarted = false
+  let updateRequested = false
   let waitingWorkerAnnounced = false
 
+  const applyUpdate = () => {
+    if (updateRequested) return
+    updateRequested = true
+    reloadWhenControlling = true
+    workbox.messageSkipWaiting()
+  }
+
   workbox.addEventListener("waiting", (event) => {
+    const wasWaitingBeforeRegister = event.wasWaitingBeforeRegister ?? false
+
+    if (
+      shouldActivateWaitingUpdateOnStartup({
+        elapsedSinceRegistrationMs: performance.now() - registrationStartedAt,
+        wasWaitingBeforeRegister,
+      })
+    ) {
+      applyUpdate()
+      return
+    }
+
+    if (waitingWorkerAnnounced) return
     waitingWorkerAnnounced = true
     announceUpdate({
-      applyUpdate: () => {
-        if (updatedWorkerControlsPage) {
-          window.location.reload()
-          return
-        }
-        reloadWhenControlling = true
-        workbox.messageSkipWaiting()
-      },
-      wasWaitingBeforeRegister: event.wasWaitingBeforeRegister ?? false,
+      applyUpdate,
+      wasWaitingBeforeRegister,
     })
   })
 
   workbox.addEventListener("controlling", () => {
-    if (waitingWorkerAnnounced) updatedWorkerControlsPage = true
-    if (reloadWhenControlling) window.location.reload()
+    if (!reloadWhenControlling || reloadStarted) return
+    reloadStarted = true
+    window.location.reload()
   })
 
   void workbox.register().catch(() => {

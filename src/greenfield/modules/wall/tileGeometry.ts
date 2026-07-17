@@ -9,6 +9,7 @@ const SCALE_AREA: Record<WallTile["scale"], number> = {
 
 const BASE_TILE_AREA = 68_000
 const BASE_JUSTIFIED_ROW_SIZE = 220
+const MAX_LAYOUT_GROUP_COLUMNS = 20
 
 function densityFactor(density: Density): number {
   if (density === "auto" || !Number.isFinite(density)) {
@@ -24,6 +25,11 @@ export interface TileDimensions {
 }
 
 export type JustifiedSizeRange = [number, number]
+export type JustifiedColumnRange = [number, number]
+
+export function getJustifiedColumnRange(containerInlineSize: number): JustifiedColumnRange {
+  return containerInlineSize < 640 ? [1, 4] : [1, MAX_LAYOUT_GROUP_COLUMNS]
+}
 
 /**
  * Keeps the density control meaningful after JustifiedInfiniteGrid takes

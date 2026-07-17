@@ -27,7 +27,11 @@ import {
   type SpatialDirection,
   type SpatialRect,
 } from "./spatialNavigation"
-import { getJustifiedSizeRange, getTileDimensions } from "./tileGeometry"
+import {
+  getJustifiedColumnRange,
+  getJustifiedSizeRange,
+  getTileDimensions,
+} from "./tileGeometry"
 
 type GridRequestAppendEvent = Parameters<
   NonNullable<ComponentProps<typeof JustifiedInfiniteGrid>["onRequestAppend"]>
@@ -317,9 +321,7 @@ const MediaWallRoot = forwardRef<MediaWallHandle, MediaWallProps>(function Media
         aria-label={ariaLabel}
         role="list"
         className="relative min-h-[40vh] w-full"
-        columnRange={(grid) => (
-          grid.getContainerInlineSize() < 640 ? [1, 4] : [1, 8]
-        )}
+        columnRange={(grid) => getJustifiedColumnRange(grid.getContainerInlineSize())}
         gap={gap}
         isCroppedSize={false}
         isReachEnd={!hasNextPage}

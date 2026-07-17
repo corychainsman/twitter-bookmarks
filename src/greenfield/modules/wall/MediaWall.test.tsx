@@ -161,6 +161,27 @@ describe("MediaWall", () => {
     expect(document.querySelector("[data-media-layout-id='media-media-1']")).toBeInTheDocument()
   })
 
+  it("recomputes the grid options after a committed density change", async () => {
+    const { rerender } = render(
+      <MediaWall density={0.6} tiles={[tile()]} onOpenMedia={() => undefined} />,
+    )
+
+    expect(screen.getByTestId("justified-grid")).toHaveAttribute(
+      "data-size-range",
+      "108,156",
+    )
+
+    rerender(<MediaWall density={1.75} tiles={[tile()]} onOpenMedia={() => undefined} />)
+
+    expect(screen.getByTestId("justified-grid")).toHaveAttribute(
+      "data-size-range",
+      "316,454",
+    )
+    await waitFor(() => {
+      expect(gridSpies.renderItems).toHaveBeenCalledWith({ useResize: true })
+    })
+  })
+
   it("renders at most four individually addressable collage cells and overflow", () => {
     const onOpenMedia = vi.fn()
     render(<MediaWall tiles={[tile(4, 3)]} onOpenMedia={onOpenMedia} />)

@@ -8,8 +8,8 @@ import type {
   WallTile,
 } from "../../contracts/domain"
 
-const DEFAULT_LAYOUT_GROUP_SIZE = 10
-const DEFAULT_MAX_LARGE_PER_GROUP = 2
+const DEFAULT_LAYOUT_GROUP_SIZE = 20
+const DEFAULT_MAX_LARGE_PER_GROUP = 4
 
 interface DraftTile {
   id: string
