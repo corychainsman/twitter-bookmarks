@@ -130,7 +130,7 @@ describe('applyMirrorRewrite', () => {
         contentType: 'image/avif',
       },
     ])
-    expect(video.fullUrl).toBe('https://media.example.com/vid/amplify_video/1/vid/avc1/100x100/clip/playback.mp4')
+    expect(video.fullUrl).toBe('https://media.example.com/vid/amplify_video/1/vid/avc1/100x100/clip.mp4')
     expect(video.posterUrl).toBe('https://media.example.com/pbs/amplify_video_thumb/1/img/poster.jpg')
     expect(video.originUrl).toBe(VIDEO_URL)
     expect(video.imageRenditions).toEqual([
@@ -152,7 +152,7 @@ describe('applyMirrorRewrite', () => {
       'https://media.example.com/vid/amplify_video/1/vid/avc1/100x100/clip/preview.mp4',
     )
     expect(videoTile.fullUrl).toBe(
-      'https://media.example.com/vid/amplify_video/1/vid/avc1/100x100/clip/playback.mp4',
+      'https://media.example.com/vid/amplify_video/1/vid/avc1/100x100/clip.mp4',
     )
     expect(photoTile.previewUrl).toBeUndefined()
     expect(deadTile.thumbUrl).toBe(DEAD_URL)

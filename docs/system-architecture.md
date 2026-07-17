@@ -292,8 +292,8 @@ lightbox provides:
 - Pinch or Ctrl/Meta-wheel zoom from 1× to 5×.
 - Pan while zoomed and double-click/reset behavior.
 - Full media in the main viewport.
-- Full catalog playback MP4s in the lightbox; compact preview MP4s remain a
-  wall-only optimization.
+- Byte-for-byte mirrored source MP4s in the lightbox; compact preview MP4s
+  remain a wall-only optimization.
 - Record metadata and sibling assets only in a desktop side rail or mobile
   details drawer.
 
@@ -328,9 +328,15 @@ For `/api/*`, the Worker has two contract-compatible upstream modes:
    headers, proxies the request to a dedicated API, and returns the upstream
    stream with a request ID and `nosniff` header.
 
-The staging deployment uses the catalog adapter against the deployed catalog
-assets. The adapter is a translation seam, not a source of frontend
-requirements.
+The staging and production workers use a blue/green cross-origin arrangement:
+staging reads the current production catalog while production reads the
+candidate catalog deployed to dev. This avoids recursive same-worker fetches;
+candidate dev assets are validated before production promotion. The adapter is
+a translation seam, not a source of frontend requirements.
+
+Catalog adapters cache-bust the manifest on initialization and version every
+dependent artifact request with that manifest's build ID. A newly deployed
+catalog therefore cannot be mixed with stale edge-cached chunks.
 
 For a direct `GET /media/:mediaId`, it fetches the application shell and asks
 the upstream `/media/:mediaId/social` endpoint for title, description, image,

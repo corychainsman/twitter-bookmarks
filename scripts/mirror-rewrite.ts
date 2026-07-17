@@ -65,7 +65,6 @@ function rewriteMediaItem(
   stats: MirrorRewriteStats,
 ): void {
   const originalFullUrl = media.fullUrl
-  const videoRecord = media.type === 'photo' ? undefined : lookup.recordFor(media.fullUrl)
   const imageRecord =
     media.type === 'photo'
       ? lookup.recordFor(media.fullUrl) ?? lookup.recordFor(media.thumbUrl)
@@ -83,11 +82,6 @@ function rewriteMediaItem(
       media[field] = mirroredUrl
       stats.rewrittenUrls += 1
     }
-  }
-
-  if (videoRecord?.playbackKey) {
-    const baseUrl = media.fullUrl.slice(0, media.fullUrl.length - videoRecord.key.length).replace(/\/+$/, '')
-    media.fullUrl = `${baseUrl}/${videoRecord.playbackKey}`
   }
 
   if (media.fullUrl !== originalFullUrl) {
@@ -129,10 +123,6 @@ function rewriteGridItem(
       item[field] = mirroredUrl
       stats.rewrittenUrls += 1
     }
-  }
-
-  if (videoRecord?.playbackKey) {
-    item.fullUrl = `${baseUrl}/${videoRecord.playbackKey}`
   }
 }
 

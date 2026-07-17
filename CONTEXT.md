@@ -35,8 +35,9 @@ media-submission or image-upload flow.
   is a user-selected continuous tile-size multiplier.
 - Addressable lightbox: `/media/$mediaId` overlays the still-mounted wall, so a
   Motion shared-element transition can morph out of and back into the tile.
-- Wall videos use compact preview MP4s; lightbox videos select the catalog's
-  full playback MP4 and expand with `object-contain` to the available viewport.
+- Wall videos use compact preview MP4s; lightbox videos select the highest-
+  bitrate direct MP4 exposed by X, serve its byte-for-byte mirrored original,
+  and expand with `object-contain` to the available viewport.
 - `ApiTransport`: the frontend-owned boundary for discovery, staged result
   counts, and direct media lookup. The current runtime injects a deterministic
   mock in test mode and an HTTP implementation elsewhere. Both implement the

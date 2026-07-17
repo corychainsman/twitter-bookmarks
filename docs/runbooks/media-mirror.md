@@ -7,8 +7,8 @@ pipeline and the one-time Cloudflare/Namecheap/Drive setup.
 ## Architecture
 
 - **Local archive (source of truth)**: `.data/media/assets/` — full-fidelity
-  originals plus generated AVIF renditions, video previews, and playback
-  assets. Image originals and v2 renditions are content-addressed; rendition
+  originals plus generated AVIF renditions and wall video previews. Image
+  originals and v2 renditions are content-addressed; rendition
   records carry truthful dimensions, bytes, MIME type, and digest in
   `.data/media/mirror-manifest.json`. The width ladder is centralized in
   `scripts/mirror-lib.ts` and capped at the oriented source width.
@@ -93,10 +93,11 @@ bun run build                # then deploy as usual
 
 ## Generated video tiers
 
-Every mirrored video gets a downscaled, audio-stripped MP4 for wall autoplay
-and a full playback MP4 for the lightbox. `bun run data:video-previews`
-(`scripts/generate-video-previews.ts`) runs ffmpeg over each `ok` video in the
-manifest and records both objects in the mirror manifest.
+Every mirrored video keeps the highest-bitrate direct MP4 exposed by X as its
+full-fidelity lightbox source. It also gets a downscaled, audio-stripped MP4
+for wall autoplay. `bun run data:video-previews`
+(`scripts/generate-video-previews.ts`) runs ffmpeg over each `ok` video and
+records only that disposable wall preview in the mirror manifest.
 
 The preview is width 480, H.264 CRF 31, audio-free, `+faststart`, and capped at
 eight seconds. Generation is incremental and supports `--force`, `--limit N`,
@@ -104,14 +105,14 @@ eight seconds. Generation is incremental and supports `--force`, `--limit N`,
 renditions, are uploaded to R2 by `mirror:sync`, and are excluded from the
 Google Drive cold backup because they are reproducible.
 
-`data:export` (`scripts/mirror-rewrite.ts`) publishes the verified preview and
-playback URLs into the catalog consumed by the Cloudflare adapter. The current
-wall admits preview sources near the viewport and autoplays with 10%/5%
-visibility hysteresis. The lightbox uses the playback source and hides native
+`data:export` (`scripts/mirror-rewrite.ts`) publishes the verified mirrored
+original and preview URLs into the catalog consumed by the Cloudflare adapter.
+The wall admits preview sources near the viewport and autoplays with 10%/5%
+visibility hysteresis. The lightbox uses the original source and hides native
 controls until hover, touch activation, or explicit keyboard activation.
 
-Preview/playback files use a one-year immutable cache TTL. Re-encoding an
-existing key requires purging that URL from Cloudflare after `mirror:sync`.
+Preview files use a one-year immutable cache TTL. Re-encoding an existing key
+requires purging that URL from Cloudflare after `mirror:sync`.
 
 ## Failure handling
 

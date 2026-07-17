@@ -134,6 +134,12 @@ function artifactUrl(origin: string, path: string): string {
   return new URL(path.replace(/^\//, ""), normalizedOrigin(origin)).toString()
 }
 
+function versionedArtifactUrl(origin: string, path: string, buildId: string): string {
+  const url = new URL(artifactUrl(origin, path))
+  url.searchParams.set("catalog", buildId)
+  return url.toString()
+}
+
 async function fetchJson<T>(url: string): Promise<T> {
   const response = await fetch(new Request(url, {
     headers: { accept: "application/json" },
@@ -152,12 +158,16 @@ function sourceLabel(entry: CatalogSearchEntry): string {
 
 async function createCatalog(origin: string): Promise<CatalogIndex> {
   const normalized = normalizedOrigin(origin)
-  const manifest = await fetchJson<CatalogManifest>(artifactUrl(normalized, "manifest.json"))
+  const manifest = await fetchJson<CatalogManifest>(versionedArtifactUrl(
+    normalized,
+    "manifest.json",
+    Date.now().toString(36),
+  ))
   const [gridItems, searchEntries, bookmarkedOrder, postedOrder] = await Promise.all([
-    fetchJson<CatalogGridItem[]>(artifactUrl(normalized, manifest.files.gridAll)),
-    fetchJson<CatalogSearchEntry[]>(artifactUrl(normalized, manifest.files.searchStore)),
-    fetchJson<string[]>(artifactUrl(normalized, manifest.files.orderBookmarked)),
-    fetchJson<string[]>(artifactUrl(normalized, manifest.files.orderPosted)),
+    fetchJson<CatalogGridItem[]>(versionedArtifactUrl(normalized, manifest.files.gridAll, manifest.buildId)),
+    fetchJson<CatalogSearchEntry[]>(versionedArtifactUrl(normalized, manifest.files.searchStore, manifest.buildId)),
+    fetchJson<string[]>(versionedArtifactUrl(normalized, manifest.files.orderBookmarked, manifest.buildId)),
+    fetchJson<string[]>(versionedArtifactUrl(normalized, manifest.files.orderPosted, manifest.buildId)),
   ])
   const mediaByRecord = new Map<string, CatalogGridItem[]>()
   const mediaById = new Map<string, CatalogGridItem>()
@@ -214,7 +224,11 @@ async function loadDocumentChunk(catalog: CatalogIndex, chunkIndex: number) {
   const current = documentChunkPromises.get(key)
   if (current) return current
 
-  const promise = fetchJson<CatalogDocument[]>(artifactUrl(catalog.origin, path))
+  const promise = fetchJson<CatalogDocument[]>(versionedArtifactUrl(
+    catalog.origin,
+    path,
+    catalog.manifest.buildId,
+  ))
     .then((documents) => new Map(documents.map((document) => [document.id, document])))
     .catch((error) => {
       documentChunkPromises.delete(key)
