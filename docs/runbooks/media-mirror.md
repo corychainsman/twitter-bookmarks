@@ -91,46 +91,27 @@ bun run data:export && bun run data:embeddings && bun run data:validate
 bun run build                # then deploy as usual
 ```
 
-## Video playback
+## Generated video tiers
 
-Videos and animated GIFs autoplay (muted, looping) in both the grid and the
-lightbox.
-
-**Preview clips (grid tier).** Every mirrored video gets a downscaled,
-audio-stripped MP4 for in-grid autoplay so that many tiles can decode at once
-without streaming the multi-MB originals. `bun run data:video-previews`
+Every mirrored video gets a downscaled, audio-stripped MP4 for wall autoplay
+and a full playback MP4 for the lightbox. `bun run data:video-previews`
 (`scripts/generate-video-previews.ts`) runs ffmpeg over each `ok` video in the
-manifest and writes `vid/<stem>/preview.mp4` — width 480, H.264 CRF 31, no
-audio, `+faststart`, capped at 8 seconds (the grid only shows a muted loop, so
-long videos don't need full-runtime previews) — recording
-`previewKey`/`previewBytes` in the manifest. Note: preview/playback files are
-served with a 1-year immutable cache TTL, so re-encoding one in place requires
-purging its URL from the Cloudflare cache (`POST /zones/<id>/purge_cache`)
-after `mirror:sync`.
-It is incremental (skips videos that already have a preview file; `--force` to
-re-encode) and supports `--limit N`, `--concurrency N`, `--dry-run`. Typical
-output is ~0.5 MB per clip vs ~5 MB average for the original. The clips live
-alongside the AVIF poster variants under the same stem and are regenerable, so
-`mirror:sync` uploads them to R2 (full-tree `rclone copy`) but excludes them
-from the Google Drive cold backup.
+manifest and records both objects in the mirror manifest.
 
-`data:export` (`mirror-rewrite.ts`) sets `GridItem.previewUrl` from the video
-record's `previewKey`; the grid uses `previewUrl ?? fullUrl`. `bun run refresh`
-runs `data:mirror → data:backfill-image-variants → data:video-previews →
-mirror:sync → data:export → …`.
+The preview is width 480, H.264 CRF 31, audio-free, `+faststart`, and capped at
+eight seconds. Generation is incremental and supports `--force`, `--limit N`,
+`--concurrency N`, and `--dry-run`. Generated objects live beside the poster
+renditions, are uploaded to R2 by `mirror:sync`, and are excluded from the
+Google Drive cold backup because they are reproducible.
 
-**Grid tiles** (`GridVideoPreview.tsx`): the preview clip autoplays muted and
-looping after at least 10% of its tile is visible, then continues until 0% is
-visible. The values live together in `autoplay.ts`. Deferred tiles attach
-neither `src` nor `poster`; admission is monotonic for the lifetime of a
-mounted tile, so later scroll-priority changes do not reset playback. Hidden
-measurement tiles do not create playback observers. Opening the lightbox
-temporarily disables all grid playback.
+`data:export` (`scripts/mirror-rewrite.ts`) publishes the verified preview and
+playback URLs into the catalog consumed by the Cloudflare adapter. The current
+wall admits preview sources near the viewport and autoplays with 10%/5%
+visibility hysteresis. The lightbox uses the playback source and hides native
+controls until hover, touch activation, or explicit keyboard activation.
 
-**Lightbox**: plays and loops the full-resolution original (`media.fullUrl`),
-not the preview. All video slides autoplay muted via the HTML `autoPlay` attribute
-(`muted` is required by the iOS Safari autoplay policy); native controls let
-the user unmute, pause, and seek.
+Preview/playback files use a one-year immutable cache TTL. Re-encoding an
+existing key requires purging that URL from Cloudflare after `mirror:sync`.
 
 ## Failure handling
 

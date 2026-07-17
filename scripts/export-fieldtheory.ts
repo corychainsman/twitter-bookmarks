@@ -1,6 +1,6 @@
 import path from 'node:path'
 
-import { buildExportArtifacts } from '../src/features/bookmarks/export-artifacts'
+import { buildExportArtifacts } from './catalog/export-artifacts'
 import { readJsonLines, writeExportArtifacts } from './export-lib'
 import { assertVerifiedMediaPublication } from './media-publication'
 import { readMirrorManifest } from './mirror-lib'

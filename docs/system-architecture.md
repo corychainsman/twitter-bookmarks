@@ -1,425 +1,454 @@
-# System Architecture Guide for LLMs
+# Elsewhere System Architecture
 
-This is the canonical, implementation-oriented map of the Twitter Bookmarks
-system. Read `CONTEXT.md` first for the domain vocabulary, then use this guide
-to understand how the repository, local data, media archive, exported catalog,
-browser runtime, and deployments fit together.
-
-The system is deliberately backend-free at runtime. All expensive and
-privileged work happens during a local refresh. Production serves immutable
-media plus a versioned static application and static JSON artifacts.
+This is the canonical implementation map for the greenfield Elsewhere
+frontend. Read `CONTEXT.md` first for the domain vocabulary. The retired
+bookmark-browser runtime has been deleted; the catalog pipeline remains as an
+operator-facing data producer and is not an architectural input to the UI.
 
 ## System at a Glance
 
 ```mermaid
 flowchart LR
-    X["X / Twitter"] --> FT["Field Theory local cache"]
-    FT --> MIRROR["Local media mirror"]
-    MIRROR --> RENDITIONS["AVIF renditions, posters, and video previews"]
-    RENDITIONS --> R2["Cloudflare R2 media origin"]
-    R2 --> VERIFY["Checksum and public-origin verification"]
-    VERIFY --> ATTEST["Local publication attestation"]
-    FT --> EXPORT["Atomic static catalog export"]
-    MIRROR --> EXPORT
-    ATTEST --> EXPORT
-    EXPORT --> DATA["public/data"]
-    DATA --> BUILD["Vite static build"]
-    BUILD --> CF["Cloudflare Worker static assets"]
-    BUILD --> GHP["GitHub Pages"]
-    CF --> BROWSER["React browser application"]
-    GHP --> BROWSER
-    R2 --> BROWSER
+    PERSON["Person"] --> ROUTER["TanStack Router\n/, /media/:mediaId"]
+    ROUTER --> APP["React application shell"]
+    APP --> QUERY["TanStack Query"]
+    QUERY --> PORT["ApiTransport"]
+    PORT --> MOCK["Deterministic mock\ntests"]
+    PORT --> GATEWAY["/api/*\nCloudflare Worker"]
+    GATEWAY --> API["Discovery API"]
+    QUERY --> COMPOSE["Seeded composition engine"]
+    COMPOSE --> WALL["JustifiedInfiniteGrid\nplacement + recycling"]
+    WALL <--> LIGHTBOX["Motion lightbox\nshared media identity"]
+    API --> SOCIAL["/media/:id/social"]
+    SOCIAL --> EDGE["Sanitized social metadata shell"]
+    EDGE --> CRAWLER["Social preview clients"]
+    SW["Workbox service worker"] --> APP
+    SW --> QUERY
 ```
 
-The production application URL is
-`https://bookmarks.corychainsman.com`. The public media origin is
-`https://tbmedia.corychainsman.com`. GitHub Pages is a second static
-deployment with the `/twitter-bookmarks/` base path.
+The browser owns interaction state, projection, and visual composition. The
+API owns searchable records and stable cursor snapshots. The Worker owns the
+same-origin API boundary, static delivery, and route-specific social HTML.
 
-## Trust and Storage Boundaries
+## Runtime Composition
 
-| Location | Role | Git status | Runtime visibility |
-| --- | --- | --- | --- |
-| `.data/fieldtheory/` | Raw Field Theory/X cache | Ignored | Private/local only |
-| `.data/media/assets/` | Local media archive and generated media | Ignored | Uploaded to R2 |
-| `.data/media/mirror-manifest.json` | Local source-of-truth media catalog | Ignored | Used during publication/export |
-| `.data/media/r2-publication.json` | Attestation for one verified manifest digest | Ignored | Gates export |
-| `public/data/` | Derived application catalog and embeddings | Committed | Shipped publicly |
-| `dist/` | Built application | Ignored | Deployed publicly |
-| R2 `twitter-bookmarks` | Serving archive | External | Public through media custom domain |
-| Google Drive backup | Cold copy of originals/catalog data | External | Private backup |
+`src/main.tsx` is the only active browser entry point. It creates one query
+client and one router, injects the `ApiTransport`, mounts the shadcn tooltip
+provider, and registers the service worker in production.
 
-Never commit `.data`. Treat `public/data` as generated, public output rather
-than hand-authored source.
+The browser TypeScript project includes all of `src/`: `src/main.tsx`,
+`src/greenfield/`, the used shadcn primitives under `src/components/ui/`, and
+`src/lib/utils.ts`. There are no ignored legacy frontend directories; all
+remaining source is part of the active typecheck and lint surface.
 
-## Domain Model
+The UI stack is:
 
-The shared contracts live in `src/features/bookmarks/model.ts`.
+- React 19 and TypeScript, built by Vite.
+- Tailwind CSS with theme tokens in `src/index.css`.
+- shadcn/ui primitives in `src/components/ui/` for controls, dialogs, drawers,
+  popovers, tooltips, and loading states.
+- Lucide icons; controls expose text labels or accessible names.
+- Motion for layout/shared-element transitions.
+- `@use-gesture/react` for lightbox pan, swipe, pinch, and wheel gestures.
 
-- `TweetDoc` is one normalized bookmark. It owns text, author data, dates,
-  folders, engagement metadata, and an ordered `media` array.
-- `MediaItem` is one photo, video, or animated GIF attached to a `TweetDoc`.
-  It contains the concrete original/playback URL and, when published, an
-  explicit image or poster rendition catalog.
-- `GridItem` is the flattened media-level projection rendered in the grid.
-  Its stable identity is `gridId = tweetId:mediaIndex`.
-- `Manifest` is the commit point for a static catalog generation. It names all
-  JSON artifacts, counts records, carries `buildId`, and identifies the
-  verified media catalog with `mediaCatalogVersion` and
-  `mediaCatalogGeneration`.
-- `QueryState` is the shareable UI state. Search, sort, direction, one/all
-  media mode, immersive mode, motion preference, similarity target, zoom, and
-  random seed round-trip through the URL.
-- `BookmarksQuery` is the smaller worker-facing projection of `QueryState`.
+The default visual system is dark, neutral, media-first, and uses a restrained
+mint accent. Media carries the visual color; surrounding chrome stays quiet.
 
-The app exports only bookmarks with media. One-mode selects one representative
-item per tweet; all-mode exposes every media item.
+## Domain and API Boundaries
 
-## Local Refresh and Publication Pipeline
+Hand-authored browser contracts live in `src/greenfield/contracts/`.
 
-The ordered pipeline is defined in `scripts/refresh-pipeline.ts` and invoked
-through `scripts/refresh.ts` or the `package.json` commands.
+| Type | Responsibility |
+| --- | --- |
+| `MediaRecord` | Searchable record metadata and ordered assets |
+| `MediaAsset` | Stable media identity, intrinsic size, and rendition catalogs |
+| `CommittedWallState` | Validated shareable query and composition state |
+| `DiscoveryPage` | Cursor page from one frozen result set |
+| `WallTile` | Client-only justified-wall projection |
+| `ApiTransport` | Discovery, count, and direct-media port |
+| `CompositionEngine` | Records-to-tiles projection port |
+| `PlaybackCoordinator` | Page/surface-aware video lifecycle port |
+| `Telemetry` | Sanitized performance and error sink |
+
+`contracts/openapi.yaml` is the production HTTP source of truth. It specifies
+discovery pages and counts, suggestions, facets and facet autocomplete, direct
+media lookup, per-media social metadata, and discovery configuration.
+`bun run api:generate` writes `src/greenfield/generated/api.ts`.
+
+Do not make UI components depend directly on `fetch` or generated transport
+details. `src/greenfield/data/http-api.ts` implements production HTTP behind
+`ApiTransport`; `src/main.tsx` selects it outside test mode.
+`src/greenfield/data/mock-api.ts` supplies a deterministic 96-record fixture
+for tests with cursor pagination, search, sort, facets, result relaxation, and
+direct media lookup.
+
+## Routing and URL State
+
+TanStack Router defines two routes in `src/greenfield/router/router.tsx`:
+
+- `/` renders the packed discovery wall.
+- `/media/$mediaId` renders the same wall with an addressable lightbox over it.
+
+The root owns `GreenfieldApp`; route leaves are intentionally empty so route
+changes never unmount the wall. Router scroll restoration remains enabled.
+
+`validateWallSearch` is the only normalization boundary for committed state.
+It tolerates malformed external links and always produces renderable defaults.
+Canonical search strings use ordinary fields and repeated readable facet
+entries, for example:
 
 ```text
-sync:ft
-  -> data:mirror
-  -> data:backfill-image-variants
-  -> data:video-previews
-  -> mirror:sync
-  -> data:export
-  -> data:embeddings
-  -> data:validate
-  -> build
+?q=landscape&filters=kind:image&filters=source:Archive&sort=curated&mode=hybrid&seed=gallery&density=auto
 ```
 
-Do not reorder these steps. In particular, export is forbidden until the
-current media manifest has been uploaded and verified.
+The state fields are:
 
-### 1. Field Theory sync
+| Field | Meaning | Server result identity? |
+| --- | --- | --- |
+| `q` | Committed search text | Yes |
+| `filters` | Canonical facet selections | Yes |
+| `sort` | `curated`, `newest`, or `oldest` | Yes |
+| `similar` | Optional similar-media target | Yes |
+| `mode` | `asset`, `record`, or `hybrid` | No |
+| `seed` | Deterministic representative/size shuffle | No |
+| `density` | `auto` or numeric tile-size multiplier | No |
 
-`scripts/sync-fieldtheory.ts` uses a real local X session and writes raw data
-under `.data/fieldtheory`. Credentials are the X `ct0` and `auth_token`
-cookies, managed through the X-auth scripts and 1Password. Authentication and
-recovery details belong in `docs/runbooks/data-refresh.md`; do not duplicate
-or expose credentials in application code or committed docs.
+This split is reflected in TanStack Query keys. Changing mode, seed, or density
+recomposes cached records rather than requesting the same result set again.
 
-### 2. Media mirroring
+### History policy
 
-`scripts/mirror-media.ts` reads Field Theory records, discovers `pbs.twimg.com`
-and `video.twimg.com` URLs, downloads missing originals, and records each
-attempt in `.data/media/mirror-manifest.json`.
+`src/greenfield/router/history.ts` centralizes navigation behavior:
 
-Image originals are content-addressed by SHA-256:
+- Committed search, filters, sort, similar target, shuffle, mode, and density
+  push a history entry.
+- Mode and density preserve the viewport anchor; result-changing mutations
+  land at the top.
+- A defensive invalid-density fallback may replace the current entry.
+- Opening a wall item pushes `/media/$mediaId`.
+- Previous, next, and sibling lightbox navigation replace that media route, so
+  they do not flood Back history.
+- Closing a lightbox opened from the wall goes Back; a directly opened media
+  URL replaces to `/` when closed.
 
-```text
-pbs/<source-stem>/objects/<original-sha256>.<extension>
+Draft search text, a moving density slider, and uncommitted mobile filters are
+local state and never write browser history.
+
+## Discovery Data Flow
+
+TanStack Query owns request cancellation, caching, retry, and infinite cursor
+pages. Defaults are a 30-second stale time, 15-minute garbage-collection time,
+one retry, and no refetch merely because a tab regains focus.
+
+```mermaid
+sequenceDiagram
+    participant U as Person
+    participant C as Controls
+    participant R as Router
+    participant Q as TanStack Query
+    participant A as ApiTransport
+    participant W as Packed wall
+
+    U->>C: Commit search/filter/sort
+    C->>R: Push validated URL state
+    R->>Q: Select canonical result key
+    Q-->>W: Keep previous pages visible
+    Q->>A: Fetch frozen cursor page
+    C-->>U: Show small pending indicator
+    A-->>Q: Records + cursors + exactness
+    Q-->>W: Compose and animate/relayout new tiles
 ```
 
-Videos retain source-derived archive keys. New video records include a digest,
-but the existing video archive has not been migrated to content-addressed
-object paths.
+`keepPreviousData` prevents a blank-wall flash while a changed result set is
+loading. The shell sets `aria-busy` and shows pending state near the controls.
+Infinite append requests originate in JustifiedInfiniteGrid, are deduplicated by
+the wall adapter, and resolve through `fetchNextPage`.
 
-Permanent upstream failures are recorded as `failed`. Successful records are
-`ok` and carry byte size, MIME type, dimensions, digest when known, generated
-variants, and preview/playback keys when applicable.
+If exact matching returns no records, the API may return the closest results by
+relaxing the smallest possible facet set. The UI places an explicit message
+above the wall and offers an action that commits those broader filters.
 
-### 3. Image renditions
+Mobile filter edits remain staged inside a drawer. A separate count query
+updates the Apply affordance; only Apply commits filters and creates history.
+Desktop filter changes commit directly.
 
-`scripts/image-renditions.ts` uses Sharp to rotate according to source
-orientation, generates AVIF at quality 60/effort 2, and calculates a ThumbHash.
-The width ladder is centralized in `scripts/mirror-lib.ts`:
+## Composition and the Justified Wall
 
-```text
-320, 680, 1280, 2048
-```
+`src/greenfield/modules/composition/` is a pure deterministic layer between
+server records and wall tiles. Given the same records and `CommittedWallState`,
+it emits the same tile identities, representatives, scales, and group keys.
 
-The ladder is capped at the oriented source width. The catalog records actual
-output width, height, bytes, MIME type, and SHA-256; it never advertises a
-requested width that Sharp did not produce. Rendition keys include their
-output digest:
+Mode behavior:
 
-```text
-<original-stem>/renditions/v2/w<width>-<rendition-sha256>.avif
-```
+- `asset`: every asset becomes an independent tile.
+- `record`: one representative is chosen from each record's explicitly
+  eligible representative IDs.
+- `hybrid`: the representative and deterministically ordered siblings share
+  one collage tile, capped at four visible assets; the rest become an overflow
+  count.
 
-`scripts/backfill-image-variants.ts` migrates or repairs existing image
-records. It is idempotent and part of the normal refresh sequence so the
-manifest is always on the current rendition version.
+The seed still assigns deterministic scale hints for composition stability and
+a possible future collage layout. In the justified wall, visible size variance
+comes from intrinsic aspect ratios, composite hybrid ratios, and naturally
+varying row heights. Changing the seed reshuffles ordering and representatives
+without changing the server query.
 
-### 4. Video assets
+### Justified layout ownership
 
-`scripts/generate-video-previews.ts` creates small, muted grid previews with
-ffmpeg. They are 480px-wide H.264 MP4s, CRF 31, audio-free, fast-started, and
-capped at eight seconds. The grid loops these clips; the lightbox uses the
-full playback URL.
+`src/greenfield/modules/wall/MediaWall.tsx` is the single layout adapter. It
+uses react-infinitegrid's `JustifiedInfiniteGrid` with recycling, resize
+observation, and direct `top`/`left` placement (`useTransform={false}`). Stable
+`data-grid-groupkey` values allow independent append groups and reliable
+recycling. Detached recycling is not enabled.
 
-Video preview and playback paths are derived from the archived video stem.
-They are immutable in normal operation. Re-encoding an existing path requires
-a Cloudflare cache purge or a new versioned key.
+JustifiedInfiniteGrid alone owns placement, measurement, request-append, and
+recycling. TanStack Virtual is intentionally absent. Do not wrap this wall in
+another virtual list or add a competing masonry algorithm.
 
-### 5. R2 sync and publication attestation
+Initial tile dimensions derive from an aspect-aware slice layout. Each slice
+row or column contributes its exact composite ratio to JustifiedInfiniteGrid.
+Cropping and stretching are disabled. The grid varies row heights to fill
+completed rows while preserving every tile ratio, and applies one uniform 4px
+inter-tile gap. Wall images,
+videos, and lightbox media retain `object-contain` as a defensive guarantee
+against crop or distortion. Rows admit at most four tiles below 640px and at
+most eight on wider walls, preventing illegibly small portrait-heavy rows.
+Images expose explicit responsive width candidates; videos use posters and
+admitted preview sources. The first visible group receives eager image
+priority, while the rest use native lazy loading and decoding.
 
-`scripts/sync-mirror.sh` performs an append-only `rclone copy` to the R2
-bucket, sets one-year immutable cache headers, and then runs two gates:
+Tile width and height are known before media decoding. Responsive `<picture>`
+subtrees carry `data-grid-skip`, isolating their image readiness from
+JustifiedInfiniteGrid's item readiness. Loading or swapping a rendition therefore
+does not make the layout engine wait on or separately track nested media; an
+explicit repack remains the response to a genuine geometry change.
 
-1. `rclone check --one-way` compares the local archive with R2 using hashes.
-2. `scripts/media-publication.ts` sends `HEAD` requests through the public
-   media origin for every manifest-referenced original, rendition, preview,
-   and playback object. It validates status, byte length, and MIME type.
+### Density and stability
 
-Digest-bearing URLs receive `?v=<digest>`. This isolates publication from a
-negative CDN cache entry accidentally created before an immutable object was
-uploaded.
+`auto` maps viewport classes to a reasonable initial density. The density
+control is continuous from 0.6 to 1.75 and maps to the preferred justified row
+height. During slider movement, the wall is visually scaled around the viewport
+center; release commits one density value and one JustifiedInfiniteGrid reflow.
+Before mode, density, or rail-width changes,
+the app captures the media nearest the viewport center and restores its screen
+position after repacking. This minimizes jumping while preserving genuine
+packed placement.
 
-Only after all public-origin checks pass does the script atomically write
-`.data/media/r2-publication.json`. That file contains the SHA-256 of the exact
-mirror manifest, media base URL, object count, and verification time.
+Continuous pinch/trackpad zoom belongs at the gesture layer and must feed the
+same draft/commit density path: update the visual scale continuously, then
+commit a single reflow at gesture end. Never trigger a full pack on every raw
+gesture event.
 
-Google Drive is a cold backup of originals, the manifest, and exported data.
-The current script runs it after the R2 publication gate. It is not the serving
-origin, but the refresh preflight currently requires both `r2:` and `gdrive:`
-rclone remotes.
+### Wall accessibility
 
-### 6. Atomic catalog export
+Each media item is a named button. A roving `tabIndex` keeps one mounted wall
+target in the sequential tab order. Arrow keys choose the nearest spatial
+neighbor from mounted geometry; Home and End select the first or last mounted
+target. Recycling reconciles the active target when DOM nodes change.
 
-`scripts/export-fieldtheory.ts` calls
-`assertVerifiedMediaPublication` before writing any public catalog. Export
-fails if the attestation is missing, the mirror manifest has changed since
-verification, or the media base URL differs.
+## Video Preview Policy
 
-`scripts/mirror-rewrite.ts` replaces upstream media URLs with concrete R2
-originals and attaches the explicit rendition metadata. It does not derive v2
-rendition URLs from naming conventions at runtime. A concrete mirrored
-original is the only fallback for a published item.
+Grid video sources are admitted only when a tile approaches within one
+viewport of the visible region. Once admitted, a mounted tile keeps its source
+so ordinary visibility changes do not restart playback.
 
-`scripts/export-lib.ts` writes a complete sibling staging directory, writes
-`manifest.json` last, and then swaps the directory into `public/data`. If the
-swap fails, the previous generation is restored. The manifest is therefore
-the catalog commit point; a generation must never name partially written
-artifacts.
+Ambient autoplay uses hysteresis:
 
-Important exported files include:
+- Start when at least 10% of the tile is visible.
+- Keep playing until visibility drops below 5%.
+- Pause when the page or wall surface is not eligible.
 
-- `grid/first.json`: small default-view first-paint slice.
-- `grid/all.json`: every flattened media item.
-- `grid/one.json`: representative item per tweet.
-- `tweets/docs-*.json`: chunked `TweetDoc` records.
-- `order/*.json`: bookmarked and posted orderings.
-- `search/*`: lexical search artifacts.
-- `embeddings/index.json`: normalized CLIP vectors.
-- `manifest.json`: filenames, counts, build ID, media origin, and media
-  catalog generation.
+Either `prefers-reduced-motion: reduce` or the browser data-saver preference
+disables ambient autoplay entirely. On desktop, eligible tiles then show a
+small play icon and may preview only while hovered. Native lightbox controls
+remain user-operated. Reduced-motion also removes nonessential wall and
+lightbox animation.
 
-### 7. Embeddings, validation, and build
+## Addressable Shared-Element Lightbox
 
-`scripts/export-embeddings.ts` uses CLIP to generate text and visual vectors.
-Video and animated-GIF records are represented by their poster/preview image,
-not temporal motion. The browser uses the same CLIP model family for query
-vectors.
+The wall and lightbox use `LayoutGroup` plus the same
+`layoutId="media-${mediaId}"`. Because the root route keeps the justified wall
+mounted under the dialog, Motion can morph the selected media into the
+lightbox and back to its wall location. Unsupported or reduced-motion cases
+fall back to an immediate/faded state change without changing routing.
 
-`scripts/validate-export.ts` verifies cross-file counts and references. For
-media catalog v2 it also requires a catalog generation, exact rendition
-metadata, digest-bearing URLs, and zero runtime `twimg.com` URLs.
+The shadcn/Radix dialog supplies focus containment and Escape semantics. The
+lightbox provides:
 
-Vite copies `public/data` into `dist` and code-splits the desktop masonry,
-lightbox, Theme Studio, query worker, and embedding worker.
+- Previous/next buttons and Left/Right keyboard navigation.
+- Swipe previous/next at fit scale and swipe down to close.
+- Pinch or Ctrl/Meta-wheel zoom from 1× to 5×.
+- Pan while zoomed and double-click/reset behavior.
+- Full media in the main viewport.
+- Record metadata and sibling assets only in a desktop side rail or mobile
+  details drawer.
 
-## Browser Runtime
+Controls use accessible names and coarse-pointer hit areas of at least 48 px.
+Closing returns focus to the originating wall item when it remains mounted.
 
-### Routing and startup
+## Responsive Control Shell
 
-`src/app/AppRouter.tsx` implements two static client routes:
+Desktop uses a compact top toolbar and optional filter rail. Mobile uses
+purpose-built stacked chrome and a bottom filter drawer rather than squeezing
+desktop controls. Mobile chrome may hide during downward wall browsing, but it
+stays visible while focused, pinned, or operating a transient surface.
 
-- `/` is the bookmark browser.
-- `/themes` is Theme Studio.
+Search has a local draft and commits explicitly. Sort, mode, shuffle, and
+density are independent controls. Filters support media kind, source,
+continuous width range, and date presets/custom bounds. Results and lightbox
+metadata use clear live text rather than hidden icon-only meaning.
 
-Cloudflare uses SPA fallback from `wrangler.jsonc`. GitHub Pages builds with
-`GITHUB_PAGES=true`, which changes the Vite base path to
-`/twitter-bookmarks/`.
+## Edge Gateway and Social HTML
 
-`useBookmarksPageController` owns artifact hydration, URL state, query worker
-coordination, semantic-query coordination, responsive column count, selected
-lightbox item, and scroll-anchor restoration.
+`worker/index.ts` is the Cloudflare Worker entry point. `wrangler.jsonc`
+configures a static-assets binding with SPA fallback and routes `/api/*` plus
+`/media/*` through the Worker first.
 
-### Progressive artifact loading
+For `/api/*`, the Worker has two contract-compatible upstream modes:
 
-`src/features/bookmarks/data-loader.ts` always revalidates
-`data/manifest.json`. The `buildId` versions all artifact URLs and keys the
-IndexedDB stores.
+1. With `DATA_ORIGIN`, `worker/production-catalog.ts` reads the production
+   manifest, grid, search store, ordering, and only the document chunks needed
+   for a page. It exposes discovery, count, cursor, media, source-facet, and
+   social endpoints in the greenfield OpenAPI shape.
+2. With `API_ORIGIN`, the Worker removes browser credentials and hop-by-hop
+   headers, proxies the request to a dedicated API, and returns the upstream
+   stream with a request ID and `nosniff` header.
 
-On a cold default-view load:
+The staging deployment uses the catalog adapter against the deployed catalog
+assets. The adapter is a translation seam, not a source of frontend
+requirements.
 
-1. Fetch the manifest.
-2. Fetch `grid/first.json` and render it.
-3. Wait one paint.
-4. Fetch the full grid and order files in parallel.
-5. Stream the `TweetDoc` chunks independently.
-6. Persist the complete generation in IndexedDB as a best-effort optimization.
+For a direct `GET /media/:mediaId`, it fetches the application shell and asks
+the upstream `/media/:mediaId/social` endpoint for title, description, image,
+and optional video. It escapes all attribute content and injects canonical,
+Open Graph, and Twitter card tags with `HTMLRewriter`. A generic branded image
+is used when metadata is unavailable.
 
-Search and embedding artifacts load only when a feature needs them. IndexedDB
-has separate stores for core, search, and embedding artifacts.
+Both the static `index.html` and injected media shells remain
+`noindex,nofollow`. Search-engine crawling is not a requirement; rich unfurl
+metadata for copied media links is.
 
-### Query execution
+## Offline and Cache Policy
 
-`src/workers/query.worker.ts` is the normal query seam. It is hydrated in
-stages: core grid/order artifacts first, `TweetDoc` chunks later, and
-embeddings on demand. It runs the pure query implementation in
-`src/features/bookmarks/query-engine.ts`.
+Vite PWA uses Workbox InjectManifest with
+`src/greenfield/service-worker/sw.ts` as the authored worker. It:
 
-If the query worker is unavailable or exceeds its watchdog, the controller
-falls back to the same query implementation on the main thread. Text input is
-debounced before committing to query state.
+- Precaches the versioned application shell generated at build time.
+- Serves same-origin navigations from the precached application shell.
+- Uses Network First for successful same-origin `GET /api/*` responses, with a
+  four-second network timeout, a hard maximum of 40 recent entries, and a
+  one-hour maximum age.
+- Uses Cache First for successful same-origin images, with a hard maximum of
+  140 entries and a 14-day maximum age.
+- Separates opaque cross-origin images into a Cache First cache capped at 12
+  entries and seven days.
+- Caches successful, non-range, same-origin video previews separately, capped
+  at eight entries and three days. Cross-origin video responses are not added
+  to this runtime cache.
+- Prunes every runtime cache adaptively after write batches. Depending on
+  estimated quota and utilization, constrained/default/generous entry limits
+  are 12/24/40 for results, 24/72/140 for same-origin images, 4/8/12 for
+  cross-origin images, and 2/4/8 for videos. Expiration also purges on quota
+  errors.
+- Cleans obsolete precaches and claims clients, but does not force an
+  uncontrolled mid-session reload. A waiting update activates only after an
+  explicit `SKIP_WAITING` message.
 
-`src/workers/embedding.worker.ts` lazily loads quantized CLIP text or vision
-encoders. Text search embeds three prompts and averages their normalized
-vectors; uploaded-image search uses the vision encoder. Similar-media search
-uses the precomputed vector for the selected `GridItem`.
+The offline promise is a resilient recent revisit, not a complete downloadable
+archive. An unavailable result that was never cached must surface a clear
+network error rather than fabricate data.
 
-### Grid implementations
+## Telemetry
 
-`src/components/grid/BookmarksGrid.tsx` chooses the implementation at module
-load based on the user agent:
+`src/greenfield/telemetry/` defines a provider-neutral, sanitized telemetry
+surface. Explicit timers cover media load/decode and JustifiedInfiniteGrid
+repack; browser observers can report navigation and rendering performance.
+Events are allowlisted and errors are categorized before publication so URLs,
+queries, media descriptions, and other user content are not emitted by
+accident. Implementations include no-op, in-memory test capture, and browser
+console sinks. A production analytics exporter belongs behind this interface.
 
-- Desktop and non-iOS browsers lazy-load `BookmarksMasonry.tsx`, which uses
-  `react-virtualized` Masonry and WindowScroller with estimated measurement,
-  overscan, and scroll-anchor restoration.
-- iOS WebKit avoids the desktop virtualization chunk. It renders a bounded
-  CSS-column grid in batches of 80 and exposes a Load more button.
+## Testing and Verification
 
-The first 12 or first four rows (whichever is larger on desktop) receive
-initial image priority. Images use native browser lazy loading. Video sources
-use geometric admission: iOS observes only motion tiles, while desktop derives
-admission from the virtualized viewport and overscan range.
+Vitest and Testing Library cover browser behavior under `src/greenfield`, the
+edge adapter under `worker`, and the preserved catalog pipeline under
+`scripts`. Current focused coverage includes:
 
-### Image delivery
+- URL parsing, canonicalization, and history plans.
+- Query key identity and mock cursor behavior.
+- Deterministic composition, scale caps, and representative selection.
+- Tile geometry, responsive sources, append handling, and spatial navigation.
+- Autoplay preference and 10%/5% hysteresis.
+- Search, mobile filter draft/apply behavior, shell visibility, and telemetry.
 
-`src/features/bookmarks/media-delivery.ts` is the single selection seam used
-by the grid and lightbox.
+Playwright plus `@axe-core/playwright` are the end-to-end and accessibility
+stack. The test suite will not depend on a physical phone. Mobile requirements
+must be exercised with simulated viewport size, touch/pointer capabilities,
+device scale factor, reduced motion, data-saver/network conditions, and mobile
+browser projects. Desktop coverage must include keyboard-only wall/lightbox
+flows and coarse/fine pointer differences.
 
-- Published photos use their explicit catalog of AVIF candidates.
-- The browser chooses a candidate from truthful width descriptors and the
-  rendered CSS width/device pixel ratio.
-- `<picture>` exposes AVIF while `<img>` retains the mirrored original as a
-  format/error fallback.
-- ThumbHash renders a tiny placeholder under the media.
-- Native `loading`, `srcset`, `sizes`, decoding, browser cache, and CDN cache
-  own image scheduling. Do not reintroduce JS image source detachment or a
-  parallel image preloader without measuring a concrete regression.
-- A mirrored URL must never fall back to `pbs.twimg.com`. If the explicit
-  catalog is absent, use the concrete mirrored original.
-
-### Video delivery and autoplay
-
-`GridVideoPreview` in `src/components/media/GridVideoPreview.tsx` owns the
-complete preview lifecycle behind one interface: one-way source admission,
-viewport eligibility, page visibility, bounded pause recovery, and looping.
-`src/components/media/autoplay.ts` centralizes the policy: start at 10% tile
-visibility and continue until the tile reaches 0%. This hysteresis avoids
-play/pause churn at the entry threshold.
-
-Deferred previews attach neither `src` nor `poster`. Once admitted, a preview
-keeps its source for the lifetime of that mounted tile, so changing scroll
-priority cannot reset `currentTime`. Hidden react-virtualized measurement
-cells never create playback observers. A single shared page-visibility Module
-notifies grid and lightbox playback; opening the lightbox disables grid
-playback so covered previews do not continue decoding underneath it.
-
-The lightbox plays and loops the full-resolution URL with native controls. It
-transfers the grid video's current playback time when possible and preserves
-page-hide/page-show intent. Open and close use a same-document View Transition
-when supported, pairing only the selected grid media with the lightbox media;
-reduced-motion and unsupported browsers fall back to an immediate state
-change.
-
-## Deployment
-
-There are two static deployments:
-
-### Cloudflare Worker static assets
-
-`wrangler.jsonc` points at `dist`, enables SPA fallback, and binds the custom
-domain. Deploy manually with:
+Run the release validation ladder from the repository root:
 
 ```bash
-bun run deploy:cf
+bun run api:generate
+bun run test
+bun run typecheck
+bun run lint
+bun run build
 ```
 
-This runs a root-base Vite build and `wrangler deploy`. It requires a valid
-Cloudflare session/environment.
+Build is a required proof because it compiles both the browser bundle and the
+Cloudflare Worker, injects the Workbox manifest, and reveals edge-only type or
+bundling failures that unit tests cannot.
 
-### GitHub Pages
+## Ownership Map
 
-`.github/workflows/deploy.yml` runs on pushes to `main`, builds with
-`GITHUB_PAGES=true`, and publishes `dist` to GitHub Pages. It is a secondary
-deployment and does not publish the R2 media archive.
-
-Pushing source or `public/data` is not sufficient to update the Cloudflare
-custom domain; `bun run deploy:cf` is a separate operation.
-
-## Ownership and Edit Map
-
-| Concern | Primary files |
+| Concern | Primary location |
 | --- | --- |
-| App routing/shell | `src/app/`, `src/main.tsx` |
-| Bookmark controller | `src/app/bookmarks/useBookmarksPageController.ts` |
-| Shared data contracts | `src/features/bookmarks/model.ts` |
-| Artifact loading/cache | `data-loader.ts`, `idb-cache.ts`, `export-artifacts.ts` |
-| URL/session state | `url-state.ts`, `location-state.ts`, `session-state.ts` |
-| Query semantics | `query-request.ts`, `query-engine.ts`, `query.worker.ts` |
-| Semantic inference | `embedding*.ts`, `embedding.worker.ts`, `export-embeddings.ts` |
-| Grid/layout | `src/components/grid/` |
-| Media rendering | `MediaTile.tsx`, `media-delivery.ts`, `twitter-media-url.ts` |
-| Lightbox | `src/components/lightbox/` |
-| Theme system | `src/features/theme/`, `ThemeStudio.tsx` |
-| Field Theory/X sync | `scripts/fieldtheory.ts`, `sync-fieldtheory.ts`, X-auth scripts |
-| Media archive | `mirror-media.ts`, `mirror-lib.ts`, `image-renditions.ts` |
-| R2 publication gate | `sync-mirror.sh`, `media-publication.ts` |
-| Static export | `export-fieldtheory.ts`, `mirror-rewrite.ts`, `export-lib.ts` |
-| Export validation | `validate-export.ts` |
-| Deployments | `vite.config.ts`, `wrangler.jsonc`, `.github/workflows/deploy.yml` |
-
-Paths without a directory in this table are under
-`src/features/bookmarks/` or `scripts/` according to their concern.
+| Runtime composition | `src/main.tsx`, `src/greenfield/GreenfieldApp.tsx` |
+| Domain and ports | `src/greenfield/contracts/` |
+| HTTP source of truth | `contracts/openapi.yaml` |
+| Generated HTTP types | `src/greenfield/generated/api.ts` |
+| Routing/history | `src/greenfield/router/` |
+| Query client | `src/greenfield/platform/` |
+| Data adapters | `src/greenfield/data/` |
+| Tile composition | `src/greenfield/modules/composition/` |
+| Justified wall | `src/greenfield/modules/wall/` |
+| Responsive controls | `src/greenfield/modules/controls/` |
+| Application shell | `src/greenfield/shell/` |
+| Preview playback | `src/greenfield/modules/playback/` |
+| Addressable lightbox | `src/greenfield/modules/lightbox/` |
+| Telemetry | `src/greenfield/telemetry/` |
+| PWA runtime | `src/greenfield/service-worker/` |
+| Design primitives/theme | `src/components/ui/`, `src/index.css` |
+| Cloudflare boundary | `worker/index.ts`, `wrangler.jsonc` |
+| Catalog pipeline | `scripts/`, `scripts/catalog/` |
 
 ## Invariants for Future Agents
 
-1. Never expose or commit raw Field Theory data, browser cookies, R2 secrets,
-   or 1Password output.
-2. Never export a mirror generation that lacks a matching verified R2
-   publication attestation.
-3. Never write a public manifest before every artifact it names exists.
-4. Never advertise guessed rendition dimensions or convention-derived v2
-   paths. Consume the explicit catalog.
-5. Never route a published mirrored item back to `twimg.com` as a fallback.
-6. Treat content-addressed image paths as immutable. A byte change means a new
-   digest and URL.
-7. Preserve `gridId = tweetId:mediaIndex` as the cross-artifact and URL
-   identity.
-8. Keep shareable query/display behavior URL-backed.
-9. Keep expensive search/inference off the interaction-critical main thread,
-   while preserving the tested main-thread query fallback.
-10. Treat `public/data` changes as generated catalog changes and report them
-    explicitly in reviews.
-11. Do not run refresh/export commands unless the user requested data changes.
-12. Validate the narrow module first; before publication run tests,
-    typecheck, lint, build, and the appropriate export/media gates.
-
-## How an LLM Should Approach Changes
-
-1. Read `AGENTS.md`, `CONTEXT.md`, this guide, and the applicable runbook.
-2. Inspect the nearest implementation and colocated tests before editing.
-3. Decide which boundary is changing: local source data, mirror manifest,
-   publication gate, public catalog, runtime selection, or deployment.
-4. Preserve the invariants above and avoid coupling two boundaries through an
-   inferred naming convention.
-5. Add or update the nearest tests. Pipeline order, publication gating,
-   catalog contracts, URL round-tripping, media fallback, and responsive grid
-   behavior all have dedicated test modules.
-6. Use the smallest validation ladder that proves the change, then run the
-   full relevant checks before pushing.
-7. Update this guide only when a durable architecture, workflow, invariant,
-   or known system limitation changes.
-
-For operational commands and credentials setup, use
-`docs/runbooks/data-refresh.md` and `docs/runbooks/media-mirror.md`. For normal
-coding changes, use `docs/runbooks/coding-workflow.md`.
+1. Never use retired frontend behavior or catalog-pipeline implementation
+   details as an implicit requirement for Elsewhere.
+2. Never add TanStack Virtual to the wall. JustifiedInfiniteGrid is the sole
+   placement and recycling authority.
+3. Keep server result identity separate from client-only mode, seed, and
+   density composition.
+4. Keep all committed result-affecting state validated, readable, shareable,
+   and represented in browser history.
+5. Preserve the mounted wall beneath an addressable lightbox and keep stable
+   media layout IDs across both surfaces.
+6. Preserve media aspect ratios and consume explicit rendition metadata.
+7. Do not continuously repack during raw zoom gestures; visually preview, then
+   commit one layout change while restoring the viewport anchor.
+8. Honor reduced-motion and data-saving preferences before attempting ambient
+   playback or decorative transitions.
+9. Keep rich social metadata sanitized at the edge and keep discovery pages
+   `noindex` until crawlability becomes an explicit product decision.
+10. Keep API implementation details behind `ApiTransport` and evolve the
+    OpenAPI contract before regenerating client types.
+11. Keep offline caches bounded and best-effort; do not promise an uncached
+    full archive offline.
+12. Test mobile behavior through deterministic simulation and run unit tests,
+    typecheck, lint, and the production build before handoff.
+13. Preserve the catalog refresh order and keep raw bookmark/media inputs in
+    `.data`; only validated `public/data` artifacts belong in version control.

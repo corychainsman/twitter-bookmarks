@@ -1,7 +1,7 @@
 import { stat } from 'node:fs/promises'
 import path from 'node:path'
 
-import { buildExportArtifacts } from '../src/features/bookmarks/export-artifacts'
+import { buildExportArtifacts } from './catalog/export-artifacts'
 import { readJsonLines } from './export-lib'
 import { generateImageRenditions } from './image-renditions'
 import {

@@ -2,7 +2,7 @@ import { access, readFile } from 'node:fs/promises'
 import path from 'node:path'
 import assert from 'node:assert/strict'
 
-import type { GridItem, ImageRendition, Manifest, TweetDoc } from '../src/features/bookmarks/model'
+import type { GridItem, ImageRendition, Manifest, TweetDoc } from './catalog/model'
 
 const projectRoot = process.cwd()
 const outputDirectory = path.join(projectRoot, 'public/data')

@@ -1,0 +1,392 @@
+openapi: 3.1.0
+info:
+  title: Elsewhere Discovery API
+  version: 0.1.0
+  description: Runtime contract for the greenfield media-discovery frontend.
+servers:
+  - url: /api
+paths:
+  /discovery:
+    get:
+      operationId: discover
+      parameters:
+        - $ref: '#/components/parameters/Query'
+        - $ref: '#/components/parameters/Sort'
+        - $ref: '#/components/parameters/Cursor'
+        - $ref: '#/components/parameters/AnchorMediaId'
+        - $ref: '#/components/parameters/SimilarMediaId'
+        - name: filter
+          in: query
+          schema:
+            type: array
+            items:
+              type: string
+          style: form
+          explode: true
+      responses:
+        '200':
+          description: A frozen, cursor-addressable result page.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DiscoveryPage'
+        '410':
+          $ref: '#/components/responses/CursorExpired'
+  /discovery/count:
+    get:
+      operationId: countDiscoveryResults
+      parameters:
+        - $ref: '#/components/parameters/Query'
+        - $ref: '#/components/parameters/Sort'
+        - $ref: '#/components/parameters/SimilarMediaId'
+        - name: filter
+          in: query
+          schema:
+            type: array
+            items:
+              type: string
+          style: form
+          explode: true
+      responses:
+        '200':
+          description: Count for staged filter state.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [count]
+                properties:
+                  count:
+                    type: integer
+                    minimum: 0
+  /suggestions:
+    get:
+      operationId: suggest
+      parameters:
+        - $ref: '#/components/parameters/Query'
+      responses:
+        '200':
+          description: Search suggestions.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [suggestions]
+                properties:
+                  suggestions:
+                    type: array
+                    items:
+                      type: string
+  /facets:
+    get:
+      operationId: listFacets
+      parameters:
+        - $ref: '#/components/parameters/Query'
+        - name: filter
+          in: query
+          schema:
+            type: array
+            items:
+              type: string
+          style: form
+          explode: true
+      responses:
+        '200':
+          description: Facet definitions and self-excluding counts.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [facets]
+                properties:
+                  facets:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Facet'
+  /facets/{facetId}/values:
+    get:
+      operationId: autocompleteFacet
+      parameters:
+        - name: facetId
+          in: path
+          required: true
+          schema:
+            type: string
+        - $ref: '#/components/parameters/Query'
+      responses:
+        '200':
+          description: Matching high-cardinality facet values.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [values]
+                properties:
+                  values:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/FacetValue'
+  /media/{mediaId}:
+    get:
+      operationId: getMedia
+      parameters:
+        - name: mediaId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Addressable media details.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MediaAsset'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /media/{mediaId}/social:
+    get:
+      operationId: getMediaSocialMetadata
+      parameters:
+        - name: mediaId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Sanitizable metadata for the edge-rendered social shell.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [title, description, imageUrl]
+                properties:
+                  title:
+                    type: string
+                  description:
+                    type: string
+                  imageUrl:
+                    type: string
+                    format: uri
+                  videoUrl:
+                    type: string
+                    format: uri
+  /configuration:
+    get:
+      operationId: getDiscoveryConfiguration
+      responses:
+        '200':
+          description: Available sort modes and facet presentation contract.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [sorts]
+                properties:
+                  sorts:
+                    type: array
+                    items:
+                      type: object
+                      required: [id, label]
+                      properties:
+                        id:
+                          type: string
+                        label:
+                          type: string
+                        default:
+                          type: boolean
+components:
+  parameters:
+    Query:
+      name: q
+      in: query
+      schema:
+        type: string
+        default: ''
+    Sort:
+      name: sort
+      in: query
+      schema:
+        type: string
+        enum: [curated, newest, oldest]
+        default: curated
+    Cursor:
+      name: cursor
+      in: query
+      schema:
+        type: string
+    AnchorMediaId:
+      name: anchorMediaId
+      in: query
+      schema:
+        type: string
+    SimilarMediaId:
+      name: similar
+      in: query
+      schema:
+        type: string
+  responses:
+    CursorExpired:
+      description: The frozen result snapshot expired.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiError'
+    NotFound:
+      description: The requested media was not found.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiError'
+  schemas:
+    ApiError:
+      type: object
+      required: [code, message, requestId]
+      properties:
+        code:
+          type: string
+          enum: [cursor_expired, invalid_cursor, invalid_anchor, not_found, throttled, validation_failed, internal]
+        message:
+          type: string
+        requestId:
+          type: string
+    FacetSelection:
+      type: object
+      required: [id, values]
+      properties:
+        id:
+          type: string
+        values:
+          type: array
+          items:
+            type: string
+    FacetValue:
+      type: object
+      required: [id, label, count]
+      properties:
+        id:
+          type: string
+        label:
+          type: string
+        count:
+          type: integer
+          minimum: 0
+    Facet:
+      type: object
+      required: [id, label, type]
+      properties:
+        id:
+          type: string
+        label:
+          type: string
+        type:
+          type: string
+          enum: [multi-select, number-range, date-range]
+        values:
+          type: array
+          items:
+            $ref: '#/components/schemas/FacetValue'
+    RenditionCandidate:
+      type: object
+      required: [url, width, height, mimeType]
+      properties:
+        url:
+          type: string
+          format: uri
+        width:
+          type: integer
+          minimum: 1
+        height:
+          type: integer
+          minimum: 1
+        mimeType:
+          type: string
+    MediaAsset:
+      type: object
+      required: [id, recordId, kind, title, description, width, height, placeholder, wall, lightbox]
+      properties:
+        id:
+          type: string
+        recordId:
+          type: string
+        kind:
+          type: string
+          enum: [image, video]
+        title:
+          type: string
+        description:
+          type: string
+        width:
+          type: integer
+          minimum: 1
+        height:
+          type: integer
+          minimum: 1
+        placeholder:
+          type: string
+        wall:
+          type: array
+          minItems: 1
+          items:
+            $ref: '#/components/schemas/RenditionCandidate'
+        lightbox:
+          type: array
+          minItems: 1
+          items:
+            $ref: '#/components/schemas/RenditionCandidate'
+        poster:
+          $ref: '#/components/schemas/RenditionCandidate'
+        previewVideoUrl:
+          type: string
+          format: uri
+    MediaRecord:
+      type: object
+      required: [id, title, description, sourceLabel, capturedAt, tags, assets, eligibleRepresentativeAssetIds]
+      properties:
+        id:
+          type: string
+        title:
+          type: string
+        description:
+          type: string
+        sourceLabel:
+          type: string
+        capturedAt:
+          type: string
+          format: date-time
+        tags:
+          type: array
+          items:
+            type: string
+        assets:
+          type: array
+          minItems: 1
+          items:
+            $ref: '#/components/schemas/MediaAsset'
+        eligibleRepresentativeAssetIds:
+          type: array
+          minItems: 1
+          items:
+            type: string
+    DiscoveryPage:
+      type: object
+      required: [records, snapshotExpiresAt, exact, relaxedFilters]
+      properties:
+        records:
+          type: array
+          items:
+            $ref: '#/components/schemas/MediaRecord'
+        previousCursor:
+          type: string
+        nextCursor:
+          type: string
+        snapshotExpiresAt:
+          type: string
+          format: date-time
+        exact:
+          type: boolean
+        relaxedFilters:
+          type: array
+          items:
+            $ref: '#/components/schemas/FacetSelection'

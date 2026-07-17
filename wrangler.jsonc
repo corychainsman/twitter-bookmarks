@@ -1,13 +1,23 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
-  "name": "twitter-bookmarks",
-  "compatibility_date": "2026-07-01",
+  "name": "elsewhere-media-wall-dev",
+  "main": "./worker/index.ts",
+  "compatibility_date": "2026-07-16",
   "assets": {
-    "directory": "./dist",
-    // index.html and 404.html share the client-side two-path route switch.
-    "not_found_handling": "single-page-application"
+    "binding": "ASSETS",
+    "not_found_handling": "single-page-application",
+    "run_worker_first": ["/api", "/api/*", "/media/*"]
+  },
+  "vars": {
+    "DATA_ORIGIN": "https://bookmarks.corychainsman.com/data"
   },
   "routes": [
-    { "pattern": "bookmarks.corychainsman.com", "custom_domain": true }
-  ]
+    {
+      "pattern": "dev.bookmarks.corychainsman.com",
+      "custom_domain": true
+    }
+  ],
+  "observability": {
+    "enabled": true
+  }
 }
