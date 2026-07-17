@@ -225,6 +225,9 @@ effective on ultrawide displays.
 Images expose explicit responsive width candidates; videos use posters and
 admitted preview sources. The first visible group receives eager image
 priority, while the rest use native lazy loading and decoding.
+The symmetric InfiniteGrid threshold grows from 600px to 1400px with effective
+density, keeping several rows mounted both ahead of and behind the viewport.
+Video source admission uses that same offscreen margin.
 
 Tile width and height are known before media decoding. Responsive `<picture>`
 subtrees carry `data-grid-skip`, isolating their image readiness from
@@ -289,6 +292,8 @@ lightbox provides:
 - Pinch or Ctrl/Meta-wheel zoom from 1× to 5×.
 - Pan while zoomed and double-click/reset behavior.
 - Full media in the main viewport.
+- Full catalog playback MP4s in the lightbox; compact preview MP4s remain a
+  wall-only optimization.
 - Record metadata and sibling assets only in a desktop side rail or mobile
   details drawer.
 

@@ -15,8 +15,15 @@ const video: MediaAsset = {
   height: 1_080,
   placeholder: "",
   wall: [],
-  lightbox: [],
-  previewVideoUrl: "https://media.test/video.mp4",
+  lightbox: [
+    {
+      url: "https://media.test/full-video.mp4",
+      width: 1_280,
+      height: 720,
+      mimeType: "video/mp4",
+    },
+  ],
+  previewVideoUrl: "https://media.test/preview-video.mp4",
 }
 
 describe("MediaViewport video controls", () => {
@@ -36,6 +43,9 @@ describe("MediaViewport video controls", () => {
     )
     const player = screen.getByLabelText<HTMLVideoElement>("Moving image")
 
+    expect(player).toHaveAttribute("src", "https://media.test/full-video.mp4")
+    expect(player).toHaveAttribute("preload", "auto")
+    expect(player).toHaveClass("size-full", "object-contain")
     expect(player).not.toHaveAttribute("controls")
     fireEvent.pointerEnter(player, { pointerType: "mouse" })
     expect(player).toHaveAttribute("controls")

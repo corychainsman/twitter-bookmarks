@@ -3,6 +3,8 @@ import { beforeEach, describe, expect, it, vi } from "vitest"
 
 import { VideoPreview } from "./VideoPreview"
 
+const observerOptions = vi.hoisted(() => vi.fn())
+
 class IntersectionObserverStub implements IntersectionObserver {
   readonly root = null
   readonly rootMargin = "0px"
@@ -12,10 +14,18 @@ class IntersectionObserverStub implements IntersectionObserver {
   observe = vi.fn()
   takeRecords = vi.fn(() => [])
   unobserve = vi.fn()
+
+  constructor(
+    _callback: IntersectionObserverCallback,
+    options?: IntersectionObserverInit,
+  ) {
+    observerOptions(options)
+  }
 }
 
 describe("VideoPreview", () => {
   beforeEach(() => {
+    observerOptions.mockReset()
     vi.stubGlobal("IntersectionObserver", IntersectionObserverStub)
     vi.stubGlobal("matchMedia", vi.fn(() => ({
       matches: false,
@@ -29,6 +39,21 @@ describe("VideoPreview", () => {
     })))
     HTMLMediaElement.prototype.pause = vi.fn()
     HTMLMediaElement.prototype.play = vi.fn(() => Promise.resolve())
+  })
+
+  it("admits the video source using the wall's density-aware preload margin", () => {
+    render(
+      <VideoPreview
+        label="Preview"
+        preloadMargin="1400px 0px"
+        src="https://media.test/preview.mp4"
+      />,
+    )
+
+    expect(observerOptions).toHaveBeenCalledWith({
+      rootMargin: "1400px 0px",
+      threshold: 0,
+    })
   })
 
   it("keeps the poster above the video until its first frame is presented", () => {

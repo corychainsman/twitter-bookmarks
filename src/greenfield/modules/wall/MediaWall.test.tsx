@@ -20,6 +20,7 @@ interface MockGridProps {
   isCroppedSize?: boolean
   sizeRange?: number[]
   stretch?: boolean
+  threshold?: number
   onRequestAppend?: (event: {
     groupKey: string
     nextGroupKeys: string[]
@@ -45,6 +46,7 @@ vi.mock("@egjs/react-infinitegrid", () => ({
         data-is-cropped-size={String(props.isCroppedSize)}
         data-size-range={props.sizeRange?.join(",")}
         data-stretch={String(props.stretch)}
+        data-threshold={props.threshold}
         data-use-transform={String(props.useTransform)}
         role={props.role}
       >
@@ -147,6 +149,7 @@ describe("MediaWall", () => {
     )
     expect(screen.getByTestId("justified-grid")).toHaveAttribute("data-stretch", "false")
     expect(screen.getByTestId("justified-grid")).toHaveAttribute("data-size-range", "180,260")
+    expect(screen.getByTestId("justified-grid")).toHaveAttribute("data-threshold", "800")
     expect(screen.getByRole("listitem")).toHaveAttribute(
       "data-grid-groupkey",
       "layout-independent-0",
@@ -176,6 +179,10 @@ describe("MediaWall", () => {
     expect(screen.getByTestId("justified-grid")).toHaveAttribute(
       "data-size-range",
       "316,454",
+    )
+    expect(screen.getByTestId("justified-grid")).toHaveAttribute(
+      "data-threshold",
+      "1400",
     )
     await waitFor(() => {
       expect(gridSpies.renderItems).toHaveBeenCalledWith({ useResize: true })

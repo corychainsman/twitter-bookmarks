@@ -5,6 +5,7 @@ import {
   getJustifiedColumnRange,
   getJustifiedSizeRange,
   getTileDimensions,
+  getWallRenderThreshold,
 } from "./tileGeometry"
 
 function media(width = 1_600, height = 900, id = "media-1"): MediaAsset {
@@ -89,5 +90,14 @@ describe("getJustifiedColumnRange", () => {
     expect(getJustifiedColumnRange(390)).toEqual([1, 4])
     expect(getJustifiedColumnRange(1_440)).toEqual([1, 20])
     expect(getJustifiedColumnRange(3_440)).toEqual([1, 20])
+  })
+})
+
+describe("getWallRenderThreshold", () => {
+  it("keeps a baseline buffer and scales both offscreen directions with density", () => {
+    expect(getWallRenderThreshold(0.6)).toBe(600)
+    expect(getWallRenderThreshold("auto")).toBe(800)
+    expect(getWallRenderThreshold(1)).toBe(800)
+    expect(getWallRenderThreshold(1.75)).toBe(1_400)
   })
 })

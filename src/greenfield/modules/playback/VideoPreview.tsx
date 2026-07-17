@@ -9,9 +9,16 @@ interface VideoPreviewProps {
   poster?: string
   label: string
   className?: string
+  preloadMargin?: string
 }
 
-export function VideoPreview({ src, poster, label, className }: VideoPreviewProps) {
+export function VideoPreview({
+  src,
+  poster,
+  label,
+  className,
+  preloadMargin = "100% 0px",
+}: VideoPreviewProps) {
   const rootRef = useRef<HTMLDivElement>(null)
   const videoRef = useRef<HTMLVideoElement>(null)
   const frameCallbackRef = useRef<number | undefined>(undefined)
@@ -40,12 +47,12 @@ export function VideoPreview({ src, poster, label, className }: VideoPreviewProp
         if (!entry) return
         setSourceAdmitted((admitted) => admitted || entry.isIntersecting)
       },
-      { rootMargin: "100% 0px", threshold: 0 },
+      { rootMargin: preloadMargin, threshold: 0 },
     )
 
     observer.observe(root)
     return () => observer.disconnect()
-  }, [])
+  }, [preloadMargin])
 
   useEffect(() => {
     const root = rootRef.current

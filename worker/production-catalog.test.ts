@@ -148,6 +148,16 @@ describe("production catalog adapter", () => {
     await expect(media.json()).resolves.toMatchObject({
       id: "record-2:0",
       kind: "video",
+      lightbox: [
+        {
+          url: "https://media.test/two.jpg",
+          mimeType: "image/jpeg",
+        },
+        {
+          url: "https://media.test/two.mp4",
+          mimeType: "video/mp4",
+        },
+      ],
       previewVideoUrl: "https://media.test/two-preview.mp4",
     })
 

@@ -9,6 +9,7 @@ const SCALE_AREA: Record<WallTile["scale"], number> = {
 
 const BASE_TILE_AREA = 68_000
 const BASE_JUSTIFIED_ROW_SIZE = 220
+const BASE_RENDER_THRESHOLD = 800
 const MAX_LAYOUT_GROUP_COLUMNS = 20
 
 function densityFactor(density: Density): number {
@@ -26,6 +27,15 @@ export interface TileDimensions {
 
 export type JustifiedSizeRange = [number, number]
 export type JustifiedColumnRange = [number, number]
+
+/**
+ * InfiniteGrid applies threshold symmetrically before and after the viewport.
+ * Scaling it with row size keeps several rows mounted and loading offscreen at
+ * every zoom level instead of letting large-density rows enter cold.
+ */
+export function getWallRenderThreshold(density: Density): number {
+  return Math.max(600, Math.round(BASE_RENDER_THRESHOLD * densityFactor(density)))
+}
 
 export function getJustifiedColumnRange(containerInlineSize: number): JustifiedColumnRange {
   return containerInlineSize < 640 ? [1, 4] : [1, MAX_LAYOUT_GROUP_COLUMNS]

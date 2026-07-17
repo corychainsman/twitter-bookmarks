@@ -104,6 +104,9 @@ export function MediaViewport({
   )
 
   const largest = media.lightbox.at(-1) ?? media.wall.at(-1)
+  const playbackVideoUrl = media.lightbox.find(
+    (candidate) => candidate.mimeType.startsWith("video/"),
+  )?.url ?? media.previewVideoUrl
 
   return (
     <div
@@ -117,12 +120,12 @@ export function MediaViewport({
         style={{ scale, x, y }}
         transition={reduceMotion ? { duration: 0 } : { type: "spring", bounce: 0.08, duration: 0.42 }}
       >
-        {media.kind === "video" && media.previewVideoUrl ? (
+        {media.kind === "video" && playbackVideoUrl ? (
           <video
             aria-label={media.title}
             aria-description="Press Enter or Space to show video controls"
             autoPlay
-            className="max-h-full max-w-full object-contain focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+            className="size-full object-contain focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
             controls={videoControlsVisible}
             loop
             muted
@@ -146,7 +149,8 @@ export function MediaViewport({
             }}
             playsInline
             poster={media.poster?.url}
-            src={media.previewVideoUrl}
+            preload="auto"
+            src={playbackVideoUrl}
             tabIndex={0}
           />
         ) : (

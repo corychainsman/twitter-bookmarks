@@ -31,6 +31,7 @@ import {
   getJustifiedColumnRange,
   getJustifiedSizeRange,
   getTileDimensions,
+  getWallRenderThreshold,
 } from "./tileGeometry"
 
 type GridRequestAppendEvent = Parameters<
@@ -52,6 +53,7 @@ export interface WallAppendRequest {
 }
 
 export interface WallMediaRenderContext extends WallOpenContext {
+  preloadMargin: string
   priority: boolean
   sizes: string
 }
@@ -171,6 +173,7 @@ const MediaWallRoot = forwardRef<MediaWallHandle, MediaWallProps>(function Media
     ? activeFocusKey
     : focusKeys[0]
   const sizeRange = useMemo(() => getJustifiedSizeRange(density), [density])
+  const renderThreshold = useMemo(() => getWallRenderThreshold(density), [density])
 
   useEffect(() => {
     const frame = requestAnimationFrame(() => {
@@ -328,7 +331,7 @@ const MediaWallRoot = forwardRef<MediaWallHandle, MediaWallProps>(function Media
         passUnstretchRow
         sizeRange={sizeRange}
         stretch={false}
-        threshold={600}
+        threshold={renderThreshold}
         useRecycle
         useResizeObserver
         useTransform={false}
@@ -354,6 +357,7 @@ const MediaWallRoot = forwardRef<MediaWallHandle, MediaWallProps>(function Media
                 tileId: tile.id,
                 recordId: tile.recordId,
                 mediaIndex,
+                preloadMargin: `${renderThreshold}px 0px`,
                 priority,
                 sizes,
               }

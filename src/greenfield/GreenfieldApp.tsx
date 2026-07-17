@@ -184,6 +184,7 @@ function renderWallMedia(asset: MediaAsset, context: WallMediaRenderContext) {
         className="relative size-full"
         label={asset.title}
         poster={asset.poster?.url}
+        preloadMargin={context.preloadMargin}
         src={asset.previewVideoUrl}
       />
     )
