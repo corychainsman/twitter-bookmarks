@@ -57,5 +57,7 @@ describe("MediaLightbox metadata", () => {
 
     expect(postLink).toHaveAttribute("href", "https://x.com/ada/status/post-1")
     expect(postLink.querySelector("time")).toHaveAttribute("datetime", record.postedAt)
+    expect(screen.queryByText("Type")).not.toBeInTheDocument()
+    expect(document.querySelector("h2:not(.sr-only)")).toBeNull()
   })
 })

@@ -420,6 +420,10 @@ function rendition(candidate: CatalogRendition): RenditionCandidate {
   }
 }
 
+function displayPostText(value: string): string {
+  return value.replace(/https?:\/\/t\.co\/\S+/g, "").trim()
+}
+
 function itemAsset(item: CatalogGridItem, entry: CatalogSearchEntry): MediaAsset {
   const id = mediaId(item)
   const kind = item.mediaType === "photo" ? "image" : "video"
@@ -448,7 +452,7 @@ function itemAsset(item: CatalogGridItem, entry: CatalogSearchEntry): MediaAsset
     recordId: item.tweetId,
     kind,
     title,
-    description: entry.text || entry.articleTitle || entry.quotedText || "",
+    description: displayPostText(entry.text || entry.articleTitle || entry.quotedText || ""),
     width: item.width,
     height: item.height,
     placeholder: item.thumbhash ?? "",
@@ -460,9 +464,7 @@ function itemAsset(item: CatalogGridItem, entry: CatalogSearchEntry): MediaAsset
 }
 
 function recordTitle(entry: CatalogSearchEntry): string {
-  const text = (entry.articleTitle || entry.text || entry.quotedText || "")
-    .replace(/https?:\/\/t\.co\/\S+/g, "")
-    .trim()
+  const text = displayPostText(entry.articleTitle || entry.text || entry.quotedText || "")
   if (text) return text.length > 120 ? `${text.slice(0, 117)}…` : text
   return `${entry.authorName || entry.authorHandle} on X`
 }
@@ -483,7 +485,8 @@ function createRecord(
     id,
     title: recordTitle(entry),
     description: [entry.text, entry.quotedText, entry.articleTitle, entry.articleText]
-      .filter(Boolean).join("\n\n"),
+      .filter((value): value is string => Boolean(value))
+      .map(displayPostText).filter(Boolean).join("\n\n"),
     sourceLabel: sourceLabel(entry),
     authorUrl: xAuthorUrl(entry),
     sourceUrl: document?.url ?? `https://x.com/i/status/${encodeURIComponent(id)}`,

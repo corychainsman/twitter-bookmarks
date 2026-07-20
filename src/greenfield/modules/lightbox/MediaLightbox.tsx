@@ -43,8 +43,8 @@ function Metadata({
   const postedAt = record ? new Date(record.postedAt) : undefined
 
   return (
-    <div className="flex flex-col gap-6">
-      <div className="flex flex-col gap-2">
+    <div className="flex flex-col gap-5">
+      <div className="flex flex-col gap-3">
         {record ? (
           <a
             className="w-fit font-mono text-sm tracking-wide text-muted-foreground underline-offset-4 transition-colors hover:text-foreground hover:underline focus-visible:rounded-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
@@ -59,13 +59,12 @@ function Metadata({
             Media record
           </p>
         )}
-        <h2 className="text-balance text-2xl font-semibold tracking-tight">{media.title}</h2>
-        <p className="text-pretty text-base text-muted-foreground sm:text-sm">
+        <p className="text-pretty text-base leading-relaxed text-foreground/85 sm:text-sm">
           {media.description}
         </p>
       </div>
 
-      <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-2 text-base sm:text-sm">
+      <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-2 border-t border-white/8 pt-4 text-base sm:text-sm">
         {record && (
           <>
           <dt className="text-muted-foreground">Posted</dt>
@@ -85,8 +84,6 @@ function Metadata({
         )}
         <dt className="text-muted-foreground">Dimensions</dt>
         <dd className="tabular-nums">{media.width} × {media.height}</dd>
-        <dt className="text-muted-foreground">Type</dt>
-        <dd className="capitalize">{media.kind}</dd>
       </dl>
 
       {record && record.assets.length > 1 && (
@@ -184,12 +181,12 @@ export function MediaLightbox({
                       <span className="pointer-fine:hidden absolute start-1/2 top-1/2 size-[max(100%,3rem)] -translate-1/2" aria-hidden="true" />
                     </Button>
                   </DrawerTrigger>
-                  <DrawerContent className="max-h-[92dvh] bg-popover">
-                    <DrawerHeader className="text-start">
+                  <DrawerContent className="max-h-[92dvh] border-white/10 bg-background/98">
+                    <DrawerHeader className="sr-only">
                       <DrawerTitle>Media details</DrawerTitle>
                       <DrawerDescription>Record metadata and sibling assets.</DrawerDescription>
                     </DrawerHeader>
-                    <div className="overflow-y-auto p-4 pb-[calc(env(safe-area-inset-bottom)+1rem)]">
+                    <div className="overflow-y-auto px-5 pt-5 pb-[calc(env(safe-area-inset-bottom)+1.25rem)]">
                       <Metadata media={media} record={record} onSelectSibling={onSelectSibling} />
                     </div>
                   </DrawerContent>

@@ -28,7 +28,7 @@ const documents = [
   {
     id: "record-2",
     url: "https://x.com/grace/status/record-2",
-    text: "Moving image",
+    text: "Moving image https://t.co/attachment",
     authorName: "Grace",
     authorHandle: "grace",
     postedAt: "Tue Jul 14 00:25:00 +0000 2026",
@@ -167,6 +167,7 @@ describe("production catalog adapter", () => {
       media: {
         id: "record-2:0",
         kind: "video",
+        description: "Moving image",
         lightbox: [
           {
             url: "https://media.test/two.jpg",
