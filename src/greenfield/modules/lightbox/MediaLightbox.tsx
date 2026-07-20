@@ -62,29 +62,30 @@ function Metadata({
         <p className="text-pretty text-base leading-relaxed text-foreground/85 sm:text-sm">
           {media.description}
         </p>
-      </div>
-
-      <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-2 border-t border-white/8 pt-4 text-base sm:text-sm">
-        {record && (
-          <>
-          <dt className="text-muted-foreground">Posted</dt>
-          <dd className="tabular-nums">
+        <div className="flex items-center gap-2 text-xs text-muted-foreground">
+          {record && (
+            <>
             <a
-              className="underline-offset-4 transition-colors hover:text-primary hover:underline focus-visible:rounded-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+              aria-label={`Posted ${postedAt?.toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" })}`}
+              className="tabular-nums underline-offset-4 transition-colors hover:text-foreground hover:underline focus-visible:rounded-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
               href={record.sourceUrl}
               rel="noreferrer"
               target="_blank"
             >
+              <span className="sr-only">Posted </span>
               <time dateTime={record.postedAt}>
                 {postedAt?.toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" })}
               </time>
             </a>
-          </dd>
-          </>
-        )}
-        <dt className="text-muted-foreground">Dimensions</dt>
-        <dd className="tabular-nums">{media.width} × {media.height}</dd>
-      </dl>
+              <span aria-hidden="true">·</span>
+            </>
+          )}
+          <span className="tabular-nums">
+            <span className="sr-only">Dimensions </span>
+            {media.width} × {media.height}
+          </span>
+        </div>
+      </div>
 
       {record && record.assets.length > 1 && (
         <div className="flex flex-col gap-3">
@@ -181,7 +182,10 @@ export function MediaLightbox({
                       <span className="pointer-fine:hidden absolute start-1/2 top-1/2 size-[max(100%,3rem)] -translate-1/2" aria-hidden="true" />
                     </Button>
                   </DrawerTrigger>
-                  <DrawerContent className="max-h-[92dvh] border-white/10 bg-background/98">
+                  <DrawerContent
+                    className="max-h-[92dvh] border-white/10 bg-background/98"
+                    overlayClassName="supports-backdrop-filter:backdrop-blur-none"
+                  >
                     <DrawerHeader className="sr-only">
                       <DrawerTitle>Media details</DrawerTitle>
                       <DrawerDescription>Record metadata and sibling assets.</DrawerDescription>
