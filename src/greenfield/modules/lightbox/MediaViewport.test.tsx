@@ -76,4 +76,18 @@ describe("MediaViewport video controls", () => {
     fireEvent.pointerUp(player, { pointerType: "touch" })
     expect(player).not.toHaveAttribute("controls")
   })
+
+  it("reserves bottom-sheet space in the media stage", () => {
+    render(
+      <MediaViewport
+        bottomInset={320}
+        media={video}
+        onClose={() => undefined}
+        onNext={() => undefined}
+        onPrevious={() => undefined}
+      />,
+    )
+
+    expect(document.querySelector('[data-media-stage="true"]')).toHaveStyle({ bottom: "320px" })
+  })
 })

@@ -73,6 +73,34 @@ test.describe("emulated mobile media wall", () => {
     })
   })
 
+  test("reserves the open details sheet footprint for lightbox media", async ({ page }) => {
+    await page.goto("/media/record-001-media-1")
+    const image = page.locator('img[alt="Study 001.1"]')
+    await expect(image).toBeVisible()
+
+    await page.getByRole("button", { name: "Open media details" }).click()
+    const drawer = page.getByRole("dialog", { name: "Media details" })
+    const stage = page.locator('[data-media-stage="true"]')
+    await expect(drawer).toBeVisible()
+
+    await expect.poll(async () => {
+      const [drawerBox, imageBox, stageBox] = await Promise.all([
+        drawer.boundingBox(),
+        image.boundingBox(),
+        stage.boundingBox(),
+      ])
+      if (!drawerBox || !imageBox || !stageBox) return false
+
+      const imageCenter = imageBox.y + imageBox.height / 2
+      const stageCenter = stageBox.y + stageBox.height / 2
+      const imageClearsDrawer = imageBox.y + imageBox.height <= drawerBox.y + 1
+      const stageClearsDrawer = stageBox.y + stageBox.height <= drawerBox.y + 1
+      const imageIsCentered = Math.abs(imageCenter - stageCenter) <= 1
+
+      return imageClearsDrawer && stageClearsDrawer && imageIsCentered
+    }).toBe(true)
+  })
+
   test("two-finger pinch commits wall density without losing the viewport center", async ({
     context,
     page,

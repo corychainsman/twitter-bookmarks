@@ -33,7 +33,7 @@ function dismissPrompt(prompt: HTMLElement) {
   prompt.remove()
 }
 
-function showDefaultUpdatePrompt(detail: ServiceWorkerUpdateDetail) {
+export function showDefaultUpdatePrompt(detail: ServiceWorkerUpdateDetail) {
   if (document.querySelector('[data-service-worker-update="true"]')) return
 
   const prompt = document.createElement("aside")
@@ -56,6 +56,7 @@ function showDefaultUpdatePrompt(detail: ServiceWorkerUpdateDetail) {
     marginInline: "auto",
     maxWidth: "30rem",
     padding: "0.75rem",
+    pointerEvents: "auto",
     position: "fixed",
     zIndex: "2147483647",
   })

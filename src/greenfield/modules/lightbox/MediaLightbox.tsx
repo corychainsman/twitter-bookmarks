@@ -1,6 +1,6 @@
 import { ChevronLeft, ChevronRight, Info, X } from "lucide-react"
 import { motion, useReducedMotion } from "motion/react"
-import { useEffect, useState } from "react"
+import { useCallback, useEffect, useRef, useState } from "react"
 
 import { Button } from "@/components/ui/button"
 import {
@@ -65,18 +65,18 @@ function Metadata({
         <div className="flex items-center gap-2 text-xs text-muted-foreground">
           {record && (
             <>
-            <a
-              aria-label={`Posted ${postedAt?.toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" })}`}
-              className="tabular-nums underline-offset-4 transition-colors hover:text-foreground hover:underline focus-visible:rounded-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
-              href={record.sourceUrl}
-              rel="noreferrer"
-              target="_blank"
-            >
-              <span className="sr-only">Posted </span>
-              <time dateTime={record.postedAt}>
-                {postedAt?.toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" })}
-              </time>
-            </a>
+              <a
+                aria-label={`Posted ${postedAt?.toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" })}`}
+                className="tabular-nums underline-offset-4 transition-colors hover:text-foreground hover:underline focus-visible:rounded-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+                href={record.sourceUrl}
+                rel="noreferrer"
+                target="_blank"
+              >
+                <span className="sr-only">Posted </span>
+                <time dateTime={record.postedAt}>
+                  {postedAt?.toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" })}
+                </time>
+              </a>
               <span aria-hidden="true">·</span>
             </>
           )}
@@ -126,6 +126,24 @@ export function MediaLightbox({
 }: MediaLightboxProps) {
   const reduceMotion = useReducedMotion()
   const [detailsOpen, setDetailsOpen] = useState(false)
+  const [detailsHeight, setDetailsHeight] = useState(0)
+  const detailsContentRef = useRef<HTMLDivElement>(null)
+  const setDetailsContent = useCallback((content: HTMLDivElement | null) => {
+    detailsContentRef.current = content
+    if (content) setDetailsHeight(Math.ceil(content.getBoundingClientRect().height))
+  }, [])
+
+  useEffect(() => {
+    if (!detailsOpen) return
+    const content = detailsContentRef.current
+    if (!content) return
+
+    const measure = () => setDetailsHeight(Math.ceil(content.getBoundingClientRect().height))
+    if (typeof ResizeObserver === "undefined") return
+    const observer = new ResizeObserver(measure)
+    observer.observe(content)
+    return () => observer.disconnect()
+  }, [detailsOpen, media?.id])
 
   useEffect(() => {
     if (!media) return
@@ -183,6 +201,7 @@ export function MediaLightbox({
                     </Button>
                   </DrawerTrigger>
                   <DrawerContent
+                    ref={setDetailsContent}
                     className="max-h-[92dvh] border-white/10 bg-background/98"
                     overlayClassName="supports-backdrop-filter:backdrop-blur-none"
                   >
@@ -202,6 +221,7 @@ export function MediaLightbox({
               key={media.id}
               media={media}
               sharedElement={sharedElement}
+              bottomInset={detailsOpen ? detailsHeight : 0}
               onClose={onClose}
               onPrevious={onPrevious}
               onNext={onNext}

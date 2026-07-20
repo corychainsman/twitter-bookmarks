@@ -1,6 +1,11 @@
-import { describe, expect, it } from "vitest"
+import { afterEach, describe, expect, it, vi } from "vitest"
 
-import { shouldActivateWaitingUpdateOnStartup } from "./register"
+import { shouldActivateWaitingUpdateOnStartup, showDefaultUpdatePrompt } from "./register"
+
+afterEach(() => {
+  document.querySelector('[data-service-worker-update="true"]')?.remove()
+  document.body.style.removeProperty("pointer-events")
+})
 
 describe("service worker update startup policy", () => {
   it("activates a worker that was already waiting before registration", () => {
@@ -28,5 +33,21 @@ describe("service worker update startup policy", () => {
         wasWaitingBeforeRegister: false,
       }),
     ).toBe(false)
+  })
+
+  it("keeps the update prompt interactive while a modal disables body hit testing", () => {
+    const applyUpdate = vi.fn()
+    document.body.style.pointerEvents = "none"
+
+    showDefaultUpdatePrompt({ applyUpdate, wasWaitingBeforeRegister: false })
+
+    const prompt = document.querySelector<HTMLElement>('[data-service-worker-update="true"]')
+    const refreshButton = document.querySelector<HTMLButtonElement>(
+      '[aria-label="Refresh to use the new version"]',
+    )
+
+    expect(prompt?.style.pointerEvents).toBe("auto")
+    refreshButton?.click()
+    expect(applyUpdate).toHaveBeenCalledOnce()
   })
 })
