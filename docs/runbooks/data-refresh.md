@@ -98,8 +98,10 @@ unbookmarks and folder removals.
 Never advance `ops/refresh-state.json` before all of these succeed:
 
 1. X sync and the ordered publication pipeline.
-2. Staging deployment and exact catalog manifest smoke check.
-3. Production deployment and exact catalog manifest/API smoke check.
+2. Staging and production deployment of the validated build pair. Their
+   crossed `DATA_ORIGIN` bindings mean neither public hostname can expose the
+   new catalog until both Workers are deployed.
+3. Exact catalog manifest/API smoke checks on both public hostnames.
 4. Git commit and push of `ops/refresh-state.json` plus `public/data`.
 
 The checkpoint remains unchanged on a failed run. If X contains nothing newer

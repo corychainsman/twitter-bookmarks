@@ -152,10 +152,14 @@ async function main() {
   const snapshot = await readBookmarkSnapshot(previousState?.newestBookmarkId)
   const manifest = await readLocalManifest()
 
+  // The two Workers intentionally use crossed DATA_ORIGIN bindings: staging
+  // reads production static data and production reads staging static data.
+  // Deploy the validated pair before checking either public origin, then gate
+  // the checkpoint on exact responses from both hostnames.
   runPackageScript('deploy:cf:staging')
-  await verifyDeployment(STAGING_ORIGIN, manifest)
   runPackageScript('deploy:cf:production')
   await verifyDeployment(PRODUCTION_ORIGIN, manifest)
+  await verifyDeployment(STAGING_ORIGIN, manifest)
 
   const completedAt = new Date().toISOString()
   const nextState: RefreshState = {
