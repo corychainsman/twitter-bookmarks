@@ -7,9 +7,11 @@ import { fetchBookmarkFolders } from 'fieldtheory/dist/graphql-bookmarks.js'
 
 import { readXBrowserCookies, readXBrowserState, type XBrowserState } from './x-auth-cdp'
 import {
+  readXCookiePairFromCache,
   readXCookiePairFromOnePassword,
   type XCookiePair,
   type XCookieStoreOptions,
+  writeXCookiePairToCache,
   writeXCookiePairToOnePassword,
   xCookieHeader,
 } from './x-cookie-store'
@@ -158,7 +160,12 @@ export function containsTemporaryLimitText(pageText: string | undefined): boolea
 export function readStoredXCredentials(
   options: XCookieStoreOptions = {},
 ): XCredentials | undefined {
-  return readXCookiePairFromOnePassword(options)
+  const stored = readXCookiePairFromOnePassword(options)
+  if (stored) {
+    writeXCookiePairToCache(stored, options)
+    return stored
+  }
+  return readXCookiePairFromCache(options)
 }
 
 export async function validateXCredentials(
@@ -216,7 +223,9 @@ export async function storeXBrowserCredentials(
   }
 
   const writeStored = adapters.writeStored ?? writeXCookiePairToOnePassword
-  return writeStored(pair)
+  const result = writeStored(pair)
+  if (!adapters.writeStored) writeXCookiePairToCache(pair)
+  return result
 }
 
 export async function ensureXCredentials(

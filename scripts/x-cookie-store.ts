@@ -1,7 +1,7 @@
 import { spawnSync } from 'node:child_process'
-import { mkdtempSync, rmSync, writeFileSync } from 'node:fs'
-import { tmpdir } from 'node:os'
-import { join } from 'node:path'
+import { mkdirSync, mkdtempSync, readFileSync, renameSync, rmSync, writeFileSync } from 'node:fs'
+import { homedir, tmpdir } from 'node:os'
+import { dirname, join } from 'node:path'
 
 const DEFAULT_VAULT = 'Clawdbot'
 const DEFAULT_ITEM_TITLE = 'X Cookies - corychainsman'
@@ -14,6 +14,7 @@ export type XCookiePair = {
 export type XCookieStoreOptions = {
   vault?: string
   itemTitle?: string
+  cachePath?: string
 }
 
 type OnePasswordField = {
@@ -43,7 +44,36 @@ export function xCookieStoreConfig(options: XCookieStoreOptions = {}) {
       options.itemTitle ?? process.env.X_COOKIE_OP_ITEM,
       DEFAULT_ITEM_TITLE,
     ),
+    cachePath: optionValue(
+      options.cachePath ?? process.env.X_COOKIE_CACHE_PATH,
+      join(homedir(), '.config/twitter-bookmarks/x-cookies.json'),
+    ),
   }
+}
+
+export function readXCookiePairFromCache(
+  options: XCookieStoreOptions = {},
+): XCookiePair | undefined {
+  const { cachePath } = xCookieStoreConfig(options)
+  try {
+    const cached = JSON.parse(readFileSync(cachePath, 'utf8')) as Partial<XCookiePair>
+    return extractXCookiePair(
+      `ct0=${cached.ct0 ?? ''}; auth_token=${cached.authToken ?? ''}`,
+    )
+  } catch {
+    return undefined
+  }
+}
+
+export function writeXCookiePairToCache(
+  pair: XCookiePair,
+  options: XCookieStoreOptions = {},
+): void {
+  const { cachePath } = xCookieStoreConfig(options)
+  const temporaryPath = `${cachePath}.${process.pid}.tmp`
+  mkdirSync(dirname(cachePath), { recursive: true, mode: 0o700 })
+  writeFileSync(temporaryPath, `${JSON.stringify(pair)}\n`, { mode: 0o600 })
+  renameSync(temporaryPath, cachePath)
 }
 
 function runOp(args: string[], input?: string): string | undefined {

@@ -88,6 +88,11 @@ use the timestamp alone as the incremental boundary. Confirm that token exists
 in `.data/fieldtheory/bookmarks.jsonl`. If the checkpoint is missing, malformed,
 or absent from the local cache, run a full reconciliation.
 
+Unattended syncs read X cookies from the protected local cache at
+`~/.config/twitter-bookmarks/x-cookies.json` when 1Password is unavailable to
+the systemd environment. Any successful interactive 1Password read or cookie
+capture refreshes that mode-0600 cache; it is machine-local and never committed.
+
 X's folder timeline has no reliable `since` parameter. Incremental syncs
 therefore walk newest-first until they include a complete page of IDs already
 known locally, then merge the overlap ahead of the preserved older timeline.
