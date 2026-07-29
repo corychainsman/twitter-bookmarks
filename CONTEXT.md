@@ -85,6 +85,10 @@ checkpoint, skips publication when X has nothing newer, performs a weekly full
 folder reconciliation, and advances the checkpoint only after verified staging
 and production deployments plus a successful GitHub push.
 
+The serving refresh publishes immutable media to R2 but does not wait on the
+throttle-prone Google Drive cold archive. A separate daily systemd timer resumes
+that append-only backup until it is caught up.
+
 See `docs/system-architecture.md` for the complete boundaries and behavior.
 
 ## Edit Map

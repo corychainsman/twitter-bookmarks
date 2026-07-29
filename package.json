@@ -28,6 +28,7 @@
     "data:backfill-image-variants": "bun run scripts/backfill-image-variants.ts",
     "data:video-previews": "bun run scripts/generate-video-previews.ts",
     "mirror:sync": "bash scripts/sync-mirror.sh",
+    "backup:gdrive": "bash scripts/backup-gdrive.sh",
     "data:export": "bun run scripts/export-fieldtheory.ts",
     "data:embeddings": "bun run scripts/export-embeddings.ts",
     "data:validate": "bun run scripts/validate-export.ts",
@@ -35,8 +36,8 @@
     "refresh:resume": "bun run scripts/refresh.ts --resume",
     "refresh:full": "bun run scripts/refresh.ts --full",
     "refresh:embeddings": "bun run scripts/refresh.ts --embeddings",
-    "refresh:production": "bun run scripts/refresh-production.ts",
-    "refresh:production:full": "bun run scripts/refresh-production.ts --full"
+    "refresh:production": "SKIP_GDRIVE_BACKUP=1 bun run scripts/refresh-production.ts",
+    "refresh:production:full": "SKIP_GDRIVE_BACKUP=1 bun run scripts/refresh-production.ts --full"
   },
   "dependencies": {
     "@egjs/react-infinitegrid": "^4.13.0",

@@ -127,6 +127,23 @@ systemctl --user status elsewhere-bookmark-refresh.service --no-pager
 journalctl --user -u elsewhere-bookmark-refresh.service -n 200 --no-pager
 ```
 
+The production commands set `SKIP_GDRIVE_BACKUP=1`: R2 publication remains a
+hard deployment gate, while the throttle-prone Google Drive cold archive is
+resumed independently every day. Install and inspect that timer with:
+
+```bash
+install -Dm644 ops/systemd/elsewhere-media-backup.service ~/.config/systemd/user/elsewhere-media-backup.service
+install -Dm644 ops/systemd/elsewhere-media-backup.timer ~/.config/systemd/user/elsewhere-media-backup.timer
+systemctl --user daemon-reload
+systemctl --user enable --now elsewhere-media-backup.timer
+systemctl --user list-timers elsewhere-media-backup.timer --no-pager
+journalctl --user -u elsewhere-media-backup.service -n 200 --no-pager
+```
+
+Run `bun run backup:gdrive` to resume it manually. It uses append-only
+`rclone copy`, so an interrupted or throttled baseline safely continues without
+deleting or re-uploading completed objects.
+
 Before any refresh step runs, the pipeline preflights `mirror:sync`
 dependencies and fails if `rclone` or either required remote (`r2:`,
 `gdrive:`) is missing. This prevents a partial refresh that rewrites public

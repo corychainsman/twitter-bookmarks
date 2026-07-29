@@ -29,7 +29,6 @@ fi
 ASSETS_DIR=".data/media/assets"
 MANIFEST=".data/media/mirror-manifest.json"
 R2_TARGET="r2:twitter-bookmarks"
-GDRIVE_TARGET="gdrive:corychainsman.com/media/twitter-bookmarks"
 
 if [[ ! -d "$ASSETS_DIR" ]]; then
   echo "No local archive at $ASSETS_DIR — run 'bun run data:mirror' first." >&2
@@ -52,12 +51,10 @@ else
   echo "Skipping R2 sync: no 'r2' rclone remote configured." >&2
 fi
 
-if rclone listremotes | grep -q '^gdrive:'; then
-  echo "Backing up originals + manifest to $GDRIVE_TARGET ..."
-  rclone copy "$ASSETS_DIR" "$GDRIVE_TARGET/assets" \
-    --exclude '*.avif' --exclude 'preview.mp4' --fast-list --transfers 8 --stats-one-line -P
-  rclone copyto "$MANIFEST" "$GDRIVE_TARGET/mirror-manifest.json"
-  rclone copy public/data "$GDRIVE_TARGET/data" --fast-list --stats-one-line
+if [[ "${SKIP_GDRIVE_BACKUP:-0}" == "1" ]]; then
+  echo "Deferring Google Drive cold backup to its independent timer."
+elif rclone listremotes | grep -q '^gdrive:'; then
+  bash scripts/backup-gdrive.sh
 else
   echo "Skipping Google Drive backup: no 'gdrive' rclone remote configured." >&2
 fi
