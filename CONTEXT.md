@@ -79,6 +79,12 @@ activates silently and performs one controlled reload so the page opens on the
 new application version. Updates discovered later in an active session retain
 the non-disruptive refresh prompt.
 
+An hourly systemd user timer runs the production refresh orchestrator. It uses
+the tracked `ops/refresh-state.json` bookmark ID as the durable GitHub
+checkpoint, skips publication when X has nothing newer, performs a weekly full
+folder reconciliation, and advances the checkpoint only after verified staging
+and production deployments plus a successful GitHub push.
+
 See `docs/system-architecture.md` for the complete boundaries and behavior.
 
 ## Edit Map
@@ -104,6 +110,8 @@ See `docs/system-architecture.md` for the complete boundaries and behavior.
 - Edge gateway and social shell: `worker/index.ts` and `wrangler.jsonc`.
 - Catalog artifact contracts and export implementation:
   `scripts/catalog/`; refresh orchestration and media publication: `scripts/`.
+- Hourly production refresh units and tracked checkpoint: `ops/systemd/` and
+  `ops/refresh-state.json`; operator procedure: `docs/runbooks/data-refresh.md`.
 
 ## Invariants
 

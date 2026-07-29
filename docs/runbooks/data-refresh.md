@@ -69,6 +69,63 @@ Convenience commands all preserve the complete mirror/publication/export chain:
 - `bun run refresh:full`: full sync followed by the full pipeline.
 - `bun run refresh:embeddings`: compatibility alias for the complete pipeline;
   it does not bypass media publication or validation.
+- `bun run refresh:production`: incremental production refresh. It checks the
+  tracked GitHub checkpoint, syncs only through a full page of already-known
+  bookmark IDs, and stops before media/export/deploy work when the token and
+  count are unchanged. When changes exist, it runs the remaining full pipeline,
+  deploys staging then production, smoke-checks both, and only then advances the
+  checkpoint and pushes it with `public/data` to GitHub.
+- `bun run refresh:production:full`: forces an authoritative full-folder
+  reconciliation before publication. The hourly production command also does
+  this automatically when the last full reconciliation is at least seven days
+  old or the GitHub token is absent from the local cache.
+
+## GitHub refresh checkpoint
+
+Before any production refresh, read `ops/refresh-state.json`. Its
+`newestBookmarkId` is the durable last-successful token stored in GitHub; do not
+use the timestamp alone as the incremental boundary. Confirm that token exists
+in `.data/fieldtheory/bookmarks.jsonl`. If the checkpoint is missing, malformed,
+or absent from the local cache, run a full reconciliation.
+
+X's folder timeline has no reliable `since` parameter. Incremental syncs
+therefore walk newest-first until they include a complete page of IDs already
+known locally, then merge the overlap ahead of the preserved older timeline.
+This catches bursts larger than one page without parsing the entire folder.
+Hourly incrementals are additive; the mandatory weekly full walk reconciles
+unbookmarks and folder removals.
+
+Never advance `ops/refresh-state.json` before all of these succeed:
+
+1. X sync and the ordered publication pipeline.
+2. Staging deployment and exact catalog manifest smoke check.
+3. Production deployment and exact catalog manifest/API smoke check.
+4. Git commit and push of `ops/refresh-state.json` plus `public/data`.
+
+The checkpoint remains unchanged on a failed run. If X contains nothing newer
+than the checkpoint and the bookmark count is unchanged, publication is skipped
+and no Git commit is created.
+
+## Hourly systemd automation
+
+The installed user timer is sourced from `ops/systemd/`:
+
+```bash
+install -Dm644 ops/systemd/elsewhere-bookmark-refresh.service ~/.config/systemd/user/elsewhere-bookmark-refresh.service
+install -Dm644 ops/systemd/elsewhere-bookmark-refresh.timer ~/.config/systemd/user/elsewhere-bookmark-refresh.timer
+systemctl --user daemon-reload
+systemctl --user enable --now elsewhere-bookmark-refresh.timer
+```
+
+The timer runs hourly with up to five minutes of jitter. `flock` prevents an
+overlapping refresh when a prior media or embedding job is still running.
+Inspect its schedule and logs with:
+
+```bash
+systemctl --user list-timers elsewhere-bookmark-refresh.timer --no-pager
+systemctl --user status elsewhere-bookmark-refresh.service --no-pager
+journalctl --user -u elsewhere-bookmark-refresh.service -n 200 --no-pager
+```
 
 Before any refresh step runs, the pipeline preflights `mirror:sync`
 dependencies and fails if `rclone` or either required remote (`r2:`,

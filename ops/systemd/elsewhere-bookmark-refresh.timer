@@ -1,0 +1,12 @@
+[Unit]
+Description=Refresh Elsewhere X bookmarks hourly
+
+[Timer]
+OnCalendar=hourly
+Persistent=true
+RandomizedDelaySec=5m
+Unit=elsewhere-bookmark-refresh.service
+
+[Install]
+WantedBy=timers.target
+

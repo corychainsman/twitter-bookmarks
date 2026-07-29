@@ -10,6 +10,8 @@ import {
   FIELDTHEORY_DELAY_MS,
   FIELDTHEORY_MAX_PAGES,
   FIELDTHEORY_PAGE_SIZE,
+  hasKnownIncrementalBoundary,
+  mergeIncrementalFolderTimeline,
   parseFieldTheorySourceContract,
 } from '../scripts/fieldtheory'
 
@@ -52,5 +54,41 @@ describe('fieldtheory sync wrapper', () => {
       { id: 'middle', sortIndex: '2' },
       { id: 'oldest', sortIndex: '1' },
     ])
+  })
+
+  it('requires a complete page of known records before accepting an incremental boundary', () => {
+    const knownIds = new Set(['known-1', 'known-2'])
+
+    expect(
+      hasKnownIncrementalBoundary(
+        [{ id: 'new' }, { id: 'known-1' }, { id: 'known-2' }],
+        knownIds,
+        2,
+      ),
+    ).toBe(true)
+    expect(
+      hasKnownIncrementalBoundary(
+        [{ id: 'new' }, { id: 'known-1' }],
+        knownIds,
+        2,
+      ),
+    ).toBe(false)
+  })
+
+  it('prepends the walked overlap and preserves the older stored timeline', () => {
+    expect(
+      mergeIncrementalFolderTimeline(
+        [
+          { id: 'known-1', sortIndex: '3' },
+          { id: 'known-2', sortIndex: '2' },
+          { id: 'oldest', sortIndex: '1' },
+        ],
+        [
+          { id: 'new' },
+          { id: 'known-1' },
+          { id: 'known-2' },
+        ],
+      ).map((record) => record.id),
+    ).toEqual(['new', 'known-1', 'known-2', 'oldest'])
   })
 })

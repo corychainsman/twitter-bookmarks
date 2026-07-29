@@ -1,0 +1,15 @@
+[Unit]
+Description=Refresh and deploy Elsewhere X bookmarks
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+WorkingDirectory=/home/cory/twitter-bookmarks
+Environment=PATH=/home/linuxbrew/.linuxbrew/bin:/usr/local/bin:/usr/bin:/bin
+ExecStart=/usr/bin/flock --nonblock --conflict-exit-code 0 %t/elsewhere-bookmark-refresh.lock /home/linuxbrew/.linuxbrew/bin/bun run refresh:production
+TimeoutStartSec=3h
+Nice=10
+IOSchedulingClass=best-effort
+IOSchedulingPriority=6
+

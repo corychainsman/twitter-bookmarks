@@ -25,6 +25,7 @@ describe('refresh pipeline', () => {
     expect(buildRefreshPipeline('resume')[0].packageScript).toBe('sync:ft:resume')
     expect(buildRefreshPipeline('full')[0].packageScript).toBe('sync:ft:full')
     expect(buildRefreshPipeline('embeddings')[0].packageScript).toBe('sync:ft')
+    expect(buildRefreshPipeline('publish')[0].packageScript).toBe('data:mirror')
   })
 
   it('fails preflight before any step when mirror remotes are missing', () => {

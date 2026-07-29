@@ -19,7 +19,7 @@
     "api:generate": "openapi-typescript contracts/openapi.yaml -o src/greenfield/generated/api.ts",
     "sync:ft": "FT_DATA_DIR=\"$PWD/.data/fieldtheory\" bun run scripts/sync-fieldtheory.ts",
     "sync:ft:resume": "FT_DATA_DIR=\"$PWD/.data/fieldtheory\" bun run scripts/sync-fieldtheory.ts",
-    "sync:ft:full": "FT_DATA_DIR=\"$PWD/.data/fieldtheory\" bun run scripts/sync-fieldtheory.ts",
+    "sync:ft:full": "FT_DATA_DIR=\"$PWD/.data/fieldtheory\" bun run scripts/sync-fieldtheory.ts --rebuild",
     "auth:x:cookies": "bun run scripts/capture-x-cookies.ts",
     "auth:x:check": "bun run scripts/check-x-cookies.ts",
     "auth:x:ensure": "bun run scripts/ensure-x-cookies.ts",
@@ -34,7 +34,9 @@
     "refresh": "bun run scripts/refresh.ts",
     "refresh:resume": "bun run scripts/refresh.ts --resume",
     "refresh:full": "bun run scripts/refresh.ts --full",
-    "refresh:embeddings": "bun run scripts/refresh.ts --embeddings"
+    "refresh:embeddings": "bun run scripts/refresh.ts --embeddings",
+    "refresh:production": "bun run scripts/refresh-production.ts",
+    "refresh:production:full": "bun run scripts/refresh-production.ts --full"
   },
   "dependencies": {
     "@egjs/react-infinitegrid": "^4.13.0",

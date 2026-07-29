@@ -20,7 +20,10 @@ import {
   assignGlobalFolderTimelineSortIndexes,
   FIELDTHEORY_DELAY_MS,
   FIELDTHEORY_FOLDER_NAME,
+  FIELDTHEORY_INCREMENTAL_INITIAL_PAGES,
   FIELDTHEORY_MAX_PAGES,
+  hasKnownIncrementalBoundary,
+  mergeIncrementalFolderTimeline,
 } from './fieldtheory'
 import { resolveFieldTheoryXCredentials } from './x-credentials'
 
@@ -38,6 +41,7 @@ type BookmarkRecord = {
 
 type SyncMeta = {
   lastFullSyncAt?: string
+  lastIncrementalSyncAt?: string
 }
 
 type SyncOptions = {
@@ -46,6 +50,7 @@ type SyncOptions = {
   chromeProfileDirectory?: string
   firefoxProfileDir?: string
   delayMs: number
+  full: boolean
   maxPages: number
   pageSize: number
 }
@@ -53,6 +58,7 @@ type SyncOptions = {
 function parseArgs(argv: string[]): SyncOptions {
   const options: SyncOptions = {
     delayMs: FIELDTHEORY_DELAY_MS,
+    full: false,
     maxPages: FIELDTHEORY_MAX_PAGES,
     pageSize: 100,
   }
@@ -66,6 +72,11 @@ function parseArgs(argv: string[]): SyncOptions {
         throw new Error(`Only the "${FIELDTHEORY_FOLDER_NAME}" folder is supported.`)
       }
       index += 1
+      continue
+    }
+
+    if (value === '--full') {
+      options.full = true
       continue
     }
 
@@ -167,21 +178,56 @@ function retainOnlyTargetFolder(
   })
 }
 
-async function persistFolderCheckpoint(records: BookmarkRecord[]): Promise<void> {
+async function persistFolderCheckpoint(
+  records: BookmarkRecord[],
+  full: boolean,
+): Promise<void> {
   const cachePath = twitterBookmarksCachePath()
   const metaPath = twitterBookmarksMetaPath()
   const previousMeta = (await pathExists(metaPath))
     ? await readJson<SyncMeta>(metaPath)
     : undefined
 
+  const syncedAt = new Date().toISOString()
   await writeJsonLines(cachePath, records)
   await writeJson(metaPath, {
     provider: 'twitter',
     schemaVersion: 1,
-    lastFullSyncAt: previousMeta?.lastFullSyncAt,
-    lastIncrementalSyncAt: new Date().toISOString(),
+    lastFullSyncAt: full ? syncedAt : previousMeta?.lastFullSyncAt,
+    lastIncrementalSyncAt: full ? previousMeta?.lastIncrementalSyncAt : syncedAt,
     totalBookmarks: records.length,
   })
+}
+
+async function walkIncrementalFolderTimeline(
+  csrfToken: string,
+  cookieHeader: string,
+  folderId: string,
+  knownIds: ReadonlySet<string>,
+  options: SyncOptions,
+) {
+  let maxPages = Math.min(FIELDTHEORY_INCREMENTAL_INITIAL_PAGES, options.maxPages)
+
+  while (true) {
+    const result = await walkFolderTimeline(csrfToken, folderId, {
+      cookieHeader,
+      delayMs: options.delayMs,
+      maxPages,
+      pageSize: options.pageSize,
+    })
+
+    if (result.complete || hasKnownIncrementalBoundary(result.records, knownIds)) {
+      return result
+    }
+
+    if (maxPages >= options.maxPages) {
+      throw new Error(
+        `incremental sync could not reach a known-bookmark boundary within ${options.maxPages} pages`,
+      )
+    }
+
+    maxPages = Math.min(maxPages * 2, options.maxPages)
+  }
 }
 
 async function main() {
@@ -197,8 +243,6 @@ async function main() {
   let mergedRecords = retainOnlyTargetFolder(existingRecords, targetFolders[0])
   const skippedFolders: Array<{ folder: Folder; reason: string }> = []
 
-  await persistFolderCheckpoint(mergedRecords)
-
   for (const folder of targetFolders) {
     console.error(`  -> ${folder.name}...`)
 
@@ -210,11 +254,18 @@ async function main() {
         pageSize: options.pageSize,
       }
 
-      const walkResult = await walkFolderTimeline(csrfToken, folder.id, {
-        ...walkOptions,
-      })
+      const knownIds = new Set(mergedRecords.map((record) => record.id))
+      const walkResult = options.full || knownIds.size === 0
+        ? await walkFolderTimeline(csrfToken, folder.id, walkOptions)
+        : await walkIncrementalFolderTimeline(
+            csrfToken,
+            cookieHeader,
+            folder.id,
+            knownIds,
+            options,
+          )
 
-      if (!walkResult.complete) {
+      if (options.full && !walkResult.complete) {
         skippedFolders.push({
           folder,
           reason: `incomplete walk (hit page limit ${options.maxPages})`,
@@ -222,10 +273,13 @@ async function main() {
         continue
       }
 
-      const timelineRankedRecords = assignGlobalFolderTimelineSortIndexes(walkResult.records)
+      const targetTimeline = walkResult.complete
+        ? walkResult.records
+        : mergeIncrementalFolderTimeline(mergedRecords, walkResult.records)
+      const timelineRankedRecords = assignGlobalFolderTimelineSortIndexes(targetTimeline)
       mergedRecords = applyFolderMirror(mergedRecords, folder, timelineRankedRecords).merged as BookmarkRecord[]
       mergedRecords = retainOnlyTargetFolder(mergedRecords, folder)
-      await persistFolderCheckpoint(mergedRecords)
+      await persistFolderCheckpoint(mergedRecords, options.full || walkResult.complete)
     } catch (error) {
       skippedFolders.push({
         folder,
@@ -245,7 +299,7 @@ async function main() {
   }
 
   console.log(
-    `Folder sync complete: ${targetFolders[0].name} mirrored with max-pages=${options.maxPages}.`,
+    `Folder sync complete: ${targetFolders[0].name} ${options.full ? 'fully reconciled' : 'incrementally updated'}.`,
   )
 }
 

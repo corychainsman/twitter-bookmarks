@@ -1,6 +1,6 @@
 import { spawnSync } from 'node:child_process'
 
-export type RefreshPipelineMode = 'default' | 'resume' | 'full' | 'embeddings'
+export type RefreshPipelineMode = 'default' | 'resume' | 'full' | 'embeddings' | 'publish'
 
 export type RefreshPipelineStepId =
   | 'sync:ft'
@@ -149,6 +149,10 @@ function syncStepForMode(mode: RefreshPipelineMode): RefreshPipelineStepId {
 }
 
 export function buildRefreshPipeline(mode: RefreshPipelineMode = 'default'): RefreshPipelineStep[] {
+  if (mode === 'publish') {
+    return REFRESH_STEP_SEQUENCE.map((id) => REFRESH_STEPS[id])
+  }
+
   return [syncStepForMode(mode), ...REFRESH_STEP_SEQUENCE].map((id) => REFRESH_STEPS[id])
 }
 
