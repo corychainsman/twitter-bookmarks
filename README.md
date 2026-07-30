@@ -1,6 +1,6 @@
-# Elsewhere
+# X Inspo
 
-Elsewhere is a media-first discovery wall for an exported X/Twitter bookmark
+X Inspo is a media-first discovery wall for an exported X/Twitter bookmark
 catalog. It provides a continuously justified image and video wall, URL-backed
 search and filters, responsive density controls, and addressable lightboxes.
 

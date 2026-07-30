@@ -73,5 +73,16 @@ export function collageFlexWeight(
   parent: CollageGroupNode,
   child: CollageLayoutNode,
 ): number {
-  return parent.kind === "row" ? child.aspectRatio : 1 / child.aspectRatio
+  const weight = parent.kind === "row" ? child.aspectRatio : 1 / child.aspectRatio
+  const totalWeight = parent.children.reduce(
+    (sum, sibling) => sum + (
+      parent.kind === "row" ? sibling.aspectRatio : 1 / sibling.aspectRatio
+    ),
+    0,
+  )
+
+  // CSS flex-grow leaves unused space when the sum of sibling values is less
+  // than one. Normalizing keeps the intended proportions while guaranteeing
+  // that every collage consumes its complete grid rectangle.
+  return totalWeight > 0 ? weight / totalWeight : 1 / parent.children.length
 }

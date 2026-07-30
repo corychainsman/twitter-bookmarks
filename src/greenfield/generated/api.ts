@@ -232,7 +232,8 @@ export interface components {
     };
     parameters: {
         Query: string;
-        Sort: "curated" | "newest" | "oldest";
+        Sort: "curated" | "random" | "newest" | "oldest";
+        Seed: string;
         Cursor: string;
         AnchorMediaId: string;
         SimilarMediaId: string;
@@ -248,6 +249,7 @@ export interface operations {
             query?: {
                 q?: components["parameters"]["Query"];
                 sort?: components["parameters"]["Sort"];
+                seed?: components["parameters"]["Seed"];
                 cursor?: components["parameters"]["Cursor"];
                 anchorMediaId?: components["parameters"]["AnchorMediaId"];
                 similar?: components["parameters"]["SimilarMediaId"];
@@ -276,6 +278,7 @@ export interface operations {
             query?: {
                 q?: components["parameters"]["Query"];
                 sort?: components["parameters"]["Sort"];
+                seed?: components["parameters"]["Seed"];
                 similar?: components["parameters"]["SimilarMediaId"];
                 filter?: string[];
             };

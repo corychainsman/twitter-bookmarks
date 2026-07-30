@@ -1,5 +1,4 @@
 import * as React from "react"
-import { GalleryVerticalEnd } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 
@@ -19,7 +18,6 @@ interface MobileToolbarProps extends WallControlProps {
 }
 
 export function MobileToolbar({
-  brandName,
   searchDraft,
   searchPlaceholder,
   resultPending = false,
@@ -60,22 +58,6 @@ export function MobileToolbar({
       )}
     >
       <div className="flex min-w-0 items-center gap-2 p-2">
-        <a
-          href="/"
-          aria-label="Homepage"
-          title={brandName}
-          className="relative grid size-11 shrink-0 place-items-center rounded-lg text-foreground outline-none hover:bg-muted focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
-        >
-          <GalleryVerticalEnd
-            aria-hidden="true"
-            className="size-4 shrink-0 stroke-foreground"
-          />
-          <span className="sr-only">{brandName}</span>
-          <span
-            aria-hidden="true"
-            className="pointer-fine:hidden absolute top-1/2 left-1/2 size-[max(100%,3rem)] -translate-1/2"
-          />
-        </a>
         <SearchControl
           value={searchDraft}
           placeholder={searchPlaceholder}

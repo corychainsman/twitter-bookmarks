@@ -1,5 +1,5 @@
 [Unit]
-Description=Resume Elsewhere Google Drive cold backup daily
+Description=Resume X Inspo Google Drive cold backup daily
 
 [Timer]
 OnCalendar=*-*-* 03:15:00

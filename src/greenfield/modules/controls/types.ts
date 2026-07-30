@@ -55,7 +55,6 @@ export interface DensityControlValue {
 }
 
 export interface WallControlProps {
-  brandName: string
   searchDraft: string
   searchPlaceholder?: string
   resultPending?: boolean

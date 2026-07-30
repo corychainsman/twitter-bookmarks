@@ -19,6 +19,7 @@ function requestQuery(state: CommittedWallState) {
   return {
     q: identity.q,
     sort: identity.sort,
+    ...(identity.seed ? { seed: identity.seed } : {}),
     filter: filterTokens(identity.filters),
     ...(identity.similar ? { similar: identity.similar } : {}),
   }

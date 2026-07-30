@@ -1,5 +1,3 @@
-import { GalleryVerticalEnd } from "lucide-react"
-
 import { cn } from "@/lib/utils"
 
 import type { WallControlProps } from "./types"
@@ -16,7 +14,6 @@ interface DesktopToolbarProps extends WallControlProps {
 }
 
 export function DesktopToolbar({
-  brandName,
   searchDraft,
   searchPlaceholder,
   resultPending = false,
@@ -45,17 +42,6 @@ export function DesktopToolbar({
         className,
       )}
     >
-      <a
-        href="/"
-        aria-label="Homepage"
-        className="flex shrink-0 items-center gap-2 rounded-md text-sm font-medium text-foreground outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
-      >
-        <GalleryVerticalEnd
-          aria-hidden="true"
-          className="size-4 shrink-0 stroke-foreground"
-        />
-        {brandName}
-      </a>
       <SearchControl
         value={searchDraft}
         placeholder={searchPlaceholder}

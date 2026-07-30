@@ -65,6 +65,7 @@ const FILTER_RANGE: FilterRangeConfig = {
 }
 const SORT_OPTIONS = [
   { value: "curated" as const, label: "Curated" },
+  { value: "random" as const, label: "Random" },
   { value: "newest" as const, label: "Newest" },
   { value: "oldest" as const, label: "Oldest" },
 ]
@@ -491,7 +492,6 @@ export function GreenfieldApp() {
   return (
     <LayoutGroup id="media-wall">
       <MediaWallShell
-        brandName="Elsewhere"
         searchDraft={searchDraft}
         searchPlaceholder="Search media"
         resultPending={discovery.isFetching}

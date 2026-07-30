@@ -1,6 +1,6 @@
-# Elsewhere System Architecture
+# X Inspo System Architecture
 
-This is the canonical implementation map for the greenfield Elsewhere
+This is the canonical implementation map for the greenfield X Inspo
 frontend. Read `CONTEXT.md` first for the domain vocabulary. The retired
 bookmark-browser runtime has been deleted; the catalog pipeline remains as an
 operator-facing data producer and is not an architectural input to the UI.
@@ -109,14 +109,15 @@ The state fields are:
 | --- | --- | --- |
 | `q` | Committed search text | Yes |
 | `filters` | Canonical facet selections | Yes |
-| `sort` | `curated`, `newest`, or `oldest` | Yes |
+| `sort` | `curated`, `random`, `newest`, or `oldest` | Yes |
 | `similar` | Optional similar-media target | Yes |
 | `mode` | `asset`, `record`, or `hybrid` | No |
-| `seed` | Deterministic representative/size shuffle | No |
+| `seed` | Deterministic random order and representative/size shuffle | Only for `random` sort |
 | `density` | `auto` or numeric tile-size multiplier | No |
 
-This split is reflected in TanStack Query keys. Changing mode, seed, or density
-recomposes cached records rather than requesting the same result set again.
+This split is reflected in TanStack Query keys. Changing mode or density
+recomposes cached records. Changing seed does the same for chronological and
+curated sorts, but requests a newly frozen record order for random sort.
 
 ### History policy
 
@@ -189,11 +190,11 @@ Mode behavior:
   one collage tile, capped at four visible assets; the rest become an overflow
   count.
 
-The seed still assigns deterministic scale hints for composition stability and
-a possible future collage layout. In the justified wall, visible size variance
+The seed assigns deterministic scale hints for composition stability and
+random-sort record order. In the justified wall, visible size variance
 comes from intrinsic aspect ratios, composite hybrid ratios, and naturally
-varying row heights. Changing the seed reshuffles ordering and representatives
-without changing the server query.
+varying row heights. Changing the seed also changes representatives; it only
+changes the server query when random sort is selected.
 
 ### Justified layout ownership
 
@@ -453,11 +454,11 @@ bundling failures that unit tests cannot.
 ## Invariants for Future Agents
 
 1. Never use retired frontend behavior or catalog-pipeline implementation
-   details as an implicit requirement for Elsewhere.
+   details as an implicit requirement for X Inspo.
 2. Never add TanStack Virtual to the wall. JustifiedInfiniteGrid is the sole
    placement and recycling authority.
-3. Keep server result identity separate from client-only mode, seed, and
-   density composition.
+3. Keep server result identity separate from client-only mode and density
+   composition; include seed only when random sort makes it result-affecting.
 4. Keep all committed result-affecting state validated, readable, shareable,
    and represented in browser history.
 5. Preserve the mounted wall beneath an addressable lightbox and keep stable

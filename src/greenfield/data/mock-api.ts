@@ -196,6 +196,12 @@ function searchRecords(
   if (state.sort === "oldest") {
     return filtered.toSorted((left, right) => left.postedAt.localeCompare(right.postedAt))
   }
+  if (state.sort === "random") {
+    return filtered.toSorted(
+      (left, right) =>
+        hashString(`${state.seed}:${left.id}`) - hashString(`${state.seed}:${right.id}`),
+    )
+  }
   return filtered
 }
 

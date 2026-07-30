@@ -17,7 +17,7 @@ const SOCIAL_METADATA_TIMEOUT_MS = 2_500
 const MAX_SOCIAL_METADATA_BYTES = 64 * 1_024
 
 const FALLBACK_SOCIAL_METADATA: SocialMetadata = {
-  title: "Elsewhere — Media discovery",
+  title: "X Inspo",
   description: "Open this media in the discovery wall.",
   imageUrl: "https://assets.ui.sh/wallpapers/horizon.webp?variant=jade-corner",
 }

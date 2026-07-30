@@ -106,7 +106,8 @@ interface CatalogIndex {
 interface DiscoveryRequest {
   q: string
   filters: FacetSelection[]
-  sort: "curated" | "newest" | "oldest"
+  sort: "curated" | "random" | "newest" | "oldest"
+  seed: string
   similar?: string
 }
 
@@ -285,10 +286,12 @@ function parseFilters(values: string[]): FacetSelection[] {
 
 function parseDiscoveryRequest(url: URL): DiscoveryRequest {
   const sort = url.searchParams.get("sort")
+  const seed = (url.searchParams.get("seed") ?? "gallery").trim().slice(0, 96) || "gallery"
   return {
     q: (url.searchParams.get("q") ?? "").trim().replace(/\s+/g, " "),
     filters: parseFilters(url.searchParams.getAll("filter")),
-    sort: sort === "newest" || sort === "oldest" ? sort : "curated",
+    sort: sort === "random" || sort === "newest" || sort === "oldest" ? sort : "curated",
+    seed,
     ...(url.searchParams.get("similar")
       ? { similar: url.searchParams.get("similar") ?? undefined }
       : {}),
@@ -373,7 +376,13 @@ async function matchingIds(
       : matchesNonDateFilter(catalog, id, filter))
   })
 
-  if (!request.similar) return filtered
+  if (!request.similar) {
+    return request.sort === "random"
+      ? filtered.toSorted(
+          (left, right) => hash(`${request.seed}:${left}`) - hash(`${request.seed}:${right}`),
+        )
+      : filtered
+  }
   return filtered.toSorted(
     (left, right) => hash(`${request.similar}:${left}`) - hash(`${request.similar}:${right}`),
   )
@@ -630,6 +639,7 @@ export async function handleCatalogApi(request: Request, origin: string): Promis
       response = json({
         sorts: [
           { id: "curated", label: "Curated", default: true },
+          { id: "random", label: "Random" },
           { id: "newest", label: "Newest" },
           { id: "oldest", label: "Oldest" },
         ],

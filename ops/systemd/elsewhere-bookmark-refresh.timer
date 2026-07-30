@@ -1,5 +1,5 @@
 [Unit]
-Description=Refresh Elsewhere X bookmarks hourly
+Description=Refresh X Inspo bookmarks hourly
 
 [Timer]
 OnCalendar=hourly
@@ -9,4 +9,3 @@ Unit=elsewhere-bookmark-refresh.service
 
 [Install]
 WantedBy=timers.target
-

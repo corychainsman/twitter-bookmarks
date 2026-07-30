@@ -193,4 +193,24 @@ describe("production catalog adapter", () => {
       videoUrl: "https://media.test/two.mp4",
     })
   })
+
+  it("returns deterministic random orders keyed by seed", async () => {
+    installCatalogFetch()
+
+    const gallery = await handleCatalogApi(
+      new Request("https://elsewhere.test/api/discovery?sort=random&seed=gallery"),
+      ORIGIN,
+    )
+    const one = await handleCatalogApi(
+      new Request("https://elsewhere.test/api/discovery?sort=random&seed=one"),
+      ORIGIN,
+    )
+
+    await expect(gallery.json()).resolves.toMatchObject({
+      records: [{ id: "record-2" }, { id: "record-1" }],
+    })
+    await expect(one.json()).resolves.toMatchObject({
+      records: [{ id: "record-1" }, { id: "record-2" }],
+    })
+  })
 })

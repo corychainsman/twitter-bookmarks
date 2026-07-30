@@ -85,7 +85,7 @@ export function renderSocialMetadataTags(metadata: SocialMetadata, canonicalUrl:
   return [
     `<link rel="canonical" href="${canonical}">`,
     `<meta property="og:type" content="website">`,
-    `<meta property="og:site_name" content="Elsewhere">`,
+    `<meta property="og:site_name" content="X Inspo">`,
     `<meta property="og:url" content="${canonical}">`,
     `<meta property="og:title" content="${title}">`,
     `<meta property="og:description" content="${description}">`,

@@ -1,6 +1,6 @@
-# Elsewhere Deployment Runbook
+# X Inspo Deployment Runbook
 
-Elsewhere is staged on an isolated Cloudflare Worker and custom domain before
+X Inspo is staged on an isolated Cloudflare Worker and custom domain before
 any production-hostname promotion.
 
 ## Deployment boundaries

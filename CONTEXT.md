@@ -1,8 +1,8 @@
-# Elsewhere Context
+# X Inspo Context
 
 ## Product Purpose
 
-Elsewhere is a greenfield, media-first discovery application. People search,
+X Inspo is a greenfield, media-first discovery application. People search,
 filter, sort, shuffle, and explore a continuously justified wall of images and
 short video previews, then open an addressable lightbox for full media and
 record metadata.
@@ -119,7 +119,7 @@ See `docs/system-architecture.md` for the complete boundaries and behavior.
 
 ## Invariants
 
-- Treat Elsewhere as greenfield. Do not infer product requirements from legacy
+- Treat X Inspo as greenfield. Do not infer product requirements from legacy
   application behavior or old deployment documentation.
 - Preserve the `CatalogPipeline` interface and ordering. A refresh must sync
   bookmarks, mirror and publish media, export artifacts, regenerate embeddings,
@@ -127,8 +127,8 @@ See `docs/system-architecture.md` for the complete boundaries and behavior.
 - JustifiedInfiniteGrid is the only wall layout/recycling engine. Do not add
   TanStack Virtual or nest another virtualizer around it.
 - Server result identity includes search, filters, sort, and similar-media
-  target. Mode, seed, and density are client composition state and must not
-  refetch an equivalent record set.
+  target. Seed joins that identity only for random sort; otherwise seed, mode,
+  and density remain client composition state and must not refetch records.
 - Every committed result-affecting control change creates a browser history
   entry. Only transient drafts and defensive fallbacks may replace history.
 - Shareable state must round-trip through readable, validated URL parameters.

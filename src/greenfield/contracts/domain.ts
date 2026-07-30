@@ -1,5 +1,5 @@
 export type ViewMode = "asset" | "record" | "hybrid"
-export type SortMode = "curated" | "newest" | "oldest"
+export type SortMode = "curated" | "random" | "newest" | "oldest"
 export type Density = "auto" | number
 export type MediaKind = "image" | "video"
 export type TileScale = "small" | "medium" | "large"
