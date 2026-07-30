@@ -346,21 +346,24 @@ metadata use clear live text rather than hidden icon-only meaning.
 configures a static-assets binding with SPA fallback and routes `/api/*` plus
 `/media/*` through the Worker first.
 
-For `/api/*`, the Worker has two contract-compatible upstream modes:
+For `/api/*`, the Worker has three contract-compatible upstream modes:
 
-1. With `DATA_ORIGIN`, `worker/production-catalog.ts` reads the production
+1. With `USE_LOCAL_DATA=true`, `worker/production-catalog.ts` reads the
+   deployment's own versioned catalog through the static-assets binding. This
+   is the staging and production configuration and keeps their catalogs
+   isolated without a recursive hostname fetch.
+2. With `DATA_ORIGIN`, `worker/production-catalog.ts` reads an external
    manifest, grid, search store, ordering, and only the document chunks needed
    for a page. It exposes discovery, count, cursor, media, source-facet, and
    social endpoints in the greenfield OpenAPI shape.
-2. With `API_ORIGIN`, the Worker removes browser credentials and hop-by-hop
+3. With `API_ORIGIN`, the Worker removes browser credentials and hop-by-hop
    headers, proxies the request to a dedicated API, and returns the upstream
    stream with a request ID and `nosniff` header.
 
-The staging and production workers use a blue/green cross-origin arrangement:
-staging reads the current production catalog while production reads the
-candidate catalog deployed to dev. This avoids recursive same-worker fetches;
-candidate dev assets are validated before production promotion. The adapter is
-a translation seam, not a source of frontend requirements.
+The staging and production workers each read their own bundled catalog.
+Candidate dev assets can therefore be validated without changing the
+production catalog. The adapter is a translation seam, not a source of
+frontend requirements.
 
 Catalog adapters cache-bust the manifest on initialization and version every
 dependent artifact request with that manifest's build ID. A newly deployed

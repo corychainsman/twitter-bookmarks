@@ -9,16 +9,17 @@ any production-hostname promotion.
 - Staging hostname: `dev.bookmarks.corychainsman.com`
 - Production Worker: `elsewhere-media-wall`
 - Production hostname: `bookmarks.corychainsman.com`
-- Staging data source: `https://bookmarks.corychainsman.com/data`
-- Production data source: `https://dev.bookmarks.corychainsman.com/data`
+- Staging data source: its own bundled `/data` assets through the Worker asset
+  binding (`USE_LOCAL_DATA=true`), isolated from production.
+- Production data source: its own bundled `/data` assets through the Worker
+  asset binding (`USE_LOCAL_DATA=true`).
 - Media source: rendition URLs in the production catalog, currently served by
   `https://tbmedia.corychainsman.com`
 
 `wrangler.jsonc` remains staging-only. `wrangler.production.jsonc` is the
 explicit production configuration. The versioned catalog under `public/data`
-is deployed with both applications. Production reads the staging deployment's
-asset-first `/data/*` path because Cloudflare does not permit the production
-Worker to fetch its own custom hostname recursively.
+is deployed independently with each application and read through that
+deployment's asset binding.
 
 ## Deploy staging
 

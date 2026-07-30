@@ -152,8 +152,7 @@ async function main() {
   const snapshot = await readBookmarkSnapshot(previousState?.newestBookmarkId)
   const manifest = await readLocalManifest()
 
-  // The two Workers intentionally use crossed DATA_ORIGIN bindings: staging
-  // reads production static data and production reads staging static data.
+  // Each Worker reads its own bundled catalog through the asset binding.
   // Deploy the validated pair before checking either public origin, then gate
   // the checkpoint on exact responses from both hostnames.
   runPackageScript('deploy:cf:staging')

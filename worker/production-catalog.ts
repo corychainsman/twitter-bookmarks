@@ -119,6 +119,7 @@ interface MediaRecord {
 
 interface CatalogIndex {
   origin: string
+  fetcher: CatalogFetcher
   manifest: CatalogManifest
   gridItems: CatalogGridItem[]
   mediaById: Map<string, CatalogGridItem>
@@ -155,6 +156,8 @@ const catalogPromises = new Map<string, Promise<CatalogIndex>>()
 const documentChunkPromises = new Map<string, Promise<Map<string, CatalogDocument>>>()
 const embeddingIndexPromises = new Map<string, Promise<LoadedEmbeddingIndex | undefined>>()
 
+export type CatalogFetcher = (request: Request) => Promise<Response>
+
 function normalizedOrigin(origin: string): string {
   const url = new URL(origin)
   if (url.protocol !== "https:" && url.protocol !== "http:") {
@@ -176,8 +179,8 @@ function versionedArtifactUrl(origin: string, path: string, buildId: string): st
   return url.toString()
 }
 
-async function fetchJson<T>(url: string): Promise<T> {
-  const response = await fetch(new Request(url, {
+async function fetchJson<T>(url: string, fetcher: CatalogFetcher): Promise<T> {
+  const response = await fetcher(new Request(url, {
     headers: { accept: "application/json" },
   }))
   if (!response.ok) throw new Error(`Catalog request failed (${response.status}): ${url}`)
@@ -196,18 +199,18 @@ function xAuthorUrl(entry: CatalogSearchEntry): string {
   return `https://x.com/${encodeURIComponent(entry.authorHandle.replace(/^@/, ""))}`
 }
 
-async function createCatalog(origin: string): Promise<CatalogIndex> {
+async function createCatalog(origin: string, fetcher: CatalogFetcher): Promise<CatalogIndex> {
   const normalized = normalizedOrigin(origin)
   const manifest = await fetchJson<CatalogManifest>(versionedArtifactUrl(
     normalized,
     "manifest.json",
     Date.now().toString(36),
-  ))
+  ), fetcher)
   const [gridItems, searchEntries, bookmarkedOrder, postedOrder] = await Promise.all([
-    fetchJson<CatalogGridItem[]>(versionedArtifactUrl(normalized, manifest.files.gridAll, manifest.buildId)),
-    fetchJson<CatalogSearchEntry[]>(versionedArtifactUrl(normalized, manifest.files.searchStore, manifest.buildId)),
-    fetchJson<string[]>(versionedArtifactUrl(normalized, manifest.files.orderBookmarked, manifest.buildId)),
-    fetchJson<string[]>(versionedArtifactUrl(normalized, manifest.files.orderPosted, manifest.buildId)),
+    fetchJson<CatalogGridItem[]>(versionedArtifactUrl(normalized, manifest.files.gridAll, manifest.buildId), fetcher),
+    fetchJson<CatalogSearchEntry[]>(versionedArtifactUrl(normalized, manifest.files.searchStore, manifest.buildId), fetcher),
+    fetchJson<string[]>(versionedArtifactUrl(normalized, manifest.files.orderBookmarked, manifest.buildId), fetcher),
+    fetchJson<string[]>(versionedArtifactUrl(normalized, manifest.files.orderPosted, manifest.buildId), fetcher),
   ])
   const mediaByRecord = new Map<string, CatalogGridItem[]>()
   const mediaById = new Map<string, CatalogGridItem>()
@@ -232,6 +235,7 @@ async function createCatalog(origin: string): Promise<CatalogIndex> {
 
   return {
     origin: normalized,
+    fetcher,
     manifest,
     gridItems,
     mediaById,
@@ -244,12 +248,12 @@ async function createCatalog(origin: string): Promise<CatalogIndex> {
   }
 }
 
-async function loadCatalog(origin: string): Promise<CatalogIndex> {
+async function loadCatalog(origin: string, fetcher: CatalogFetcher = fetch): Promise<CatalogIndex> {
   const normalized = normalizedOrigin(origin)
   const current = catalogPromises.get(normalized)
   if (current) return current
 
-  const promise = createCatalog(normalized).catch((error) => {
+  const promise = createCatalog(normalized, fetcher).catch((error) => {
     catalogPromises.delete(normalized)
     throw error
   })
@@ -268,7 +272,7 @@ async function loadDocumentChunk(catalog: CatalogIndex, chunkIndex: number) {
     catalog.origin,
     path,
     catalog.manifest.buildId,
-  ))
+  ), catalog.fetcher)
     .then((documents) => new Map(documents.map((document) => [document.id, document])))
     .catch((error) => {
       documentChunkPromises.delete(key)
@@ -364,7 +368,7 @@ async function loadEmbeddingIndex(catalog: CatalogIndex): Promise<LoadedEmbeddin
     catalog.origin,
     path,
     catalog.manifest.buildId,
-  )).then((index) => {
+  ), catalog.fetcher).then((index) => {
     if (
       index.version !== SEMANTIC_INDEX_VERSION
       || index.buildId !== catalog.manifest.buildId
@@ -761,8 +765,9 @@ function sourceSuggestions(catalog: CatalogIndex, url: URL): Response {
 export async function getCatalogSocialMetadata(
   origin: string,
   mediaIdValue: string,
+  fetcher: CatalogFetcher = fetch,
 ): Promise<CatalogSocialMetadata | undefined> {
-  const catalog = await loadCatalog(origin)
+  const catalog = await loadCatalog(origin, fetcher)
   const item = catalog.mediaById.get(mediaIdValue)
   const entry = item ? catalog.searchById.get(item.tweetId) : undefined
   if (!item || !entry) return undefined
@@ -775,7 +780,11 @@ export async function getCatalogSocialMetadata(
   }
 }
 
-export async function handleCatalogApi(request: Request, origin: string): Promise<Response> {
+export async function handleCatalogApi(
+  request: Request,
+  origin: string,
+  fetcher: CatalogFetcher = fetch,
+): Promise<Response> {
   if (request.method !== "GET" && request.method !== "HEAD") {
     return new Response(null, { status: 405, headers: { allow: "GET, HEAD" } })
   }
@@ -783,7 +792,7 @@ export async function handleCatalogApi(request: Request, origin: string): Promis
   const path = url.pathname.replace(/^\/api/, "") || "/"
 
   try {
-    const catalog = await loadCatalog(origin)
+    const catalog = await loadCatalog(origin, fetcher)
     let response: Response
 
     if (path === "/discovery") response = await discovery(catalog, url)

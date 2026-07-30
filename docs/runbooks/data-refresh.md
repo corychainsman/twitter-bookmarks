@@ -110,9 +110,8 @@ unbookmarks and folder removals.
 Never advance `ops/refresh-state.json` before all of these succeed:
 
 1. X sync and the ordered publication pipeline.
-2. Staging and production deployment of the validated build pair. Their
-   crossed `DATA_ORIGIN` bindings mean neither public hostname can expose the
-   new catalog until both Workers are deployed.
+2. Staging and production deployment of the validated build pair. Each Worker
+   reads its own bundled catalog through its asset binding.
 3. Exact catalog manifest/API smoke checks on both public hostnames.
 4. Git commit and push of `ops/refresh-state.json`, `public/data`, and
    `data/semantic-enrichment.json`.

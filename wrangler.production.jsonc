@@ -10,7 +10,8 @@
     "run_worker_first": ["/api", "/api/*", "/media/*"]
   },
   "vars": {
-    "DATA_ORIGIN": "https://dev.bookmarks.corychainsman.com/data"
+    "DATA_ORIGIN": "https://dev.bookmarks.corychainsman.com/data",
+    "USE_LOCAL_DATA": "true"
   },
   "routes": [
     {

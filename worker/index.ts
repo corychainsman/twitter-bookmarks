@@ -4,12 +4,30 @@ import {
   sanitizeSocialMetadata,
   type SocialMetadata,
 } from "./social-metadata"
-import { getCatalogSocialMetadata, handleCatalogApi } from "./production-catalog"
+import {
+  getCatalogSocialMetadata,
+  handleCatalogApi,
+  type CatalogFetcher,
+} from "./production-catalog"
 
 interface Env {
   API_ORIGIN?: string
   DATA_ORIGIN?: string
+  USE_LOCAL_DATA?: string
   ASSETS: Fetcher
+}
+
+function catalogSource(request: Request, env: Env): {
+  origin: string
+  fetcher?: CatalogFetcher
+} | undefined {
+  if (env.USE_LOCAL_DATA === "true") {
+    return {
+      origin: new URL("/data/", request.url).toString(),
+      fetcher: (assetRequest) => env.ASSETS.fetch(assetRequest),
+    }
+  }
+  return env.DATA_ORIGIN ? { origin: env.DATA_ORIGIN } : undefined
 }
 
 const API_TIMEOUT_MS = 15_000
@@ -137,9 +155,10 @@ async function proxyApi(request: Request, env: Env) {
   }
 }
 
-async function readSocialMetadata(mediaId: string, env: Env) {
+async function readSocialMetadata(mediaId: string, request: Request, env: Env) {
   try {
-    if (env.DATA_ORIGIN) return getCatalogSocialMetadata(env.DATA_ORIGIN, mediaId)
+    const catalog = catalogSource(request, env)
+    if (catalog) return getCatalogSocialMetadata(catalog.origin, mediaId, catalog.fetcher)
     if (!env.API_ORIGIN) return undefined
     if (new URL(env.API_ORIGIN).hostname.endsWith(".invalid")) return undefined
     const socialUrl = resolveUpstreamUrl(`/media/${encodeURIComponent(mediaId)}/social`, "", env.API_ORIGIN)
@@ -207,7 +226,7 @@ async function renderSocialShell(request: Request, env: Env, mediaId: string) {
   const requestUrl = new URL(request.url)
   const allowsViteBootstrap = requestUrl.port.length > 0
   const canonicalUrl = new URL(`/media/${encodeURIComponent(mediaId)}`, requestUrl.origin).toString()
-  const metadata = (await readSocialMetadata(mediaId, env)) ?? FALLBACK_SOCIAL_METADATA
+  const metadata = (await readSocialMetadata(mediaId, request, env)) ?? FALLBACK_SOCIAL_METADATA
   const tags = renderSocialMetadataTags(metadata, canonicalUrl)
 
   let shell: Response | undefined
@@ -258,7 +277,8 @@ export default {
     const url = new URL(request.url)
 
     if (url.pathname === "/api" || url.pathname.startsWith("/api/")) {
-      if (env.DATA_ORIGIN) return handleCatalogApi(request, env.DATA_ORIGIN)
+      const catalog = catalogSource(request, env)
+      if (catalog) return handleCatalogApi(request, catalog.origin, catalog.fetcher)
       return proxyApi(request, env)
     }
 
