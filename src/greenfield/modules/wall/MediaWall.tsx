@@ -87,10 +87,12 @@ function focusKey(tile: WallTile, media: MediaAsset): string {
 
 const DefaultMedia = memo(function DefaultMedia({
   asset,
+  preloadMargin,
   priority,
   sizes,
 }: {
   asset: MediaAsset
+  preloadMargin: string
   priority: boolean
   sizes: string
 }) {
@@ -99,6 +101,7 @@ const DefaultMedia = memo(function DefaultMedia({
       <ResponsivePicture
         asset={asset}
         className="size-full select-none object-contain"
+        preloadMargin={preloadMargin}
         priority={priority}
         sizes={sizes}
       />
@@ -389,7 +392,14 @@ const MediaWallRoot = forwardRef<MediaWallHandle, MediaWallProps>(function Media
                   >
                     {renderMedia
                       ? renderMedia(media, context)
-                      : <DefaultMedia asset={media} priority={priority} sizes={sizes} />}
+                      : (
+                          <DefaultMedia
+                            asset={media}
+                            preloadMargin={context.preloadMargin}
+                            priority={priority}
+                            sizes={sizes}
+                          />
+                        )}
                   </motion.div>
                   {mediaIndex === tile.media.length - 1 && tile.overflowCount > 0 && (
                     <span className="pointer-events-none absolute inset-0 grid place-items-center bg-black/55 text-xl font-semibold text-white tabular-nums backdrop-blur-[1px]">

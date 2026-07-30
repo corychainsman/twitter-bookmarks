@@ -195,6 +195,7 @@ function renderWallMedia(asset: MediaAsset, context: WallMediaRenderContext) {
     <ResponsivePicture
       asset={asset}
       className="size-full select-none object-contain"
+      preloadMargin={context.preloadMargin}
       priority={context.priority}
       sizes={context.sizes}
     />
