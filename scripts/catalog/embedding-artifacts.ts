@@ -1,6 +1,6 @@
 import type { TweetDoc } from './model'
 
-export type EmbeddingRecordKind = 'tweet-text' | 'media-image' | 'media-video'
+export type EmbeddingRecordKind = 'record-text' | 'tweet-text' | 'media-image' | 'media-video'
 
 export type EmbeddingRecord = {
   id: string
@@ -40,10 +40,19 @@ function hasText(value: string | undefined): value is string {
   return typeof value === 'string' && value.trim().length > 0
 }
 
-export function buildTweetEmbeddingText(tweet: TweetDoc): string {
+export function buildTweetEmbeddingText(
+  tweet: TweetDoc,
+  mediaEnrichment: ReadonlyMap<string, readonly string[]> = new Map(),
+): string {
   const byline = [tweet.authorName, tweet.authorHandle ? `@${tweet.authorHandle}` : undefined]
     .filter(hasText)
     .join(' ')
+
+  const mediaDescriptions = tweet.media.flatMap((media, mediaIndex) => {
+    const gridId = `${tweet.id}:${mediaIndex}`
+    const generated = mediaEnrichment.get(gridId) ?? []
+    return [media.altText, ...generated].filter(hasText)
+  })
 
   return [
     tweet.text,
@@ -52,6 +61,7 @@ export function buildTweetEmbeddingText(tweet: TweetDoc): string {
     tweet.articleText,
     byline ? `Author: ${byline}` : undefined,
     tweet.folderNames.length > 0 ? `Folders: ${tweet.folderNames.join(', ')}` : undefined,
+    mediaDescriptions.length > 0 ? `Media:\n${mediaDescriptions.join('\n')}` : undefined,
   ]
     .filter(hasText)
     .join('\n')

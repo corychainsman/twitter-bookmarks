@@ -97,7 +97,7 @@ async function verifyDeployment(origin: string, manifest: CatalogManifest): Prom
 }
 
 function commitAndPushCheckpoint(timestamp: string): void {
-  const trackedPaths = ['ops/refresh-state.json', 'public/data']
+  const trackedPaths = ['ops/refresh-state.json', 'public/data', 'data/semantic-enrichment.json']
   run('git', ['add', '--', ...trackedPaths])
 
   const staged = spawnSync('git', ['diff', '--cached', '--quiet', '--', ...trackedPaths], {

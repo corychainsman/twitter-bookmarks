@@ -237,6 +237,10 @@ export interface components {
         Cursor: string;
         AnchorMediaId: string;
         SimilarMediaId: string;
+        /** @description Base64url-encoded normalized int8 query vector produced locally by the browser. */
+        SemanticVector: string;
+        SemanticModel: string;
+        SemanticVersion: number;
     };
     requestBodies: never;
     headers: never;
@@ -253,6 +257,10 @@ export interface operations {
                 cursor?: components["parameters"]["Cursor"];
                 anchorMediaId?: components["parameters"]["AnchorMediaId"];
                 similar?: components["parameters"]["SimilarMediaId"];
+                /** @description Base64url-encoded normalized int8 query vector produced locally by the browser. */
+                semantic?: components["parameters"]["SemanticVector"];
+                semanticModel?: components["parameters"]["SemanticModel"];
+                semanticVersion?: components["parameters"]["SemanticVersion"];
                 filter?: string[];
             };
             header?: never;
@@ -280,6 +288,10 @@ export interface operations {
                 sort?: components["parameters"]["Sort"];
                 seed?: components["parameters"]["Seed"];
                 similar?: components["parameters"]["SimilarMediaId"];
+                /** @description Base64url-encoded normalized int8 query vector produced locally by the browser. */
+                semantic?: components["parameters"]["SemanticVector"];
+                semanticModel?: components["parameters"]["SemanticModel"];
+                semanticVersion?: components["parameters"]["SemanticVersion"];
                 filter?: string[];
             };
             header?: never;

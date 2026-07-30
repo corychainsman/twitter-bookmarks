@@ -167,6 +167,29 @@ loading. The shell sets `aria-busy` and shows pending state near the controls.
 Infinite append requests originate in JustifiedInfiniteGrid, are deduplicated by
 the wall adapter, and resolve through `fetchNextPage`.
 
+### Static semantic retrieval
+
+Free-form semantic search does not depend on an inference service. The first
+query keeps the lexical API path responsive while a dedicated browser Web
+Worker lazily loads the vendored quantized `all-MiniLM-L6-v2` text encoder.
+When the encoder becomes ready, TanStack Query automatically refreshes the
+active search with a normalized int8 query vector. The service worker caches
+the roughly 23 MB model after first use; clients requesting reduced data retain
+lexical search without downloading it.
+
+The catalog Worker validates the model and protocol identifiers, scans the
+version-matched static int8 index, and fuses semantic and lexical ranks.
+Exact phrases, handles, and names therefore retain their lexical advantage,
+while descriptive natural-language queries can retrieve records with no
+literal overlap. Explicit newest, oldest, and random sorts retain their
+ordering after the relevant candidate set is selected.
+
+During refresh, Florence-2 incrementally generates detailed captions and OCR
+for newly encountered images and sampled video frames. The resumable,
+Git-tracked `data/semantic-enrichment.json` cache is incorporated with post,
+article, author, folder, and supplied alt text before static record embeddings
+are generated. `.data/models` is only the ignored local model download cache.
+
 If exact matching returns no records, the API may return the closest results by
 relaxing the smallest possible facet set. The UI places an explicit message
 above the wall and offers an action that commits those broader filters.

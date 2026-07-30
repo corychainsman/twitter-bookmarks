@@ -44,7 +44,8 @@ media-submission or image-upload flow.
   same interface and OpenAPI contract.
 - `CatalogPipeline`: the operator-run scripts that pull X/Twitter bookmarks,
   mirror media, generate renditions and previews, export versioned catalog
-  artifacts, validate them, and build the application. Its output is
+  artifacts, incrementally caption/OCR media, generate static semantic
+  embeddings, validate them, and build the application. Its output is
   `public/data`; raw source data stays under gitignored `.data`.
 
 ## System Flow
@@ -124,6 +125,11 @@ See `docs/system-architecture.md` for the complete boundaries and behavior.
 - Preserve the `CatalogPipeline` interface and ordering. A refresh must sync
   bookmarks, mirror and publish media, export artifacts, regenerate embeddings,
   validate output, and build. Never commit raw `.data` inputs.
+- Semantic search remains service-free: media understanding runs during the
+  refresh, the browser lazily embeds free-form text in a Web Worker using the
+  vendored quantized model, and the catalog Worker scans the static index and
+  fuses semantic candidates with exact lexical matches. Data-saver clients keep
+  the lexical path and do not download the query model.
 - JustifiedInfiniteGrid is the only wall layout/recycling engine. Do not add
   TanStack Virtual or nest another virtualizer around it.
 - Server result identity includes search, filters, sort, and similar-media

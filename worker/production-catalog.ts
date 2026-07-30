@@ -1,3 +1,12 @@
+import {
+  SEMANTIC_EMBEDDING_DIMENSIONS,
+  SEMANTIC_INDEX_VERSION,
+  SEMANTIC_MODEL_ID,
+  SEMANTIC_PROTOCOL_VERSION,
+  SEMANTIC_RESULT_LIMIT,
+} from "../src/greenfield/semantic/config"
+import { decodeInt8Base64Url } from "../src/greenfield/semantic/vector-codec"
+
 interface CatalogManifest {
   buildId: string
   builtAt: string
@@ -8,6 +17,7 @@ interface CatalogManifest {
     orderBookmarked: string
     orderPosted: string
     searchStore: string
+    embeddings?: string
   }
 }
 
@@ -42,6 +52,23 @@ interface CatalogSearchEntry {
   authorName: string
   authorHandle: string
   folderNames: string
+}
+
+interface CatalogEmbeddingIndex {
+  version: number
+  buildId: string
+  model: {
+    id: string
+    dimensions: number
+    quantization: string
+  }
+  records: Array<{ tweetId: string }>
+  vectors: string
+}
+
+interface LoadedEmbeddingIndex {
+  records: Array<{ tweetId: string }>
+  vectors: Int8Array
 }
 
 interface CatalogDocument extends Omit<CatalogSearchEntry, "folderNames"> {
@@ -109,6 +136,10 @@ interface DiscoveryRequest {
   sort: "curated" | "random" | "newest" | "oldest"
   seed: string
   similar?: string
+  semantic?: {
+    encoded: string
+    vector: Int8Array
+  }
 }
 
 export interface CatalogSocialMetadata {
@@ -122,6 +153,7 @@ const PAGE_SIZE = 24
 const SNAPSHOT_LIFETIME_MS = 7 * 24 * 60 * 60 * 1_000
 const catalogPromises = new Map<string, Promise<CatalogIndex>>()
 const documentChunkPromises = new Map<string, Promise<Map<string, CatalogDocument>>>()
+const embeddingIndexPromises = new Map<string, Promise<LoadedEmbeddingIndex | undefined>>()
 
 function normalizedOrigin(origin: string): string {
   const url = new URL(origin)
@@ -287,6 +319,13 @@ function parseFilters(values: string[]): FacetSelection[] {
 function parseDiscoveryRequest(url: URL): DiscoveryRequest {
   const sort = url.searchParams.get("sort")
   const seed = (url.searchParams.get("seed") ?? "gallery").trim().slice(0, 96) || "gallery"
+  const semanticEncoded = url.searchParams.get("semantic") ?? ""
+  const semanticVector = semanticEncoded.length <= 4096
+    && url.searchParams.get("semanticModel") === SEMANTIC_MODEL_ID
+    && Number(url.searchParams.get("semanticVersion")) === SEMANTIC_PROTOCOL_VERSION
+    ? decodeInt8Base64Url(semanticEncoded)
+    : undefined
+
   return {
     q: (url.searchParams.get("q") ?? "").trim().replace(/\s+/g, " "),
     filters: parseFilters(url.searchParams.getAll("filter")),
@@ -295,7 +334,90 @@ function parseDiscoveryRequest(url: URL): DiscoveryRequest {
     ...(url.searchParams.get("similar")
       ? { similar: url.searchParams.get("similar") ?? undefined }
       : {}),
+    ...(semanticVector?.length === SEMANTIC_EMBEDDING_DIMENSIONS
+      ? { semantic: { encoded: semanticEncoded, vector: semanticVector } }
+      : {}),
   }
+}
+
+function decodeStandardBase64(value: string): Int8Array | undefined {
+  try {
+    const binary = atob(value)
+    const bytes = new Uint8Array(binary.length)
+    for (let index = 0; index < binary.length; index += 1) {
+      bytes[index] = binary.charCodeAt(index)
+    }
+    return new Int8Array(bytes.buffer)
+  } catch {
+    return undefined
+  }
+}
+
+async function loadEmbeddingIndex(catalog: CatalogIndex): Promise<LoadedEmbeddingIndex | undefined> {
+  const path = catalog.manifest.files.embeddings
+  if (!path) return undefined
+  const key = `${catalog.origin}\u001f${catalog.manifest.buildId}\u001f${path}`
+  const current = embeddingIndexPromises.get(key)
+  if (current) return current
+
+  const promise = fetchJson<CatalogEmbeddingIndex>(versionedArtifactUrl(
+    catalog.origin,
+    path,
+    catalog.manifest.buildId,
+  )).then((index) => {
+    if (
+      index.version !== SEMANTIC_INDEX_VERSION
+      || index.buildId !== catalog.manifest.buildId
+      || index.model.id !== SEMANTIC_MODEL_ID
+      || index.model.dimensions !== SEMANTIC_EMBEDDING_DIMENSIONS
+      || index.model.quantization !== "int8-unit-vector"
+    ) return undefined
+
+    const vectors = decodeStandardBase64(index.vectors)
+    if (!vectors || vectors.length !== index.records.length * SEMANTIC_EMBEDDING_DIMENSIONS) {
+      return undefined
+    }
+    return { records: index.records, vectors }
+  }).catch(() => {
+    embeddingIndexPromises.delete(key)
+    return undefined
+  })
+  embeddingIndexPromises.set(key, promise)
+  return promise
+}
+
+function quantizedDot(left: Int8Array, right: Int8Array, rightOffset: number): number {
+  let score = 0
+  for (let index = 0; index < SEMANTIC_EMBEDDING_DIMENSIONS; index += 1) {
+    score += (left[index] ?? 0) * (right[rightOffset + index] ?? 0)
+  }
+  return score / (127 * 127)
+}
+
+async function semanticRanking(
+  catalog: CatalogIndex,
+  request: DiscoveryRequest,
+): Promise<Array<{ id: string; score: number }>> {
+  if (!request.semantic || !request.q) return []
+  const index = await loadEmbeddingIndex(catalog)
+  if (!index) return []
+
+  const bestByRecord = new Map<string, number>()
+  index.records.forEach((record, rowIndex) => {
+    const score = quantizedDot(
+      request.semantic!.vector,
+      index.vectors,
+      rowIndex * SEMANTIC_EMBEDDING_DIMENSIONS,
+    )
+    if (score > (bestByRecord.get(record.tweetId) ?? Number.NEGATIVE_INFINITY)) {
+      bestByRecord.set(record.tweetId, score)
+    }
+  })
+  const ranked = [...bestByRecord].map(([id, score]) => ({ id, score }))
+    .toSorted((left, right) => right.score - left.score)
+  const best = ranked[0]?.score ?? 0
+  const minimum = Math.max(0.18, best - 0.32)
+  return ranked.filter((candidate) => candidate.score >= minimum).slice(0, SEMANTIC_RESULT_LIMIT)
 }
 
 function entryHaystack(entry: CatalogSearchEntry): string {
@@ -367,14 +489,44 @@ async function matchingIds(
     : request.sort === "oldest"
       ? [...catalog.postedOrder].reverse()
       : catalog.bookmarkedOrder
-  const filtered = order.filter((id) => {
+  const eligible = order.filter((id) => {
     const entry = catalog.searchById.get(id)
     if (!entry || !catalog.mediaByRecord.has(id)) return false
-    if (!terms.every((term) => entryHaystack(entry).includes(term))) return false
     return filters.every((filter) => filter.id === "date"
       ? matchesDate(documents?.get(id), filter.values)
       : matchesNonDateFilter(catalog, id, filter))
   })
+
+  const lexical = request.q
+    ? eligible.filter((id) => {
+        const entry = catalog.searchById.get(id)
+        return Boolean(entry && terms.every((term) => entryHaystack(entry).includes(term)))
+      })
+    : eligible
+  const semantic = await semanticRanking(catalog, request)
+  const eligibleSet = new Set(eligible)
+  const semanticEligible = semantic.filter((candidate) => eligibleSet.has(candidate.id))
+  const semanticRank = new Map(semanticEligible.map((candidate, index) => [candidate.id, index]))
+  const lexicalRank = new Map(lexical.map((id, index) => [id, index]))
+  const candidateSet = new Set([...lexical, ...semanticEligible.map((candidate) => candidate.id)])
+  const filtered = request.q ? eligible.filter((id) => candidateSet.has(id)) : eligible
+
+  if (request.q && request.sort === "curated" && semanticEligible.length > 0) {
+    const phrase = request.q.toLocaleLowerCase()
+    filtered.sort((left, right) => {
+      const score = (id: string) => {
+        const lexicalPosition = lexicalRank.get(id)
+        const semanticPosition = semanticRank.get(id)
+        const phraseBoost = catalog.searchById.get(id)
+          && entryHaystack(catalog.searchById.get(id)!).includes(phrase) ? 0.5 : 0
+        return phraseBoost
+          + (lexicalPosition === undefined ? 0 : 60 / (60 + lexicalPosition))
+          + (semanticPosition === undefined ? 0 : 60 / (60 + semanticPosition))
+      }
+      return score(right) - score(left)
+        || (catalog.bookmarkedRank.get(left) ?? 0) - (catalog.bookmarkedRank.get(right) ?? 0)
+    })
+  }
 
   if (!request.similar) {
     return request.sort === "random"
@@ -398,7 +550,10 @@ function hash(value: string): number {
 }
 
 function cursorSignature(request: DiscoveryRequest): string {
-  return hash(JSON.stringify(request)).toString(36)
+  return hash(JSON.stringify({
+    ...request,
+    semantic: request.semantic?.encoded,
+  })).toString(36)
 }
 
 function encodeCursor(catalog: CatalogIndex, request: DiscoveryRequest, offset: number): string {

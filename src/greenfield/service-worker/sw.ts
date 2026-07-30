@@ -131,3 +131,15 @@ registerRoute(
     ],
   }),
 )
+
+registerRoute(
+  ({ request, url }) =>
+    request.method === "GET" && url.origin === self.location.origin && url.pathname.startsWith("/models/"),
+  new CacheFirst({
+    cacheName: "x-inspo-semantic-model-v1",
+    plugins: [
+      new CacheableResponsePlugin({ statuses: [200] }),
+      new ExpirationPlugin({ maxEntries: 12, maxAgeSeconds: 60 * 60 * 24 * 365 }),
+    ],
+  }),
+)

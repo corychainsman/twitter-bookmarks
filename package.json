@@ -30,6 +30,7 @@
     "mirror:sync": "bash scripts/sync-mirror.sh",
     "backup:gdrive": "bash scripts/backup-gdrive.sh",
     "data:export": "bun run scripts/export-fieldtheory.ts",
+    "data:semantic-enrichment": "bun run scripts/enrich-semantic-media.ts",
     "data:embeddings": "bun run scripts/export-embeddings.ts",
     "data:validate": "bun run scripts/validate-export.ts",
     "refresh": "bun run scripts/refresh.ts",

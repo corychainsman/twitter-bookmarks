@@ -16,6 +16,9 @@ paths:
         - $ref: '#/components/parameters/Cursor'
         - $ref: '#/components/parameters/AnchorMediaId'
         - $ref: '#/components/parameters/SimilarMediaId'
+        - $ref: '#/components/parameters/SemanticVector'
+        - $ref: '#/components/parameters/SemanticModel'
+        - $ref: '#/components/parameters/SemanticVersion'
         - name: filter
           in: query
           schema:
@@ -41,6 +44,9 @@ paths:
         - $ref: '#/components/parameters/Sort'
         - $ref: '#/components/parameters/Seed'
         - $ref: '#/components/parameters/SimilarMediaId'
+        - $ref: '#/components/parameters/SemanticVector'
+        - $ref: '#/components/parameters/SemanticModel'
+        - $ref: '#/components/parameters/SemanticVersion'
         - name: filter
           in: query
           schema:
@@ -235,6 +241,25 @@ components:
       in: query
       schema:
         type: string
+    SemanticVector:
+      name: semantic
+      in: query
+      description: Base64url-encoded normalized int8 query vector produced locally by the browser.
+      schema:
+        type: string
+        maxLength: 4096
+    SemanticModel:
+      name: semanticModel
+      in: query
+      schema:
+        type: string
+        maxLength: 128
+    SemanticVersion:
+      name: semanticVersion
+      in: query
+      schema:
+        type: integer
+        minimum: 1
   responses:
     CursorExpired:
       description: The frozen result snapshot expired.

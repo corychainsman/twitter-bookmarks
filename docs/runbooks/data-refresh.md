@@ -40,9 +40,15 @@ Agents may inspect and validate data artifacts at any time. Agents must only run
 4. **Ordering matters**: `data:mirror` must run before `data:export`
    (export rewrites URLs only for assets confirmed in the mirror manifest),
    and `mirror:sync` must succeed before deploying (so every rewritten URL
-   is actually live on R2). `data:embeddings` reads images from the local
-   archive (`.data/media/assets/`), so it also depends on `data:mirror`.
-5. **`data:embeddings` regenerates the whole index** — if export runs without
+   is actually live on R2). `data:semantic-enrichment` reads images and sampled
+   video frames from the local archive, so it also depends on `data:mirror`.
+5. **Semantic enrichment is incremental and resumable** —
+   `data:semantic-enrichment` captions and OCRs a bounded newest-first batch of
+   missing image/video assets and writes `data/semantic-enrichment.json`.
+   Set `SEMANTIC_ENRICHMENT_LIMIT` to tune the hourly batch or pass `--all` for
+   an operator-run bootstrap. The Florence model cache remains under ignored
+   `.data/models`.
+6. **`data:embeddings` regenerates the compact record index** — if export runs without
    the embeddings step, `public/data/embeddings` goes stale/missing; always
    run the full chain (the `refresh` script does this).
 
@@ -57,6 +63,7 @@ bun run data:mirror
 bun run data:video-previews
 bun run mirror:sync
 bun run data:export
+bun run data:semantic-enrichment
 bun run data:embeddings
 bun run data:validate
 bun run build
@@ -107,7 +114,8 @@ Never advance `ops/refresh-state.json` before all of these succeed:
    crossed `DATA_ORIGIN` bindings mean neither public hostname can expose the
    new catalog until both Workers are deployed.
 3. Exact catalog manifest/API smoke checks on both public hostnames.
-4. Git commit and push of `ops/refresh-state.json` plus `public/data`.
+4. Git commit and push of `ops/refresh-state.json`, `public/data`, and
+   `data/semantic-enrichment.json`.
 
 The checkpoint remains unchanged on a failed run. If X contains nothing newer
 than the checkpoint and the bookmark count is unchanged, publication is skipped
@@ -166,6 +174,10 @@ media URLs before the serving mirror can be uploaded.
 - `bun run data:mirror` downloads media originals into `.data/media` and generates AVIF variants + ThumbHashes (see `docs/runbooks/media-mirror.md`).
 - `bun run mirror:sync` uploads the archive to R2 (serving) and Google Drive (backup) via rclone.
 - `bun run data:export` writes normalized static bookmark artifacts under `public/data`, rewriting media URLs to the self-hosted mirror for assets confirmed in the mirror manifest.
+- `bun run data:semantic-enrichment` locally captions/OCRs up to 32 missing
+  media assets by default. Video enrichment includes the poster and sampled
+  frames. Completed entries are written atomically after each asset, so an
+  interrupted run resumes safely.
 - `bun run data:embeddings` writes the static semantic embedding index under `public/data`.
 - `bun run data:validate` validates exported artifacts.
 - `bun run build` confirms the static app builds with the exported artifacts.

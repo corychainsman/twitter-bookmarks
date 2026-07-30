@@ -3,6 +3,14 @@ import { afterEach, describe, expect, it, vi } from "vitest"
 import { getCatalogSocialMetadata, handleCatalogApi } from "./production-catalog"
 
 const ORIGIN = "https://catalog.test/data"
+function base64(values: Int8Array): string {
+  return btoa(String.fromCharCode(...new Uint8Array(values.buffer)))
+}
+
+function base64url(values: Int8Array): string {
+  return base64(values).replaceAll("+", "-").replaceAll("/", "_").replace(/=+$/, "")
+}
+
 const manifest = {
   buildId: "fixture-build",
   builtAt: "2026-07-16T00:00:00.000Z",
@@ -13,7 +21,22 @@ const manifest = {
     orderBookmarked: "order/bookmarked.json",
     orderPosted: "order/posted.json",
     searchStore: "search/store.json",
+    embeddings: "embeddings/index.json",
   },
+}
+const semanticVectors = new Int8Array(2 * 384)
+semanticVectors[0] = 127
+semanticVectors[384 + 1] = 127
+const embeddingIndex = {
+  version: 2,
+  buildId: "fixture-build",
+  model: {
+    id: "Xenova/all-MiniLM-L6-v2",
+    dimensions: 384,
+    quantization: "int8-unit-vector",
+  },
+  records: [{ tweetId: "record-1" }, { tweetId: "record-2" }],
+  vectors: base64(semanticVectors),
 }
 const documents = [
   {
@@ -83,6 +106,7 @@ function installCatalogFetch() {
     ["/data/order/bookmarked.json", ["record-1", "record-2"]],
     ["/data/order/posted.json", ["record-1", "record-2"]],
     ["/data/tweets/docs-0001.json", documents],
+    ["/data/embeddings/index.json", embeddingIndex],
   ])
 
   vi.stubGlobal("fetch", vi.fn(async (input: RequestInfo | URL) => {
@@ -211,6 +235,28 @@ describe("production catalog adapter", () => {
     })
     await expect(one.json()).resolves.toMatchObject({
       records: [{ id: "record-1" }, { id: "record-2" }],
+    })
+  })
+
+  it("fuses a locally encoded semantic query with static catalog vectors", async () => {
+    installCatalogFetch()
+    const queryVector = new Int8Array(384)
+    queryVector[1] = 127
+    const semantic = base64url(queryVector)
+    const params = new URLSearchParams({
+      q: "organic structure",
+      semantic,
+      semanticModel: "Xenova/all-MiniLM-L6-v2",
+      semanticVersion: "1",
+    })
+
+    const response = await handleCatalogApi(
+      new Request(`https://elsewhere.test/api/discovery?${params}`),
+      ORIGIN,
+    )
+
+    await expect(response.json()).resolves.toMatchObject({
+      records: [{ id: "record-2" }],
     })
   })
 })

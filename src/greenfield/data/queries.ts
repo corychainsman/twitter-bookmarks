@@ -5,11 +5,13 @@ import {
   useInfiniteQuery,
   useQuery,
 } from "@tanstack/react-query"
+import { useEffect } from "react"
 
 import type { CommittedWallState } from "../contracts/domain"
 import type { ApiTransport } from "../contracts/interfaces"
 import { discoveryKeys } from "./query-keys"
 import { useApiTransport } from "./transport-context"
+import { subscribeToSemanticReadiness } from "../semantic/query-client"
 
 export function discoveryInfiniteOptions(
   transport: ApiTransport,
@@ -51,11 +53,33 @@ export function sourceSuggestionsOptions(transport: ApiTransport, query: string)
 }
 
 export function useDiscovery(state: CommittedWallState) {
-  return useInfiniteQuery(discoveryInfiniteOptions(useApiTransport(), state))
+  const transport = useApiTransport()
+  const query = useInfiniteQuery(discoveryInfiniteOptions(transport, state))
+  const refetch = query.refetch
+
+  useEffect(() => {
+    if (!state.q.trim()) return
+    return subscribeToSemanticReadiness(() => {
+      void refetch()
+    })
+  }, [refetch, state.q])
+
+  return query
 }
 
 export function useResultCount(state: CommittedWallState) {
-  return useQuery(resultCountOptions(useApiTransport(), state))
+  const transport = useApiTransport()
+  const query = useQuery(resultCountOptions(transport, state))
+  const refetch = query.refetch
+
+  useEffect(() => {
+    if (!state.q.trim()) return
+    return subscribeToSemanticReadiness(() => {
+      void refetch()
+    })
+  }, [refetch, state.q])
+
+  return query
 }
 
 export function useMedia(mediaId: string) {

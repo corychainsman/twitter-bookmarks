@@ -11,6 +11,7 @@ export type RefreshPipelineStepId =
   | 'data:video-previews'
   | 'mirror:sync'
   | 'data:export'
+  | 'data:semantic-enrichment'
   | 'data:embeddings'
   | 'data:validate'
   | 'build'
@@ -38,6 +39,7 @@ const REFRESH_STEP_SEQUENCE: RefreshPipelineStepId[] = [
   'data:video-previews',
   'mirror:sync',
   'data:export',
+  'data:semantic-enrichment',
   'data:embeddings',
   'data:validate',
   'build',
@@ -88,6 +90,11 @@ const REFRESH_STEPS: Record<RefreshPipelineStepId, RefreshPipelineStep> = {
     id: 'data:embeddings',
     label: 'Semantic embeddings export',
     packageScript: 'data:embeddings',
+  },
+  'data:semantic-enrichment': {
+    id: 'data:semantic-enrichment',
+    label: 'Incremental local media caption and OCR enrichment',
+    packageScript: 'data:semantic-enrichment',
   },
   'data:validate': {
     id: 'data:validate',
