@@ -9,6 +9,7 @@ interface SearchControlProps {
   placeholder?: string
   pending?: boolean
   compact?: boolean
+  onIntent?: () => void
   onChange: (value: string) => void
   onSubmit: (query: string) => void
   className?: string
@@ -19,6 +20,7 @@ export function SearchControl({
   placeholder = "Search media",
   pending = false,
   compact = false,
+  onIntent,
   onChange,
   onSubmit,
   className,
@@ -41,6 +43,7 @@ export function SearchControl({
         name="wall-search"
         type="search"
         value={value}
+        onFocus={onIntent}
         onChange={(event) => onChange(event.currentTarget.value)}
         placeholder={placeholder}
         aria-label={placeholder}

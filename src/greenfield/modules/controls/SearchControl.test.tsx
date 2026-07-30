@@ -5,6 +5,23 @@ import { describe, expect, it, vi } from "vitest"
 import { SearchControl } from "./SearchControl"
 
 describe("SearchControl", () => {
+  it("signals semantic intent as soon as the search field receives focus", async () => {
+    const user = userEvent.setup()
+    const onIntent = vi.fn()
+    render(
+      <SearchControl
+        value=""
+        onIntent={onIntent}
+        onChange={() => undefined}
+        onSubmit={() => undefined}
+      />,
+    )
+
+    await user.click(screen.getByRole("searchbox", { name: "Search media" }))
+
+    expect(onIntent).toHaveBeenCalledOnce()
+  })
+
   it("keeps typing separate from an explicit search commit", async () => {
     const user = userEvent.setup()
     const onChange = vi.fn()

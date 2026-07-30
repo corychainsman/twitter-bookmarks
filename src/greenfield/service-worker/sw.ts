@@ -66,6 +66,35 @@ class AdaptiveCacheLimitPlugin implements WorkboxPlugin {
 
 registerRoute(
   ({ request, url }) =>
+    request.method === "GET"
+    && (
+      (url.origin === self.location.origin && url.pathname.endsWith(".wasm"))
+      || (
+        url.origin === self.location.origin
+        && url.pathname.includes("/assets/ort-wasm-")
+        && url.pathname.endsWith(".mjs")
+      )
+      || (
+        url.hostname === "cdn.jsdelivr.net"
+        && url.pathname.includes("/onnxruntime-web@")
+        && (url.pathname.endsWith(".wasm") || url.pathname.endsWith(".mjs"))
+      )
+    ),
+  new CacheFirst({
+    cacheName: "x-inspo-semantic-runtime-v1",
+    plugins: [
+      new CacheableResponsePlugin({ statuses: [0, 200] }),
+      new ExpirationPlugin({
+        maxEntries: 8,
+        maxAgeSeconds: 60 * 60 * 24 * 365,
+        purgeOnQuotaError: true,
+      }),
+    ],
+  }),
+)
+
+registerRoute(
+  ({ request, url }) =>
     request.mode === "navigate" && url.origin === self.location.origin && !url.pathname.startsWith("/api"),
   createHandlerBoundToURL("/index.html"),
 )

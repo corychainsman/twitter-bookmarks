@@ -28,6 +28,7 @@ export function MobileToolbar({
   sortOptions,
   density,
   shufflePending,
+  onSearchIntent,
   onSearchDraftChange,
   onSearchSubmit,
   onMobileFiltersOpenChange,
@@ -62,6 +63,7 @@ export function MobileToolbar({
           value={searchDraft}
           placeholder={searchPlaceholder}
           pending={false}
+          onIntent={onSearchIntent}
           onChange={onSearchDraftChange}
           onSubmit={onSearchSubmit}
           className="min-w-0 flex-1"

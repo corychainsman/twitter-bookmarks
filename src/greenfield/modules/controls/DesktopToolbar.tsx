@@ -24,6 +24,7 @@ export function DesktopToolbar({
   sortOptions,
   density,
   shufflePending,
+  onSearchIntent,
   onSearchDraftChange,
   onSearchSubmit,
   onFilterRailOpenChange,
@@ -47,6 +48,7 @@ export function DesktopToolbar({
         placeholder={searchPlaceholder}
         pending={false}
         compact
+        onIntent={onSearchIntent}
         onChange={onSearchDraftChange}
         onSubmit={onSearchSubmit}
         className="min-w-48 max-w-xl flex-1"

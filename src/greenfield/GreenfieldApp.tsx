@@ -50,6 +50,11 @@ import {
   validateWallSearch,
   type WallMutation,
 } from "@/greenfield/router"
+import {
+  prepareSemanticQuery,
+  prepareSemanticSearch,
+  scheduleSemanticSearchIdlePreload,
+} from "@/greenfield/semantic/query-client"
 
 const compositionEngine = createCompositionEngine()
 const loadMediaLightbox = () => import("@/greenfield/modules/lightbox/MediaLightbox")
@@ -243,6 +248,14 @@ export function GreenfieldApp() {
   const setSearchDraft = useCallback((value: string) => {
     setSearchDraftState({ committed: search.q, value })
   }, [search.q])
+
+  useEffect(() => scheduleSemanticSearchIdlePreload(), [])
+
+  useEffect(() => {
+    if (searchDraft.trim().length < 2) return
+    const timeout = window.setTimeout(() => prepareSemanticQuery(searchDraft), 250)
+    return () => window.clearTimeout(timeout)
+  }, [searchDraft])
 
   const records = useMemo(
     () => dedupeRecords(discovery.data?.pages.map((page) => page.records) ?? []),
@@ -515,6 +528,7 @@ export function GreenfieldApp() {
           max: DENSITY_MAX,
           step: 0.025,
         }}
+        onSearchIntent={prepareSemanticSearch}
         onSearchDraftChange={setSearchDraft}
         onSearchSubmit={(q) => commit({ type: "search", q })}
         onDesktopFiltersChange={(filters) =>

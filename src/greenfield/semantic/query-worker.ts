@@ -1,6 +1,8 @@
 /// <reference lib="webworker" />
 
 import { env, pipeline } from "@huggingface/transformers"
+import ortWasmFactoryUrl from "../../../node_modules/onnxruntime-web/dist/ort-wasm-simd-threaded.asyncify.mjs?url"
+import ortWasmUrl from "../../../node_modules/onnxruntime-web/dist/ort-wasm-simd-threaded.asyncify.wasm?url"
 
 import {
   SEMANTIC_EMBEDDING_DIMENSIONS,
@@ -16,6 +18,13 @@ type QueryRequest = { type: "encode"; id: number; text: string }
 env.allowRemoteModels = false
 env.allowLocalModels = true
 env.localModelPath = SEMANTIC_LOCAL_MODEL_ROOT
+const wasmEnvironment = env.backends.onnx.wasm
+if (wasmEnvironment) {
+  wasmEnvironment.wasmPaths = {
+    mjs: new URL(ortWasmFactoryUrl, self.location.origin).toString(),
+    wasm: new URL(ortWasmUrl, self.location.origin).toString(),
+  }
+}
 
 const extractorPromise = pipeline("feature-extraction", SEMANTIC_MODEL_ID, {
   dtype: "q8",

@@ -73,6 +73,7 @@ export interface WallControlProps {
   sortOptions: SortOption[]
   density: DensityControlValue
   shufflePending?: boolean
+  onSearchIntent: () => void
   onSearchDraftChange: (draft: string) => void
   onSearchSubmit: (query: string) => void
   onDesktopFiltersChange: (filters: ControlFilterValues) => void
