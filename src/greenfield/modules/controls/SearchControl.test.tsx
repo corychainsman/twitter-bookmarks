@@ -35,4 +35,24 @@ describe("SearchControl", () => {
     expect(onSubmit).toHaveBeenCalledOnce()
     expect(onSubmit).toHaveBeenCalledWith("texture")
   })
+
+  it("clears and commits the empty query immediately", async () => {
+    const user = userEvent.setup()
+    const onChange = vi.fn()
+    const onSubmit = vi.fn()
+    render(
+      <SearchControl
+        value="texture"
+        onChange={onChange}
+        onSubmit={onSubmit}
+      />,
+    )
+
+    await user.click(screen.getByRole("button", { name: "Clear search" }))
+
+    expect(onChange).toHaveBeenCalledOnce()
+    expect(onChange).toHaveBeenCalledWith("")
+    expect(onSubmit).toHaveBeenCalledOnce()
+    expect(onSubmit).toHaveBeenCalledWith("")
+  })
 })

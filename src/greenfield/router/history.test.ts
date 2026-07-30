@@ -35,6 +35,24 @@ describe("wall history policy", () => {
     })
   })
 
+  it("clears only the query while preserving every other wall control", () => {
+    const filtered: CommittedWallState = {
+      ...current,
+      q: "texture",
+      filters: [{ id: "kind", values: ["image"] }],
+      sort: "newest",
+      mode: "hybrid",
+      seed: "kept",
+      density: 1.4,
+    }
+
+    expect(planWallNavigation(filtered, { type: "search", q: "" })).toEqual({
+      search: { ...filtered, q: "" },
+      history: "push",
+      landing: "top",
+    })
+  })
+
   it("replaces an impractical density with auto", () => {
     const plan = planWallNavigation(
       { ...current, density: 2 },
@@ -48,4 +66,3 @@ describe("wall history policy", () => {
     })
   })
 })
-

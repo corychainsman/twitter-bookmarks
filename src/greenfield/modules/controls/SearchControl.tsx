@@ -1,4 +1,4 @@
-import { LoaderCircle, Search } from "lucide-react"
+import { LoaderCircle, Search, X } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -45,16 +45,32 @@ export function SearchControl({
         placeholder={placeholder}
         aria-label={placeholder}
         className={cn(
-          "h-11 bg-input/30 pr-12 pl-10 text-base focus-visible:bg-input/50 sm:text-sm",
+          "h-11 bg-input/30 pl-10 text-base focus-visible:bg-input/50 sm:text-sm [&::-webkit-search-cancel-button]:hidden",
+          value ? "pr-20" : "pr-12",
           compact && "sm:h-8",
         )}
       />
+      {value ? (
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon"
+          aria-label="Clear search"
+          onClick={() => {
+            onChange("")
+            onSubmit("")
+          }}
+          className="absolute top-1/2 right-10 size-10 -translate-y-1/2 sm:right-9.5 sm:size-8"
+        >
+          <X aria-hidden="true" className="size-4 shrink-0" />
+        </Button>
+      ) : null}
       <Button
         type="submit"
         variant="ghost"
         size="icon"
         aria-label="Submit search"
-        className="absolute top-1/2 right-1.5 size-8 -translate-y-1/2"
+        className="absolute top-1/2 right-0.5 size-10 -translate-y-1/2 sm:right-1.5 sm:size-8"
       >
         {pending ? (
           <LoaderCircle
