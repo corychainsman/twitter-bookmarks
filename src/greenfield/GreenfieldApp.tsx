@@ -689,6 +689,7 @@ export function GreenfieldApp() {
 
       <Suspense fallback={null}>
         <MediaLightbox
+          key={selectedMedia ? "open" : "closed"}
           media={selectedMedia}
           record={selectedRecord}
           sharedElement={openedFromWall}

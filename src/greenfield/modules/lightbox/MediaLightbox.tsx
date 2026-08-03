@@ -1,5 +1,5 @@
 import { ChevronLeft, ChevronRight, Info, Share2, X } from "lucide-react"
-import { motion, useReducedMotion } from "motion/react"
+import { AnimatePresence, motion, useReducedMotion, type Variants } from "motion/react"
 import { useCallback, useEffect, useRef, useState } from "react"
 
 import { Button } from "@/components/ui/button"
@@ -30,6 +30,29 @@ interface MediaLightboxProps {
   onPrevious: () => void
   onNext: () => void
   onSelectSibling: (mediaId: string) => void
+}
+
+type NavigationDirection = -1 | 0 | 1
+
+const mediaSlideVariants: Variants = {
+  enter: (direction: NavigationDirection) => ({
+    opacity: direction === 0 ? 0 : 0.88,
+    x: `${direction * 8}%`,
+    zIndex: 1,
+    transition: { duration: 0.18, ease: [0.22, 1, 0.36, 1] },
+  }),
+  center: {
+    opacity: 1,
+    x: "0%",
+    zIndex: 1,
+    transition: { duration: 0.18, ease: [0.22, 1, 0.36, 1] },
+  },
+  exit: (direction: NavigationDirection) => ({
+    opacity: 0,
+    x: `${direction * -8}%`,
+    zIndex: 0,
+    transition: { duration: 0.1, ease: [0.4, 0, 1, 1] },
+  }),
 }
 
 async function copyToClipboard(value: string) {
@@ -109,8 +132,7 @@ function Metadata({
       </div>
 
       {record && record.assets.length > 1 && (
-        <div className="flex flex-col gap-3">
-          <h3 className="font-medium">More from this record</h3>
+        <div>
           <ul role="list" className="grid grid-cols-4 gap-2">
             {record.assets.map((sibling) => (
               <li key={sibling.id}>
@@ -149,6 +171,8 @@ export function MediaLightbox({
   const [detailsOpen, setDetailsOpen] = useState(false)
   const [detailsHeight, setDetailsHeight] = useState(0)
   const [copiedOpen, setCopiedOpen] = useState(false)
+  const [navigationDirection, setNavigationDirection] = useState<NavigationDirection>(0)
+  const [hasNavigated, setHasNavigated] = useState(false)
   const detailsContentRef = useRef<HTMLDivElement>(null)
   const copiedTimeoutRef = useRef<number | undefined>(undefined)
   const setDetailsContent = useCallback((content: HTMLDivElement | null) => {
@@ -177,15 +201,33 @@ export function MediaLightbox({
     }
   }, [media])
 
+  const navigatePrevious = useCallback(() => {
+    setNavigationDirection(-1)
+    setHasNavigated(true)
+    onPrevious()
+  }, [onPrevious])
+
+  const navigateNext = useCallback(() => {
+    setNavigationDirection(1)
+    setHasNavigated(true)
+    onNext()
+  }, [onNext])
+
+  const selectSibling = useCallback((mediaId: string) => {
+    setNavigationDirection(0)
+    setHasNavigated(true)
+    onSelectSibling(mediaId)
+  }, [onSelectSibling])
+
   useEffect(() => {
     if (!media) return
     const handleKey = (event: KeyboardEvent) => {
-      if (event.key === "ArrowLeft") onPrevious()
-      if (event.key === "ArrowRight") onNext()
+      if (event.key === "ArrowLeft") navigatePrevious()
+      if (event.key === "ArrowRight") navigateNext()
     }
     window.addEventListener("keydown", handleKey)
     return () => window.removeEventListener("keydown", handleKey)
-  }, [media, onNext, onPrevious])
+  }, [media, navigateNext, navigatePrevious])
 
   useEffect(() => () => window.clearTimeout(copiedTimeoutRef.current), [])
 
@@ -220,11 +262,11 @@ export function MediaLightbox({
                 <span className="pointer-fine:hidden absolute start-1/2 top-1/2 size-[max(100%,3rem)] -translate-1/2" aria-hidden="true" />
               </Button>
               <div className="flex items-center gap-1">
-                <Button type="button" variant="ghost" size="icon" className="relative" aria-label="Previous media" onClick={onPrevious}>
+                <Button type="button" variant="ghost" size="icon" className="relative" aria-label="Previous media" onClick={navigatePrevious}>
                   <ChevronLeft className="size-4 shrink-0" aria-hidden="true" />
                   <span className="pointer-fine:hidden absolute start-1/2 top-1/2 size-[max(100%,3rem)] -translate-1/2" aria-hidden="true" />
                 </Button>
-                <Button type="button" variant="ghost" size="icon" className="relative" aria-label="Next media" onClick={onNext}>
+                <Button type="button" variant="ghost" size="icon" className="relative" aria-label="Next media" onClick={navigateNext}>
                   <ChevronRight className="size-4 shrink-0" aria-hidden="true" />
                   <span className="pointer-fine:hidden absolute start-1/2 top-1/2 size-[max(100%,3rem)] -translate-1/2" aria-hidden="true" />
                 </Button>
@@ -261,26 +303,43 @@ export function MediaLightbox({
                       <DrawerDescription>Record metadata and sibling assets.</DrawerDescription>
                     </DrawerHeader>
                     <div className="overflow-y-auto px-5 pt-5 pb-[calc(env(safe-area-inset-bottom)+1.25rem)]">
-                      <Metadata media={media} record={record} onSelectSibling={onSelectSibling} />
+                      <Metadata media={media} record={record} onSelectSibling={selectSibling} />
                     </div>
                   </DrawerContent>
                 </Drawer>
               </div>
             </div>
 
-            <MediaViewport
-              key={media.id}
-              media={media}
-              sharedElement={sharedElement}
-              bottomInset={detailsOpen ? detailsHeight : 0}
-              onClose={onClose}
-              onPrevious={onPrevious}
-              onNext={onNext}
-            />
+            <div
+              className="relative min-h-0 flex-1 overflow-hidden"
+              data-media-navigation-direction={navigationDirection}
+            >
+              <AnimatePresence initial={false} custom={navigationDirection}>
+                <motion.div
+                  key={media.id}
+                  className="absolute inset-0 flex"
+                  custom={navigationDirection}
+                  variants={mediaSlideVariants}
+                  initial={reduceMotion ? false : "enter"}
+                  animate="center"
+                  exit={reduceMotion ? undefined : "exit"}
+                  transition={reduceMotion ? { duration: 0 } : undefined}
+                >
+                  <MediaViewport
+                    media={media}
+                    sharedElement={sharedElement && !hasNavigated}
+                    bottomInset={detailsOpen ? detailsHeight : 0}
+                    onClose={onClose}
+                    onPrevious={navigatePrevious}
+                    onNext={navigateNext}
+                  />
+                </motion.div>
+              </AnimatePresence>
+            </div>
           </div>
 
           <aside className="hidden w-88 shrink-0 overflow-y-auto border-s border-white/8 bg-card/45 p-6 lg:block">
-            <Metadata media={media} record={record} onSelectSibling={onSelectSibling} />
+            <Metadata media={media} record={record} onSelectSibling={selectSibling} />
           </aside>
           </motion.div>
         </DialogContent>

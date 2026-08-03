@@ -31,6 +31,18 @@ const record: MediaRecord = {
   eligibleRepresentativeAssetIds: [media.id],
 }
 
+const sibling: MediaAsset = {
+  ...media,
+  id: "post-1:1",
+  title: "A second study",
+}
+
+const multiAssetRecord: MediaRecord = {
+  ...record,
+  assets: [media, sibling],
+  eligibleRepresentativeAssetIds: [media.id, sibling.id],
+}
+
 describe("MediaLightbox metadata", () => {
   it("links the author and localized post timestamp to X", () => {
     vi.stubGlobal(
@@ -104,5 +116,33 @@ describe("MediaLightbox metadata", () => {
     act(() => vi.advanceTimersByTime(1_400))
     expect(screen.queryByRole("status")).not.toBeInTheDocument()
     vi.useRealTimers()
+  })
+
+  it("uses directional navigation without labeling sibling thumbnails", () => {
+    const onPrevious = vi.fn()
+    const onNext = vi.fn()
+
+    render(
+      <MediaLightbox
+        media={media}
+        record={multiAssetRecord}
+        onClose={vi.fn()}
+        onPrevious={onPrevious}
+        onNext={onNext}
+        onSelectSibling={vi.fn()}
+      />,
+    )
+
+    expect(screen.queryByText("More from this record")).not.toBeInTheDocument()
+
+    fireEvent.click(screen.getByRole("button", { name: "Next media" }))
+    expect(onNext).toHaveBeenCalledOnce()
+    expect(document.querySelector("[data-media-navigation-direction]"))
+      .toHaveAttribute("data-media-navigation-direction", "1")
+
+    fireEvent.keyDown(window, { key: "ArrowLeft" })
+    expect(onPrevious).toHaveBeenCalledOnce()
+    expect(document.querySelector("[data-media-navigation-direction]"))
+      .toHaveAttribute("data-media-navigation-direction", "-1")
   })
 })

@@ -22,11 +22,19 @@ interface WaitingUpdateContext {
   wasWaitingBeforeRegister: boolean
 }
 
+type UpdateActivationSource = "startup" | "user"
+
 export function shouldActivateWaitingUpdateOnStartup({
   elapsedSinceRegistrationMs,
   wasWaitingBeforeRegister,
 }: WaitingUpdateContext) {
   return wasWaitingBeforeRegister || elapsedSinceRegistrationMs <= STARTUP_UPDATE_WINDOW_MS
+}
+
+export function shouldReloadAfterServiceWorkerActivation(
+  source: UpdateActivationSource,
+) {
+  return source === "user"
 }
 
 function dismissPrompt(prompt: HTMLElement) {
@@ -131,10 +139,16 @@ export function registerServiceWorker() {
   let updateRequested = false
   let waitingWorkerAnnounced = false
 
-  const applyUpdate = () => {
+  const reloadOnce = () => {
+    if (!reloadWhenControlling || reloadStarted) return
+    reloadStarted = true
+    window.location.reload()
+  }
+
+  const applyUpdate = (source: UpdateActivationSource) => {
     if (updateRequested) return
     updateRequested = true
-    reloadWhenControlling = true
+    reloadWhenControlling = shouldReloadAfterServiceWorkerActivation(source)
     workbox.messageSkipWaiting()
   }
 
@@ -147,23 +161,20 @@ export function registerServiceWorker() {
         wasWaitingBeforeRegister,
       })
     ) {
-      applyUpdate()
+      applyUpdate("startup")
       return
     }
 
     if (waitingWorkerAnnounced) return
     waitingWorkerAnnounced = true
     announceUpdate({
-      applyUpdate,
+      applyUpdate: () => applyUpdate("user"),
       wasWaitingBeforeRegister,
     })
   })
 
-  workbox.addEventListener("controlling", () => {
-    if (!reloadWhenControlling || reloadStarted) return
-    reloadStarted = true
-    window.location.reload()
-  })
+  workbox.addEventListener("activated", reloadOnce)
+  workbox.addEventListener("controlling", reloadOnce)
 
   void workbox.register().catch(() => {
     registrationStarted = false

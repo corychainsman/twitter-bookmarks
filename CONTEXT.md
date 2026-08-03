@@ -83,10 +83,12 @@ shell and keeps bounded recent-result and media caches for resilient revisits.
 Hard entry caps are 40 results, 140
 same-origin images, 12 cross-origin images, and eight same-origin videos;
 storage estimates reduce those limits on constrained devices.
-An update already waiting at navigation, or discovered during initial startup,
-activates silently and performs one controlled reload so the page opens on the
-new application version. Updates discovered later in an active session retain
-the non-disruptive refresh prompt.
+Navigations are network-first with the precached application shell as their
+offline fallback. An update already waiting at navigation, or discovered during
+initial startup, activates silently without reloading an already-rendered wall;
+the next navigation uses the new worker. Updates discovered later in an active
+session retain the non-disruptive refresh prompt, whose explicit Refresh action
+may reload the document.
 
 An hourly systemd user timer runs the production refresh orchestrator. It uses
 the tracked `ops/refresh-state.json` bookmark ID as the durable GitHub

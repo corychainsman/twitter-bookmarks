@@ -1,6 +1,10 @@
 import { afterEach, describe, expect, it, vi } from "vitest"
 
-import { shouldActivateWaitingUpdateOnStartup, showDefaultUpdatePrompt } from "./register"
+import {
+  shouldActivateWaitingUpdateOnStartup,
+  shouldReloadAfterServiceWorkerActivation,
+  showDefaultUpdatePrompt,
+} from "./register"
 
 afterEach(() => {
   document.querySelector('[data-service-worker-update="true"]')?.remove()
@@ -33,6 +37,11 @@ describe("service worker update startup policy", () => {
         wasWaitingBeforeRegister: false,
       }),
     ).toBe(false)
+  })
+
+  it("does not reload an already-rendered wall for an automatic startup update", () => {
+    expect(shouldReloadAfterServiceWorkerActivation("startup")).toBe(false)
+    expect(shouldReloadAfterServiceWorkerActivation("user")).toBe(true)
   })
 
   it("keeps the update prompt interactive while a modal disables body hit testing", () => {
