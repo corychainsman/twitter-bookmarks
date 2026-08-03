@@ -43,10 +43,18 @@ Verify all of the following before considering promotion:
 1. `/api/discovery` returns JSON with real records and a next cursor.
 2. Search, kind/source/width/date filters, sorts, and cursor append work.
 3. Wall images and preview videos load from the production media origin.
+   Inspect representative image and video-poster `currentSrc` values at mobile
+   and desktop widths; wall cells should select the smallest adequate candidate
+   from the 240/320/480/680/1280/2048px AVIF ladder, not the original asset.
 4. `/media/:mediaId` opens directly, injects record-specific Open Graph and
    Twitter tags, and hydrates the addressable lightbox.
 5. Desktop and simulated-mobile browser runs have no console or page errors.
-6. The existing production hostname still serves its prior deployment.
+6. A cold Lighthouse run reports zero wall-induced CLS. The shadcn skeleton
+   should remain until the positioned wall covers the viewport and lookahead,
+   then disappear without a second visible reflow.
+7. Root HTML responses include CSP, HSTS, framing, MIME-sniffing, referrer, and
+   permissions headers; `/robots.txt` is plain text rather than the SPA shell.
+8. The existing production hostname still serves its prior deployment.
 
 ## Promotion
 

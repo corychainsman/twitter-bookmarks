@@ -265,9 +265,11 @@ JustifiedInfiniteGrid's item readiness. Loading or swapping a rendition therefor
 does not make the layout engine wait on or separately track nested media; an
 explicit repack remains the response to a genuine geometry change.
 
-Before the first JustifiedInfiniteGrid render completes, the grid is transparent
-and non-interactive beneath the same shadcn skeleton used during discovery.
-This keeps the library's initial static-to-positioned layout pass out of CLS.
+Before the first stable JustifiedInfiniteGrid render completes, the grid is
+transparent, `visibility:hidden`, and non-interactive beneath the same shadcn
+skeleton used during discovery. It is revealed only after positioned content
+covers the viewport plus the active render threshold, so both the library's
+static-to-positioned pass and its initial lookahead appends stay out of CLS.
 The mobile filter drawer is imported on first use, while the lightbox chunk is
 preloaded only after delayed idle time on capable desktops.
 

@@ -11,7 +11,9 @@ pipeline and the one-time Cloudflare/Namecheap/Drive setup.
   originals and v2 renditions are content-addressed; rendition
   records carry truthful dimensions, bytes, MIME type, and digest in
   `.data/media/mirror-manifest.json`. The width ladder is centralized in
-  `scripts/mirror-lib.ts` and capped at the oriented source width.
+  `scripts/mirror-lib.ts`: 240, 320, 480, 680, 1280, and 2048px, capped at the
+  oriented source width. The backfill command preserves verified existing
+  candidates and generates only missing widths.
 - **Serving**: Cloudflare R2 bucket `twitter-bookmarks`, public at
   `https://tbmedia.corychainsman.com` (custom domain on the Cloudflare CDN).
 - **Backup**: Google Drive at `corychainsman.com/media/twitter-bookmarks/`
@@ -30,10 +32,12 @@ pipeline and the one-time Cloudflare/Namecheap/Drive setup.
 
 `bun run refresh` runs: `sync:ft → data:mirror →
 data:backfill-image-variants → data:video-previews → mirror:sync → data:export
-→ data:embeddings → data:validate → build`.
+→ data:semantic-enrichment → data:embeddings → data:validate → build`.
 
 - `bun run data:mirror` — incremental; downloads only assets not yet mirrored.
   Flags: `--limit N`, `--concurrency N`, `--retry-failed`, `--dry-run`.
+- `bun run data:backfill-image-variants` — incrementally fills any missing
+  widths in the bounded AVIF ladder without regenerating verified candidates.
 - `bun run mirror:sync` — rclone copy to R2 (full tree) and Drive (originals
   only). Append-only; never deletes remote objects. Skips targets whose
   rclone remote is missing.
@@ -87,7 +91,8 @@ The `gdrive:` rclone remote exists; if the token has expired run
 bun run data:backfill-image-variants
 bun run data:video-previews
 bun run mirror:sync          # upload and verify newly generated objects
-bun run data:export && bun run data:embeddings && bun run data:validate
+bun run data:export && bun run data:semantic-enrichment
+bun run data:embeddings && bun run data:validate
 bun run build                # then deploy as usual
 ```
 

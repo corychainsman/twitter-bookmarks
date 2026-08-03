@@ -66,11 +66,12 @@ another virtualization layer. Motion pairs stable media layout IDs between the
 justified wall and the lightbox. The lightbox adds pan, pinch/trackpad zoom, swipe
 navigation, and a desktop metadata rail or mobile details drawer.
 
-The unpositioned initial wall stays transparent beneath the shadcn skeleton
-until JustifiedInfiniteGrid reports its first completed layout, preventing its
-static-to-absolute placement pass from contributing layout shift. Mobile drawer
-code loads on first use; lightbox code warms only during delayed idle time on
-capable desktops.
+The unpositioned initial wall stays hidden beneath the shadcn skeleton until
+JustifiedInfiniteGrid has positioned enough rows to cover the viewport plus its
+offscreen lookahead. The grid is both transparent and `visibility:hidden`
+during that handoff, preventing its static-to-absolute placement and initial
+append passes from contributing layout shift. Mobile drawer code loads on first
+use; lightbox code warms only during delayed idle time on capable desktops.
 
 In staging and production, a Cloudflare Worker serves built assets and adapts
 its own versioned catalog through the asset binding into `/api/*`. It also enriches
