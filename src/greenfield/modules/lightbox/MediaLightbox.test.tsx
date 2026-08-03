@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from "@testing-library/react"
+import { act, fireEvent, render, screen } from "@testing-library/react"
 import { describe, expect, it, vi } from "vitest"
 
 import type { MediaAsset, MediaRecord } from "@/greenfield/contracts/domain"
@@ -74,5 +74,35 @@ describe("MediaLightbox metadata", () => {
     expect(document.querySelector('[data-slot="drawer-overlay"]')).toHaveClass(
       "supports-backdrop-filter:backdrop-blur-none",
     )
+  })
+
+  it("copies a minimal addressable media URL and briefly confirms it", async () => {
+    vi.useFakeTimers()
+    const writeText = vi.fn().mockResolvedValue(undefined)
+    vi.stubGlobal("navigator", {
+      ...navigator,
+      clipboard: { writeText },
+    })
+
+    render(
+      <MediaLightbox
+        media={media}
+        record={record}
+        onClose={vi.fn()}
+        onPrevious={vi.fn()}
+        onNext={vi.fn()}
+        onSelectSibling={vi.fn()}
+      />,
+    )
+
+    await act(async () => {
+      fireEvent.click(screen.getByRole("button", { name: "Copy media link" }))
+    })
+    expect(writeText).toHaveBeenCalledWith("http://localhost:3000/media/post-1%3A0")
+    expect(screen.getByRole("status")).toHaveTextContent("Copied")
+
+    act(() => vi.advanceTimersByTime(1_400))
+    expect(screen.queryByRole("status")).not.toBeInTheDocument()
+    vi.useRealTimers()
   })
 })

@@ -68,26 +68,28 @@ export function SearchControl({
           <X aria-hidden="true" className="size-4 shrink-0" />
         </Button>
       ) : null}
-      <Button
-        type="submit"
-        variant="ghost"
-        size="icon"
-        aria-label="Submit search"
-        className="absolute top-1/2 right-0.5 size-10 -translate-y-1/2 sm:right-1.5 sm:size-8"
-      >
-        {pending ? (
-          <LoaderCircle
+      <div className="absolute top-1/2 right-0.5 -translate-y-1/2 sm:right-1.5">
+        <Button
+          type="submit"
+          variant="ghost"
+          size="icon"
+          aria-label="Submit search"
+          className="relative size-10 sm:size-8"
+        >
+          {pending ? (
+            <LoaderCircle
+              aria-hidden="true"
+              className="size-4 shrink-0 animate-spin motion-reduce:animate-none"
+            />
+          ) : (
+            <Search aria-hidden="true" className="size-4 shrink-0" />
+          )}
+          <span
             aria-hidden="true"
-            className="size-4 shrink-0 animate-spin motion-reduce:animate-none"
+            className="pointer-fine:hidden absolute top-1/2 left-1/2 size-[max(100%,3rem)] -translate-1/2"
           />
-        ) : (
-          <Search aria-hidden="true" className="size-4 shrink-0" />
-        )}
-        <span
-          aria-hidden="true"
-          className="pointer-fine:hidden absolute top-1/2 left-1/2 size-[max(100%,3rem)] -translate-1/2"
-        />
-      </Button>
+        </Button>
+      </div>
     </form>
   )
 }

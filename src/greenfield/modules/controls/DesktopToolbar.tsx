@@ -62,6 +62,9 @@ export function DesktopToolbar({
           onClick={() => onFilterRailOpenChange(!filterRailOpen)}
         />
         <SortControl value={sort} options={sortOptions} onChange={onSortChange} />
+        {sort === "random" && (
+          <ShuffleButton pending={shufflePending} onClick={onShuffle} />
+        )}
         <ModeControl value={mode} onChange={onModeChange} />
         <DensityControl
           density={density}
@@ -69,7 +72,6 @@ export function DesktopToolbar({
           onCommit={onDensityCommit}
           onAuto={onDensityAuto}
         />
-        <ShuffleButton pending={shufflePending} onClick={onShuffle} />
       </div>
     </header>
   )

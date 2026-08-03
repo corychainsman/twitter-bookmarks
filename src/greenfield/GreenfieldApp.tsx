@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query"
-import { useNavigate, useRouterState } from "@tanstack/react-router"
+import { useNavigate, useRouter, useRouterState } from "@tanstack/react-router"
 import { useGesture } from "@use-gesture/react"
 import { LayoutGroup, useReducedMotion } from "motion/react"
 import {
@@ -46,6 +46,7 @@ import {
 } from "@/greenfield/modules/wall"
 import {
   planWallNavigation,
+  stringifyWallSearch,
   validateWallSearch,
   type WallMutation,
 } from "@/greenfield/router"
@@ -247,6 +248,7 @@ function renderWallMedia(asset: MediaAsset, context: WallMediaRenderContext) {
 
 export function GreenfieldApp() {
   const navigate = useNavigate()
+  const router = useRouter()
   const routeState = useRouterState()
   const routeSearch = routeState.location.search
   const search = useMemo(
@@ -279,6 +281,25 @@ export function GreenfieldApp() {
     controlsFromFilters(search.filters),
   )
   const [densityPreview, setDensityPreview] = useState<DensityPreview>()
+
+  useEffect(() => {
+    if (
+      search.sort === "random" ||
+      !new URLSearchParams(window.location.search).has("seed")
+    ) return
+
+    router.history.replace(
+      `${pathname}${stringifyWallSearch(search)}${routeState.location.hash}`,
+      routeState.location.state,
+    )
+  }, [
+    pathname,
+    routeState.location.hash,
+    routeState.location.searchStr,
+    routeState.location.state,
+    router.history,
+    search,
+  ])
 
   const searchDraft = searchDraftState.committed === search.q
     ? searchDraftState.value

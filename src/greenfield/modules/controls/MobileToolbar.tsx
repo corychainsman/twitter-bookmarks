@@ -89,6 +89,13 @@ export function MobileToolbar({
           onOpenChange={(open) => setSurfaceOpen("sort", open)}
           className="h-11 shrink-0"
         />
+        {sort === "random" && (
+          <ShuffleButton
+            pending={shufflePending}
+            compact
+            onClick={onShuffle}
+          />
+        )}
         <ModeControl
           value={mode}
           onChange={onModeChange}
@@ -102,11 +109,6 @@ export function MobileToolbar({
           onCommit={onDensityCommit}
           onAuto={onDensityAuto}
           onOpenChange={(open) => setSurfaceOpen("density", open)}
-        />
-        <ShuffleButton
-          pending={shufflePending}
-          compact
-          onClick={onShuffle}
         />
       </div>
     </header>

@@ -1,4 +1,4 @@
-import { ChevronLeft, ChevronRight, Info, X } from "lucide-react"
+import { ChevronLeft, ChevronRight, Info, Share2, X } from "lucide-react"
 import { motion, useReducedMotion } from "motion/react"
 import { useCallback, useEffect, useRef, useState } from "react"
 
@@ -17,6 +17,7 @@ import {
   DrawerTitle,
   DrawerTrigger,
 } from "@/components/ui/drawer"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import type { MediaAsset, MediaRecord } from "@/greenfield/contracts/domain"
 
 import { MediaViewport } from "./MediaViewport"
@@ -29,6 +30,26 @@ interface MediaLightboxProps {
   onPrevious: () => void
   onNext: () => void
   onSelectSibling: (mediaId: string) => void
+}
+
+async function copyToClipboard(value: string) {
+  if (navigator.clipboard?.writeText) {
+    await navigator.clipboard.writeText(value)
+    return
+  }
+
+  const textarea = document.createElement("textarea")
+  textarea.value = value
+  textarea.style.position = "fixed"
+  textarea.style.opacity = "0"
+  document.body.append(textarea)
+  textarea.select()
+
+  try {
+    if (!document.execCommand("copy")) throw new Error("Clipboard copy failed")
+  } finally {
+    textarea.remove()
+  }
 }
 
 function Metadata({
@@ -127,7 +148,9 @@ export function MediaLightbox({
   const reduceMotion = useReducedMotion()
   const [detailsOpen, setDetailsOpen] = useState(false)
   const [detailsHeight, setDetailsHeight] = useState(0)
+  const [copiedOpen, setCopiedOpen] = useState(false)
   const detailsContentRef = useRef<HTMLDivElement>(null)
+  const copiedTimeoutRef = useRef<number | undefined>(undefined)
   const setDetailsContent = useCallback((content: HTMLDivElement | null) => {
     detailsContentRef.current = content
     if (content) setDetailsHeight(Math.ceil(content.getBoundingClientRect().height))
@@ -164,6 +187,18 @@ export function MediaLightbox({
     return () => window.removeEventListener("keydown", handleKey)
   }, [media, onNext, onPrevious])
 
+  useEffect(() => () => window.clearTimeout(copiedTimeoutRef.current), [])
+
+  const copyMediaLink = useCallback(async () => {
+    if (!media) return
+
+    const mediaUrl = new URL(`/media/${encodeURIComponent(media.id)}`, window.location.origin)
+    await copyToClipboard(mediaUrl.toString())
+    window.clearTimeout(copiedTimeoutRef.current)
+    setCopiedOpen(true)
+    copiedTimeoutRef.current = window.setTimeout(() => setCopiedOpen(false), 1_400)
+  }, [media])
+
   return (
     <Dialog open={Boolean(media)} onOpenChange={(open) => !open && onClose()}>
       {media && (
@@ -193,6 +228,22 @@ export function MediaLightbox({
                   <ChevronRight className="size-4 shrink-0" aria-hidden="true" />
                   <span className="pointer-fine:hidden absolute start-1/2 top-1/2 size-[max(100%,3rem)] -translate-1/2" aria-hidden="true" />
                 </Button>
+                <Popover open={copiedOpen} onOpenChange={setCopiedOpen}>
+                  <PopoverTrigger asChild>
+                    <Button type="button" variant="ghost" size="icon" className="relative" aria-label="Copy media link" onClick={() => void copyMediaLink()}>
+                      <Share2 className="size-4 shrink-0" aria-hidden="true" />
+                      <span className="pointer-fine:hidden absolute start-1/2 top-1/2 size-[max(100%,3rem)] -translate-1/2" aria-hidden="true" />
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent
+                    role="status"
+                    side="bottom"
+                    align="center"
+                    className="w-auto px-3 py-1.5 text-xs font-medium"
+                  >
+                    Copied
+                  </PopoverContent>
+                </Popover>
                 <Drawer open={detailsOpen} onOpenChange={setDetailsOpen}>
                   <DrawerTrigger asChild>
                     <Button type="button" variant="ghost" size="icon" className="relative lg:hidden" aria-label="Open media details">

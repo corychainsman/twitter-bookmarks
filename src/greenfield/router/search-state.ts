@@ -156,7 +156,7 @@ export function stringifyWallSearch(rawSearch: unknown): string {
   }
   entries.push(`sort=${encode(search.sort)}`)
   entries.push(`mode=${encode(search.mode)}`)
-  entries.push(`seed=${encode(search.seed)}`)
+  if (search.sort === "random") entries.push(`seed=${encode(search.seed)}`)
   entries.push(`density=${encode(String(search.density))}`)
   if (search.similar) entries.push(`similar=${encode(search.similar)}`)
 

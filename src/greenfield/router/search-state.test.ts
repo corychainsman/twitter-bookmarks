@@ -47,6 +47,14 @@ describe("wall URL state", () => {
     })
   })
 
+  it("only serializes a composition seed for random sorting", () => {
+    const curated = validateWallSearch({ sort: "curated", seed: "hidden-seed" })
+    const random = validateWallSearch({ sort: "random", seed: "visible-seed" })
+
+    expect(stringifyWallSearch(curated)).not.toContain("seed=")
+    expect(stringifyWallSearch(random)).toContain("seed=visible-seed")
+  })
+
   it("rejects density values outside the supported continuous control range", () => {
     expect(validateWallSearch({ density: 0.59 }).density).toBe("auto")
     expect(validateWallSearch({ density: 1.76 }).density).toBe("auto")
