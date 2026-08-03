@@ -222,10 +222,12 @@ changes the server query when random sort is selected.
 ### Justified layout ownership
 
 `src/greenfield/modules/wall/MediaWall.tsx` is the single layout adapter. It
-uses react-infinitegrid's `JustifiedInfiniteGrid` with recycling, resize
-observation, and direct `top`/`left` placement (`useTransform={false}`). Stable
-`data-grid-groupkey` values allow independent append groups and reliable
-recycling. Detached recycling is not enabled.
+uses react-infinitegrid's `JustifiedInfiniteGrid` with resize observation and
+direct `top`/`left` placement (`useTransform={false}`). Rendered groups remain
+mounted: recycling whole groups can expose a transient empty band when the
+library advances its render range during continuous scrolling. Stable
+`data-grid-groupkey` values still allow independent append groups. Detached
+recycling is not enabled.
 
 An incomplete trailing composition group is buffered while another cursor page
 exists, with a compact loading status after the stable wall. This prevents a
@@ -233,8 +235,8 @@ single remainder item from temporarily becoming a full-width justified row.
 At the terminal page, the remainder joins the preceding group so the grid
 balances the final rows once without cropping or stretching.
 
-JustifiedInfiniteGrid alone owns placement, measurement, request-append, and
-recycling. TanStack Virtual is intentionally absent. Do not wrap this wall in
+JustifiedInfiniteGrid alone owns placement, measurement, and request-append.
+TanStack Virtual is intentionally absent. Do not wrap this wall in
 another virtual list or add a competing masonry algorithm.
 
 Initial tile dimensions derive from an aspect-aware slice layout. Each slice

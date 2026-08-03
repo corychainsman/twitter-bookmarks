@@ -58,8 +58,9 @@ result set is loading.
 
 Records pass through the deterministic composition engine and then into
 react-infinitegrid's `JustifiedInfiniteGrid`, which alone owns wall placement,
-measurement, append requests, and standard recycling; detached recycling is
-not enabled. Known tile geometry and `data-grid-skip` media subtrees keep image
+measurement, and append requests. Rendered groups remain mounted because the
+library's group recycling can expose transient holes during continuous scrolling;
+detached recycling is not enabled. Known tile geometry and `data-grid-skip` media subtrees keep image
 readiness from delaying layout. The wall does not use TanStack Virtual or
 another virtualization layer. Motion pairs stable media layout IDs between the
 justified wall and the lightbox. The lightbox adds pan, pinch/trackpad zoom, swipe
@@ -130,7 +131,7 @@ See `docs/system-architecture.md` for the complete boundaries and behavior.
   vendored quantized model, and the catalog Worker scans the static index and
   fuses semantic candidates with exact lexical matches. Data-saver clients keep
   the lexical path and do not download the query model.
-- JustifiedInfiniteGrid is the only wall layout/recycling engine. Do not add
+- JustifiedInfiniteGrid is the only wall layout engine. Do not add
   TanStack Virtual or nest another virtualizer around it.
 - Server result identity includes search, filters, sort, and similar-media
   target. Seed joins that identity only for random sort; otherwise seed, mode,

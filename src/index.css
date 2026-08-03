@@ -63,6 +63,7 @@
   html {
     background: var(--background);
     font-family: "Geist Variable", ui-sans-serif, system-ui, sans-serif;
+    scrollbar-gutter: stable;
   }
 
   body {
@@ -79,12 +80,6 @@
   select,
   textarea {
     font: inherit;
-  }
-}
-
-@media (pointer: fine) {
-  html {
-    scrollbar-gutter: stable;
   }
 }
 

@@ -1,27 +1,8 @@
-import { act, fireEvent, render } from "@testing-library/react"
-import { beforeEach, describe, expect, it, vi } from "vitest"
+import { fireEvent, render } from "@testing-library/react"
+import { describe, expect, it } from "vitest"
 
 import type { MediaAsset } from "../../contracts/domain"
 import { ResponsivePicture } from "./ResponsivePicture"
-
-let observerCallback: IntersectionObserverCallback | undefined
-const observerOptions = vi.hoisted(() => vi.fn())
-
-class IntersectionObserverStub implements IntersectionObserver {
-  readonly root = null
-  readonly rootMargin = "0px"
-  readonly scrollMargin = "0px"
-  readonly thresholds = [0]
-  disconnect = vi.fn()
-  observe = vi.fn()
-  takeRecords = vi.fn(() => [])
-  unobserve = vi.fn()
-
-  constructor(callback: IntersectionObserverCallback, options?: IntersectionObserverInit) {
-    observerCallback = callback
-    observerOptions(options)
-  }
-}
 
 const asset: MediaAsset = {
   id: "media-1",
@@ -52,37 +33,27 @@ const asset: MediaAsset = {
       mimeType: "image/jpeg",
     },
   ],
-  lightbox: [],
+  lightbox: [
+    {
+      url: "https://media.test/image-original.jpg?v=original",
+      width: 1_600,
+      height: 900,
+      mimeType: "image/jpeg",
+    },
+  ],
 }
 
 describe("ResponsivePicture", () => {
-  beforeEach(() => {
-    observerCallback = undefined
-    observerOptions.mockReset()
-    vi.stubGlobal("IntersectionObserver", IntersectionObserverStub)
-  })
-
-  it("admits sources inside the grid lookahead and then loads eagerly", () => {
+  it("loads eagerly as soon as InfiniteGrid mounts it inside the grid lookahead", () => {
     const { container } = render(
       <ResponsivePicture
         asset={asset}
-        preloadMargin="1120px 0px"
         sizes="24vw"
       />,
     )
     const image = container.querySelector("img")!
 
-    expect(image).not.toHaveAttribute("src")
     expect(image).toHaveAttribute("loading", "eager")
-    expect(observerOptions).toHaveBeenCalledWith({
-      rootMargin: "1120px 0px",
-      threshold: 0,
-    })
-
-    act(() => observerCallback?.([
-      { isIntersecting: true } as IntersectionObserverEntry,
-    ], {} as IntersectionObserver))
-
     expect(image).toHaveAttribute("src", "https://media.test/image-1280.jpg?v=jpeg-large")
     expect(container.querySelector('source[type="image/avif"]')).toBeInTheDocument()
   })
@@ -99,12 +70,33 @@ describe("ResponsivePicture", () => {
 
     expect(image).toHaveAttribute("data-load-attempt", "1")
     expect(container.querySelector("source")).not.toBeInTheDocument()
-    expect(image).toHaveAttribute("src", "https://media.test/image-1280.jpg?v=jpeg-large")
+    expect(image.getAttribute("src")).toContain("image-1280.jpg")
+    expect(image.getAttribute("src")).toContain("wall-retry=1")
 
     fireEvent.error(image)
 
     expect(image).toHaveAttribute("data-load-attempt", "2")
+    expect(image.getAttribute("src")).toContain("image-original.jpg")
+    expect(image.getAttribute("src")).toContain("wall-retry=2")
+    expect(image.getAttribute("srcset")).toContain("image-original.jpg")
+    expect(image.getAttribute("srcset")).toContain("wall-retry=2")
+  })
+
+  it("forces a new request when an AVIF-only wall image fails", () => {
+    const avifOnlyAsset: MediaAsset = {
+      ...asset,
+      wall: asset.wall.filter((candidate) => candidate.mimeType === "image/avif"),
+    }
+    const { container } = render(
+      <ResponsivePicture asset={avifOnlyAsset} priority sizes="24vw" />,
+    )
+    const image = container.querySelector("img")!
+    const initialSrc = image.getAttribute("src")
+
+    fireEvent.error(image)
+
+    expect(image).toHaveAttribute("data-load-attempt", "1")
+    expect(image.getAttribute("src")).not.toBe(initialSrc)
     expect(image.getAttribute("src")).toContain("wall-retry=1")
-    expect(image.getAttribute("srcset")).toContain("wall-retry=1")
   })
 })

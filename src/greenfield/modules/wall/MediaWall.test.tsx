@@ -21,6 +21,7 @@ interface MockGridProps {
   sizeRange?: number[]
   stretch?: boolean
   threshold?: number
+  useRecycle?: boolean
   onRequestAppend?: (event: {
     groupKey: string
     nextGroupKeys: string[]
@@ -47,6 +48,7 @@ vi.mock("@egjs/react-infinitegrid", () => ({
         data-size-range={props.sizeRange?.join(",")}
         data-stretch={String(props.stretch)}
         data-threshold={props.threshold}
+        data-use-recycle={String(props.useRecycle)}
         data-use-transform={String(props.useTransform)}
         role={props.role}
       >
@@ -150,6 +152,7 @@ describe("MediaWall", () => {
     expect(screen.getByTestId("justified-grid")).toHaveAttribute("data-stretch", "false")
     expect(screen.getByTestId("justified-grid")).toHaveAttribute("data-size-range", "180,260")
     expect(screen.getByTestId("justified-grid")).toHaveAttribute("data-threshold", "800")
+    expect(screen.getByTestId("justified-grid")).toHaveAttribute("data-use-recycle", "false")
     expect(screen.getByRole("listitem")).toHaveAttribute(
       "data-grid-groupkey",
       "layout-independent-0",
@@ -187,6 +190,31 @@ describe("MediaWall", () => {
     await waitFor(() => {
       expect(gridSpies.renderItems).toHaveBeenCalledWith({ useResize: true })
     })
+  })
+
+  it("does not force a full remeasure when cursor pages append tiles", async () => {
+    const firstTile = tile()
+    const secondMedia = asset(2)
+    const secondTile: WallTile = {
+      ...tile(),
+      id: "asset:record-2:0",
+      recordId: "record-2",
+      media: [secondMedia],
+      representative: secondMedia,
+      groupKey: "layout-independent-1",
+    }
+    const { rerender } = render(
+      <MediaWall tiles={[firstTile]} onOpenMedia={() => undefined} />,
+    )
+
+    await waitFor(() => expect(gridSpies.renderItems).toHaveBeenCalledOnce())
+    gridSpies.renderItems.mockClear()
+
+    rerender(
+      <MediaWall tiles={[firstTile, secondTile]} onOpenMedia={() => undefined} />,
+    )
+
+    expect(gridSpies.renderItems).not.toHaveBeenCalled()
   })
 
   it("renders at most four individually addressable collage cells and overflow", () => {

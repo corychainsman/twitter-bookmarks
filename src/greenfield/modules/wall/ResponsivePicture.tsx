@@ -1,4 +1,4 @@
-import { memo, useEffect, useMemo, useRef, useState } from "react"
+import { memo, useMemo, useState } from "react"
 
 import type { MediaAsset } from "../../contracts/domain"
 import { buildResponsiveRenditions } from "./mediaSources"
@@ -6,16 +6,15 @@ import { buildResponsiveRenditions } from "./mediaSources"
 export interface ResponsivePictureProps {
   asset: MediaAsset
   className?: string
-  preloadMargin?: string
   priority?: boolean
   sizes: string
 }
 
 function retryUrl(url: string, attempt: number): string {
-  if (attempt < 2) return url
+  if (attempt === 0) return url
 
   const retry = new URL(url)
-  retry.searchParams.set("wall-retry", String(attempt - 1))
+  retry.searchParams.set("wall-retry", String(attempt))
   return retry.toString()
 }
 
@@ -31,50 +30,29 @@ function retrySrcSet(
 export const ResponsivePicture = memo(function ResponsivePicture({
   asset,
   className,
-  preloadMargin = "800px 0px",
   priority = false,
   sizes,
 }: ResponsivePictureProps) {
-  const imageRef = useRef<HTMLImageElement>(null)
-  const [admittedAssetId, setAdmittedAssetId] = useState<string | undefined>(
-    priority ? asset.id : undefined,
-  )
   const [failure, setFailure] = useState({ assetId: asset.id, attempt: 0 })
-  const sourceAdmitted = priority || admittedAssetId === asset.id
   const loadAttempt = failure.assetId === asset.id ? failure.attempt : 0
   const renditions = useMemo(() => buildResponsiveRenditions(asset.wall), [asset.wall])
-  const fallbackSrc = renditions.src
-    ? retryUrl(renditions.src, loadAttempt)
+  const recoveryRenditions = useMemo(
+    () => buildResponsiveRenditions(asset.lightbox),
+    [asset.lightbox],
+  )
+  const activeFallback = loadAttempt >= 2 && recoveryRenditions.src
+    ? recoveryRenditions
+    : renditions
+  const fallbackSrc = activeFallback.src
+    ? retryUrl(activeFallback.src, loadAttempt)
     : undefined
-  const fallbackSrcSet = renditions.fallback
-    ? retrySrcSet(renditions.fallback.candidates, loadAttempt)
+  const fallbackSrcSet = activeFallback.fallback
+    ? retrySrcSet(activeFallback.fallback.candidates, loadAttempt)
     : undefined
-
-  useEffect(() => {
-    const image = imageRef.current
-    if (!image || priority || sourceAdmitted) return
-
-    if (typeof IntersectionObserver === "undefined") {
-      setAdmittedAssetId(asset.id)
-      return
-    }
-
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (!entry?.isIntersecting) return
-        setAdmittedAssetId(asset.id)
-        observer.disconnect()
-      },
-      { rootMargin: preloadMargin, threshold: 0 },
-    )
-
-    observer.observe(image)
-    return () => observer.disconnect()
-  }, [asset.id, preloadMargin, priority, sourceAdmitted])
 
   return (
     <picture className="contents" data-grid-skip="">
-      {sourceAdmitted && loadAttempt === 0 && renditions.sources.map((source) => (
+      {loadAttempt === 0 && renditions.sources.map((source) => (
         <source
           key={source.mimeType}
           sizes={sizes}
@@ -83,7 +61,6 @@ export const ResponsivePicture = memo(function ResponsivePicture({
         />
       ))}
       <img
-        ref={imageRef}
         alt=""
         aria-hidden="true"
         className={className}
@@ -103,8 +80,8 @@ export const ResponsivePicture = memo(function ResponsivePicture({
           }))
         }}
         sizes={sizes}
-        src={sourceAdmitted ? fallbackSrc : undefined}
-        srcSet={sourceAdmitted ? fallbackSrcSet : undefined}
+        src={fallbackSrc}
+        srcSet={fallbackSrcSet}
         width={asset.width}
       />
     </picture>

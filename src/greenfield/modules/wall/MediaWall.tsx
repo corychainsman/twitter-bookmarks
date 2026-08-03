@@ -87,12 +87,10 @@ function focusKey(tile: WallTile, media: MediaAsset): string {
 
 const DefaultMedia = memo(function DefaultMedia({
   asset,
-  preloadMargin,
   priority,
   sizes,
 }: {
   asset: MediaAsset
-  preloadMargin: string
   priority: boolean
   sizes: string
 }) {
@@ -101,7 +99,6 @@ const DefaultMedia = memo(function DefaultMedia({
       <ResponsivePicture
         asset={asset}
         className="size-full select-none object-contain"
-        preloadMargin={preloadMargin}
         priority={priority}
         sizes={sizes}
       />
@@ -184,7 +181,7 @@ const MediaWallRoot = forwardRef<MediaWallHandle, MediaWallProps>(function Media
     })
 
     return () => cancelAnimationFrame(frame)
-  }, [density, gap, tiles])
+  }, [density, gap])
 
   useEffect(() => {
     const wallElement = wallElementRef.current
@@ -335,7 +332,7 @@ const MediaWallRoot = forwardRef<MediaWallHandle, MediaWallProps>(function Media
         sizeRange={sizeRange}
         stretch={false}
         threshold={renderThreshold}
-        useRecycle
+        useRecycle={false}
         useResizeObserver
         useTransform={false}
         onRequestAppend={handleRequestAppend}
@@ -395,7 +392,6 @@ const MediaWallRoot = forwardRef<MediaWallHandle, MediaWallProps>(function Media
                       : (
                           <DefaultMedia
                             asset={media}
-                            preloadMargin={context.preloadMargin}
                             priority={priority}
                             sizes={sizes}
                           />
