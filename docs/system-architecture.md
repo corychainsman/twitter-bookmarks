@@ -251,6 +251,10 @@ effective on ultrawide displays.
 Images expose explicit responsive width candidates; videos use posters and
 admitted preview sources. The first visible group receives eager image
 priority, while the rest use native lazy loading and decoding.
+The candidate ladder is 240, 320, 480, 680, 1280, and 2048px, bounded by the
+oriented source width. Motion tiles render those poster candidates through a
+responsive picture above the video and remove it only after the first decoded
+video frame is presented.
 The symmetric InfiniteGrid threshold grows from 600px to 1400px with effective
 density, keeping several rows mounted both ahead of and behind the viewport.
 Video source admission uses that same offscreen margin.
@@ -260,6 +264,12 @@ subtrees carry `data-grid-skip`, isolating their image readiness from
 JustifiedInfiniteGrid's item readiness. Loading or swapping a rendition therefore
 does not make the layout engine wait on or separately track nested media; an
 explicit repack remains the response to a genuine geometry change.
+
+Before the first JustifiedInfiniteGrid render completes, the grid is transparent
+and non-interactive beneath the same shadcn skeleton used during discovery.
+This keeps the library's initial static-to-positioned layout pass out of CLS.
+The mobile filter drawer is imported on first use, while the lightbox chunk is
+preloaded only after delayed idle time on capable desktops.
 
 ### Density and stability
 

@@ -66,6 +66,12 @@ another virtualization layer. Motion pairs stable media layout IDs between the
 justified wall and the lightbox. The lightbox adds pan, pinch/trackpad zoom, swipe
 navigation, and a desktop metadata rail or mobile details drawer.
 
+The unpositioned initial wall stays transparent beneath the shadcn skeleton
+until JustifiedInfiniteGrid reports its first completed layout, preventing its
+static-to-absolute placement pass from contributing layout shift. Mobile drawer
+code loads on first use; lightbox code warms only during delayed idle time on
+capable desktops.
+
 In staging and production, a Cloudflare Worker serves built assets and adapts
 its own versioned catalog through the asset binding into `/api/*`. It also enriches
 `/media/:mediaId` HTML with sanitized Open Graph and Twitter metadata. A future
@@ -152,6 +158,10 @@ See `docs/system-architecture.md` for the complete boundaries and behavior.
   JustifiedInfiniteGrid maintains each tile's composite ratio with cropping and
   stretching disabled, and the wall uses one uniform 4px inter-tile gutter.
   The lightbox also uses `object-contain`.
+- Wall image and motion-poster catalogs include 240, 320, 480, 680, 1280, and
+  2048px AVIF candidates bounded by source width. Video previews keep a
+  responsive picture above the video until its first decoded frame is ready;
+  lightbox renditions remain unchanged.
 - Autoplay starts at 10% visibility and stops below 5%. Reduced-motion or
   data-saving preferences disable ambient autoplay entirely; playable desktop
   tiles retain a play affordance and may preview on hover.

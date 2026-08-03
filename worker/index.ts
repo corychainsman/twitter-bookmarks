@@ -33,6 +33,20 @@ function catalogSource(request: Request, env: Env): {
 const API_TIMEOUT_MS = 15_000
 const SOCIAL_METADATA_TIMEOUT_MS = 2_500
 const MAX_SOCIAL_METADATA_BYTES = 64 * 1_024
+const DOCUMENT_SECURITY_POLICY = [
+  "default-src 'self'",
+  "base-uri 'none'",
+  "connect-src 'self' https:",
+  "font-src 'self'",
+  "form-action 'self'",
+  "frame-ancestors 'none'",
+  "img-src 'self' https: data:",
+  "media-src 'self' https:",
+  "object-src 'none'",
+  "script-src 'self'",
+  "style-src 'self' 'unsafe-inline'",
+  "worker-src 'self' blob:",
+].join("; ")
 
 const FALLBACK_SOCIAL_METADATA: SocialMetadata = {
   title: "X Inspo",
@@ -51,6 +65,32 @@ const HOP_BY_HOP_HEADERS = [
   "transfer-encoding",
   "upgrade",
 ]
+
+function secureDocumentResponse(
+  request: Request,
+  response: Response,
+  options: { cacheControl?: string; allowsViteBootstrap?: boolean } = {},
+): Response {
+  const headers = new Headers(response.headers)
+  const policy = options.allowsViteBootstrap
+    ? DOCUMENT_SECURITY_POLICY.replace("script-src 'self'", "script-src 'self' 'unsafe-inline'")
+    : DOCUMENT_SECURITY_POLICY
+
+  if (options.cacheControl) headers.set("cache-control", options.cacheControl)
+  headers.set("content-security-policy", policy)
+  headers.set("permissions-policy", "camera=(), geolocation=(), microphone=()")
+  headers.set("referrer-policy", "strict-origin-when-cross-origin")
+  headers.set("strict-transport-security", "max-age=31536000; includeSubDomains")
+  headers.set("x-content-type-options", "nosniff")
+  headers.set("x-frame-options", "DENY")
+  headers.set("x-robots-tag", "noindex, nofollow")
+
+  return new Response(request.method === "HEAD" ? null : response.body, {
+    status: response.status,
+    statusText: response.statusText,
+    headers,
+  })
+}
 
 function jsonError(status: number, code: string, requestId: string, headOnly = false) {
   const body = JSON.stringify({ error: { code, requestId } })
@@ -254,21 +294,9 @@ async function renderSocialShell(request: Request, env: Env, mediaId: string) {
     })
   }
 
-  const headers = new Headers(response.headers)
-  headers.set("cache-control", "public, max-age=60, stale-while-revalidate=300")
-  headers.set(
-    "content-security-policy",
-    `default-src 'self'; img-src 'self' https: data:; media-src 'self' https:; script-src 'self'${allowsViteBootstrap ? " 'unsafe-inline'" : ""}; style-src 'self' 'unsafe-inline'; base-uri 'none'; frame-ancestors 'none'`,
-  )
-  headers.set("referrer-policy", "strict-origin-when-cross-origin")
-  headers.set("x-content-type-options", "nosniff")
-  headers.set("x-frame-options", "DENY")
-  headers.set("x-robots-tag", "noindex, nofollow")
-
-  return new Response(request.method === "HEAD" ? null : response.body, {
-    status: response.status,
-    statusText: response.statusText,
-    headers,
+  return secureDocumentResponse(request, response, {
+    cacheControl: "public, max-age=60, stale-while-revalidate=300",
+    allowsViteBootstrap,
   })
 }
 
@@ -293,6 +321,9 @@ export default {
       return renderSocialShell(request, env, mediaId)
     }
 
-    return env.ASSETS.fetch(request)
+    const response = await env.ASSETS.fetch(request)
+    return response.headers.get("content-type")?.includes("text/html")
+      ? secureDocumentResponse(request, response)
+      : response
   },
 } satisfies ExportedHandler<Env>

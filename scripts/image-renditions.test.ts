@@ -11,8 +11,8 @@ import { sha256 } from './mirror-lib'
 describe('image rendition ingestion', () => {
   it('uses a bounded ladder with one truthful largest width', () => {
     expect(imageRenditionWidths(200)).toEqual([200])
-    expect(imageRenditionWidths(832)).toEqual([320, 680, 832])
-    expect(imageRenditionWidths(3000)).toEqual([320, 680, 1280, 2048])
+    expect(imageRenditionWidths(832)).toEqual([240, 320, 480, 680, 832])
+    expect(imageRenditionWidths(3000)).toEqual([240, 320, 480, 680, 1280, 2048])
   })
 
   it('publishes content-addressed AVIF metadata matching the written bytes', async () => {
@@ -35,7 +35,9 @@ describe('image rendition ingestion', () => {
       height: 250,
     })
     expect(generated.variants.map(({ width, height }) => [width, height])).toEqual([
+      [240, 120],
       [320, 160],
+      [480, 240],
       [500, 250],
     ])
 
@@ -45,5 +47,23 @@ describe('image rendition ingestion', () => {
       expect(variant.bytes).toBe(written.byteLength)
       expect(variant.digest).toBe(sha256(written))
     }
+  })
+
+  it('can generate only missing widths during an incremental backfill', async () => {
+    const assetsRoot = await mkdtemp(path.join(os.tmpdir(), 'twitter-bookmarks-renditions-'))
+    const buffer = await sharp({
+      create: { width: 800, height: 400, channels: 3, background: '#3366ff' },
+    })
+      .jpeg()
+      .toBuffer()
+
+    const generated = await generateImageRenditions({
+      assetsRoot,
+      buffer,
+      originalKey: 'pbs/media/incremental.jpg',
+      requestedWidths: [240, 480],
+    })
+
+    expect(generated.variants.map((variant) => variant.width)).toEqual([240, 480])
   })
 })

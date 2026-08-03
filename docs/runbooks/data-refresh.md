@@ -170,7 +170,7 @@ media URLs before the serving mirror can be uploaded.
 - `bun run auth:x:ensure` validates stored X credentials, starts the controlled
   auth browser when needed, captures fresh cookies through CDP, stores them in
   1Password, and stops if X shows a temporary limit page.
-- `bun run data:mirror` downloads media originals into `.data/media` and generates AVIF variants + ThumbHashes (see `docs/runbooks/media-mirror.md`).
+- `bun run data:mirror` downloads media originals into `.data/media` and generates the bounded 240/320/480/680/1280/2048px AVIF ladder + ThumbHashes (see `docs/runbooks/media-mirror.md`).
 - `bun run mirror:sync` uploads the archive to R2 (serving) and Google Drive (backup) via rclone.
 - `bun run data:export` writes normalized static bookmark artifacts under `public/data`, rewriting media URLs to the self-hosted mirror for assets confirmed in the mirror manifest.
 - `bun run data:semantic-enrichment` locally captions/OCRs up to 32 missing

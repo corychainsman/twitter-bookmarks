@@ -38,7 +38,7 @@ type GridRequestAppendEvent = Parameters<
   NonNullable<ComponentProps<typeof JustifiedInfiniteGrid>["onRequestAppend"]>
 >[0]
 
-const DEFAULT_SIZES = "(max-width: 639px) 58vw, (max-width: 1023px) 38vw, 24vw"
+const DEFAULT_SIZES = "(max-width: 639px) 38vw, (max-width: 1023px) 28vw, 16vw"
 
 export interface WallOpenContext {
   tileId: string
@@ -79,6 +79,7 @@ export interface MediaWallProps {
   gap?: number
   priorityTileCount?: number
   sizes?: string
+  initialLayoutFallback?: ReactNode
 }
 
 function focusKey(tile: WallTile, media: MediaAsset): string {
@@ -157,6 +158,7 @@ const MediaWallRoot = forwardRef<MediaWallHandle, MediaWallProps>(function Media
     gap = 4,
     priorityTileCount = 8,
     sizes = DEFAULT_SIZES,
+    initialLayoutFallback,
   },
   forwardedRef,
 ) {
@@ -169,6 +171,7 @@ const MediaWallRoot = forwardRef<MediaWallHandle, MediaWallProps>(function Media
     [tiles],
   )
   const [activeFocusKey, setActiveFocusKey] = useState<string | undefined>(focusKeys[0])
+  const [initialLayoutReady, setInitialLayoutReady] = useState(false)
   const effectiveFocusKey = activeFocusKey && focusKeys.includes(activeFocusKey)
     ? activeFocusKey
     : focusKeys[0]
@@ -267,6 +270,17 @@ const MediaWallRoot = forwardRef<MediaWallHandle, MediaWallProps>(function Media
     )
   }, [hasNextPage, onAppendError, onRequestAppend])
 
+  const handleRenderComplete = useCallback(() => {
+    const gridElement = wallElementRef.current?.querySelector<HTMLElement>("[role='list']")
+    const hasStableInitialExtent = !hasNextPage ||
+      (gridElement?.getBoundingClientRect().height ?? 0) >= window.innerHeight + renderThreshold
+
+    if (!initialLayoutReady && !hasStableInitialExtent) return
+
+    setInitialLayoutReady(true)
+    onLayoutComplete?.()
+  }, [hasNextPage, initialLayoutReady, onLayoutComplete, renderThreshold])
+
   const moveFocus = useCallback((
     event: KeyboardEvent<HTMLButtonElement>,
     currentFocusKey: string,
@@ -317,11 +331,17 @@ const MediaWallRoot = forwardRef<MediaWallHandle, MediaWallProps>(function Media
     <section
       ref={wallElementRef}
       aria-label={ariaLabel}
-      className={className}
+      className={className ? `relative ${className}` : "relative"}
     >
+      {!initialLayoutReady && initialLayoutFallback && (
+        <div className="pointer-events-none absolute inset-x-0 top-0 z-10">
+          {initialLayoutFallback}
+        </div>
+      )}
       <JustifiedInfiniteGrid
         ref={gridRef}
         aria-label={ariaLabel}
+        aria-busy={!initialLayoutReady || undefined}
         role="list"
         className="relative min-h-[40vh] w-full"
         columnRange={(grid) => getJustifiedColumnRange(grid.getContainerInlineSize())}
@@ -335,8 +355,13 @@ const MediaWallRoot = forwardRef<MediaWallHandle, MediaWallProps>(function Media
         useRecycle={false}
         useResizeObserver
         useTransform={false}
+        style={{
+          opacity: initialLayoutReady ? 1 : 0,
+          pointerEvents: initialLayoutReady ? undefined : "none",
+          visibility: initialLayoutReady ? "visible" : "hidden",
+        }}
         onRequestAppend={handleRequestAppend}
-        onRenderComplete={onLayoutComplete}
+        onRenderComplete={handleRenderComplete}
       >
         {tiles.map((tile, tileIndex) => {
           const dimensions = getTileDimensions(tile, density)
@@ -429,7 +454,7 @@ const MediaWallRoot = forwardRef<MediaWallHandle, MediaWallProps>(function Media
           }
 
           return (
-            <article
+            <div
               key={tile.id}
               data-grid-groupkey={tile.groupKey}
               data-tile-aspect-ratio={dimensions.width / dimensions.height}
@@ -444,7 +469,7 @@ const MediaWallRoot = forwardRef<MediaWallHandle, MediaWallProps>(function Media
               <div className="size-full bg-black">
                 {renderCollageNode(layout, tile.id)}
               </div>
-            </article>
+            </div>
           )
         })}
       </JustifiedInfiniteGrid>

@@ -1,7 +1,6 @@
 import { useQuery } from "@tanstack/react-query"
 import { useNavigate, useRouterState } from "@tanstack/react-router"
 import { useGesture } from "@use-gesture/react"
-import { LoaderCircle } from "lucide-react"
 import { LayoutGroup, useReducedMotion } from "motion/react"
 import {
   lazy,
@@ -74,6 +73,43 @@ const SORT_OPTIONS = [
   { value: "newest" as const, label: "Newest" },
   { value: "oldest" as const, label: "Oldest" },
 ]
+
+interface ConnectionHints {
+  saveData?: boolean
+}
+
+function scheduleMediaLightboxIdlePreload(): () => void {
+  const connection = (navigator as Navigator & { connection?: ConnectionHints }).connection
+  const capableDesktop = window.matchMedia("(min-width: 1024px)").matches &&
+    !window.matchMedia("(prefers-reduced-motion: reduce)").matches &&
+    !connection?.saveData &&
+    navigator.hardwareConcurrency >= 6
+
+  if (!capableDesktop) return () => undefined
+
+  let idleCallback: number | undefined
+  let fallbackCallback: number | undefined
+  const delay = window.setTimeout(() => {
+    const requestIdle = (window as unknown as {
+      requestIdleCallback?: Window["requestIdleCallback"]
+    }).requestIdleCallback
+
+    if (requestIdle) {
+      idleCallback = requestIdle(
+        () => void loadMediaLightbox(),
+        { timeout: 4_000 },
+      )
+    } else {
+      fallbackCallback = window.setTimeout(() => void loadMediaLightbox(), 1_000)
+    }
+  }, 4_000)
+
+  return () => {
+    window.clearTimeout(delay)
+    if (idleCallback !== undefined) window.cancelIdleCallback(idleCallback)
+    if (fallbackCallback !== undefined) window.clearTimeout(fallbackCallback)
+  }
+}
 interface AnchorSnapshot {
   mediaId: string
   top: number
@@ -190,6 +226,9 @@ function renderWallMedia(asset: MediaAsset, context: WallMediaRenderContext) {
         className="relative size-full"
         label={asset.title}
         poster={asset.poster?.url}
+        posterAsset={asset}
+        posterPriority={context.priority}
+        posterSizes={context.sizes}
         preloadMargin={context.preloadMargin}
         src={asset.previewVideoUrl}
       />
@@ -379,12 +418,7 @@ export function GreenfieldApp() {
     return () => cancelAnimationFrame(frame)
   }, [selectedMediaId])
 
-  useEffect(() => {
-    const timeout = window.setTimeout(() => {
-      void loadMediaLightbox()
-    }, 1_500)
-    return () => window.clearTimeout(timeout)
-  }, [])
+  useEffect(() => scheduleMediaLightboxIdlePreload(), [])
 
   const commit = useCallback(
     (mutation: WallMutation) => {
@@ -608,7 +642,7 @@ export function GreenfieldApp() {
         ) : (
           <div
             ref={wallScaleRef}
-            className="touch-pan-y will-change-transform [transform:scale(var(--wall-draft-scale))]"
+            className="relative touch-pan-y will-change-transform [transform:scale(var(--wall-draft-scale))]"
             style={{
               "--wall-draft-scale": draftScale,
               transformOrigin: `${densityPreview?.originX ?? 0}px ${densityPreview?.originY ?? 0}px`,
@@ -621,20 +655,12 @@ export function GreenfieldApp() {
               hasNextPage={discovery.hasNextPage}
               onOpenMedia={openMedia}
               onLayoutComplete={restoreAnchor}
+              initialLayoutFallback={<WallLoadingState />}
               renderMedia={renderWallMedia}
               onRequestAppend={requestNextPage}
             />
             {stableWall.bufferedTileCount > 0 && (
-              <div
-                role="status"
-                className="flex min-h-16 items-center justify-center gap-2 text-sm text-muted-foreground"
-              >
-                <LoaderCircle
-                  aria-hidden="true"
-                  className="size-4 animate-spin motion-reduce:animate-none"
-                />
-                Loading more media…
-              </div>
+              <div role="status" className="sr-only">Loading more media…</div>
             )}
           </div>
         )}

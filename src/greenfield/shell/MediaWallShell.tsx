@@ -4,13 +4,18 @@ import { cn } from "@/lib/utils"
 
 import { DesktopFilterRail } from "../modules/controls/DesktopFilterRail"
 import { DesktopToolbar } from "../modules/controls/DesktopToolbar"
-import { MobileFilterDrawer } from "../modules/controls/MobileFilterDrawer"
 import { MobileToolbar } from "../modules/controls/MobileToolbar"
 import {
   countSelectedFilters,
   type WallControlProps,
 } from "../modules/controls/types"
 import { useMobileChromeVisibility } from "./useMobileChromeVisibility"
+
+const MobileFilterDrawer = React.lazy(() =>
+  import("../modules/controls/MobileFilterDrawer").then((module) => ({
+    default: module.MobileFilterDrawer,
+  })),
+)
 
 export interface MediaWallShellProps extends WallControlProps {
   children: React.ReactNode
@@ -32,6 +37,9 @@ export function MediaWallShell({
 }: MediaWallShellProps) {
   const [mobileFocusWithin, setMobileFocusWithin] = React.useState(false)
   const [mobileSurfaceOpen, setMobileSurfaceOpen] = React.useState(false)
+  const [mobileDrawerActivated, setMobileDrawerActivated] = React.useState(
+    controls.mobileFiltersOpen,
+  )
   const filterCount =
     controls.selectedFilterCount ??
     countSelectedFilters(controls.filters, controls.filterRange)
@@ -63,6 +71,10 @@ export function MediaWallShell({
           {...controls}
           filterCount={filterCount}
           visible={mobileChromeVisible}
+          onMobileFiltersOpenChange={(open) => {
+            if (open) setMobileDrawerActivated(true)
+            controls.onMobileFiltersOpenChange(open)
+          }}
           onTransientInteractionChange={setMobileSurfaceOpen}
         />
       </div>
@@ -85,24 +97,29 @@ export function MediaWallShell({
           aria-busy={controls.resultPending || undefined}
           className={cn("min-w-0 flex-1", wallClassName)}
         >
+          <h1 className="sr-only">X Inspo</h1>
           {children}
         </main>
       </div>
 
-      <MobileFilterDrawer
-        open={controls.mobileFiltersOpen}
-        value={controls.filters}
-        range={controls.filterRange}
-        resultCount={controls.mobileDraftResultCount}
-        countPending={controls.mobileDraftCountPending}
-        sourceSuggestions={controls.sourceSuggestions}
-        sourceQuery={controls.sourceQuery}
-        sourceSearching={controls.sourceSearching}
-        onSourceQueryChange={controls.onSourceQueryChange}
-        onOpenChange={controls.onMobileFiltersOpenChange}
-        onDraftChange={controls.onMobileFilterDraftChange}
-        onCommit={controls.onFiltersCommit}
-      />
+      {(mobileDrawerActivated || controls.mobileFiltersOpen) && (
+        <React.Suspense fallback={null}>
+          <MobileFilterDrawer
+            open={controls.mobileFiltersOpen}
+            value={controls.filters}
+            range={controls.filterRange}
+            resultCount={controls.mobileDraftResultCount}
+            countPending={controls.mobileDraftCountPending}
+            sourceSuggestions={controls.sourceSuggestions}
+            sourceQuery={controls.sourceQuery}
+            sourceSearching={controls.sourceSearching}
+            onSourceQueryChange={controls.onSourceQueryChange}
+            onOpenChange={controls.onMobileFiltersOpenChange}
+            onDraftChange={controls.onMobileFilterDraftChange}
+            onCommit={controls.onFiltersCommit}
+          />
+        </React.Suspense>
+      )}
     </div>
   )
 }

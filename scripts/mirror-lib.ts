@@ -47,7 +47,7 @@ const MIRROR_HOST_PREFIXES: Record<string, string> = {
 }
 
 export const MIRROR_RENDITION_VERSION = 2 as const
-export const MIRROR_VARIANT_WIDTHS = [320, 680, 1280, 2048] as const
+export const MIRROR_VARIANT_WIDTHS = [240, 320, 480, 680, 1280, 2048] as const
 
 export function mirrorKeyForUrl(sourceUrl: string): string | null {
   let parsed: URL
