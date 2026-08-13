@@ -53,6 +53,9 @@ The UI stack is:
 
 The default visual system is dark, neutral, media-first, and uses a restrained
 mint accent. Media carries the visual color; surrounding chrome stays quiet.
+The Latin Geist variable font uses `font-display: optional`, so slow first
+visits keep the metric-compatible system fallback instead of delaying paint or
+introducing a late font swap.
 
 ## Domain and API Boundaries
 
@@ -248,9 +251,11 @@ videos, and lightbox media retain `object-contain` as a defensive guarantee
 against crop or distortion. Rows admit at most four tiles below 640px and up to
 the 20-tile composition-group size on wider walls, allowing density to remain
 effective on ultrawide displays.
-Images expose explicit responsive width candidates; videos use posters and
-admitted preview sources. The first visible group receives eager image
-priority, while the rest use native lazy loading and decoding.
+Images expose explicit responsive width candidates and density-aware `sizes`
+estimates; videos use posters and admitted preview sources. The first visible
+group receives high fetch priority. The wider offscreen grid lookahead keeps
+the remaining eager image requests ahead of scrolling, while async decoding
+keeps them off the critical rendering path.
 The candidate ladder is 240, 320, 480, 680, 1280, and 2048px, bounded by the
 oriented source width. Motion tiles render those poster candidates through a
 responsive picture above the video and remove it only after the first decoded
@@ -270,8 +275,11 @@ transparent, `visibility:hidden`, and non-interactive beneath the same shadcn
 skeleton used during discovery. It is revealed only after positioned content
 covers the viewport plus the active render threshold, so both the library's
 static-to-positioned pass and its initial lookahead appends stay out of CLS.
-The mobile filter drawer is imported on first use, while the lightbox chunk is
-preloaded only after delayed idle time on capable desktops.
+Grid completion is the primary readiness signal; a resize-observed extent check
+provides the same reveal when reduced-motion rendering suppresses that callback.
+The mobile filter drawer, closed desktop filter rail, compact density popover,
+and desktop density slider are imported only when their surfaces become active.
+The lightbox chunk is preloaded only after delayed idle time on capable desktops.
 
 ### Density and stability
 
@@ -287,7 +295,9 @@ packed placement.
 Continuous pinch/trackpad zoom belongs at the gesture layer and must feed the
 same draft/commit density path: update the visual scale continuously, then
 commit a single reflow at gesture end. Never trigger a full pack on every raw
-gesture event.
+gesture event. Modified wheel input passes through an intent filter so the
+decaying trackpad momentum tail is ignored and the density commits when active
+finger motion ends.
 
 ### Wall accessibility
 
@@ -357,8 +367,9 @@ metadata use clear live text rather than hidden icon-only meaning.
 ## Edge Gateway and Social HTML
 
 `worker/index.ts` is the Cloudflare Worker entry point. `wrangler.jsonc`
-configures a static-assets binding with SPA fallback and routes `/api/*` plus
-`/media/*` through the Worker first.
+configures a static-assets binding with SPA fallback and routes requests through
+the Worker before the binding, allowing one response-policy boundary for API,
+HTML, and fingerprinted build assets.
 
 For `/api/*`, the Worker has three contract-compatible upstream modes:
 
@@ -383,6 +394,12 @@ Catalog adapters cache-bust the manifest on initialization and version every
 dependent artifact request with that manifest's build ID. A newly deployed
 catalog therefore cannot be mixed with stale edge-cached chunks.
 
+The canonical root response advertises the default curated discovery request
+as a fetch preload, allowing the browser to overlap its first result page with
+application JavaScript. URL-backed queries do not preload that default result,
+and the staged mobile result-count request stays disabled until its drawer is
+actually open.
+
 For a direct `GET /media/:mediaId`, it fetches the application shell and asks
 the upstream `/media/:mediaId/social` endpoint for title, description, image,
 and optional video. It escapes all attribute content and injects canonical,
@@ -392,6 +409,19 @@ is used when metadata is unavailable.
 Both the static `index.html` and injected media shells remain
 `noindex,nofollow`. Search-engine crawling is not a requirement; rich unfurl
 metadata for copied media links is.
+
+Document responses include `Cache-Control: no-transform`, preventing optional
+Cloudflare Web Analytics and bot-detection scripts from being injected into the
+strict-CSP application shell. Fingerprinted Vite assets under `/assets/` receive
+a one-year immutable browser cache lifetime; HTML retains revalidation and
+media social shells keep their short explicit freshness window.
+
+R2 media publication is manifest-driven and append-only: the hourly refresh
+writes only previously unpublished immutable keys and never traverses the
+remote bucket. New objects are verified through the cached public media origin;
+a weekly full-catalog CDN verification provides integrity coverage without
+Class A R2 listings. The bucket must never be exposed as a persistent FUSE
+mount because filesystem indexers can recursively list every object prefix.
 
 ## Offline and Cache Policy
 

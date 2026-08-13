@@ -2,7 +2,6 @@ import * as React from "react"
 
 import { cn } from "@/lib/utils"
 
-import { DesktopFilterRail } from "../modules/controls/DesktopFilterRail"
 import { DesktopToolbar } from "../modules/controls/DesktopToolbar"
 import { MobileToolbar } from "../modules/controls/MobileToolbar"
 import {
@@ -14,6 +13,11 @@ import { useMobileChromeVisibility } from "./useMobileChromeVisibility"
 const MobileFilterDrawer = React.lazy(() =>
   import("../modules/controls/MobileFilterDrawer").then((module) => ({
     default: module.MobileFilterDrawer,
+  })),
+)
+const DesktopFilterRail = React.lazy(() =>
+  import("../modules/controls/DesktopFilterRail").then((module) => ({
+    default: module.DesktopFilterRail,
   })),
 )
 
@@ -40,6 +44,9 @@ export function MediaWallShell({
   const [mobileDrawerActivated, setMobileDrawerActivated] = React.useState(
     controls.mobileFiltersOpen,
   )
+  const [desktopRailActivated, setDesktopRailActivated] = React.useState(
+    controls.filterRailOpen,
+  )
   const filterCount =
     controls.selectedFilterCount ??
     countSelectedFilters(controls.filters, controls.filterRange)
@@ -58,7 +65,14 @@ export function MediaWallShell({
         className,
       )}
     >
-      <DesktopToolbar {...controls} filterCount={filterCount} />
+      <DesktopToolbar
+        {...controls}
+        filterCount={filterCount}
+        onFilterRailOpenChange={(open) => {
+          if (open) setDesktopRailActivated(true)
+          controls.onFilterRailOpenChange(open)
+        }}
+      />
       <div
         onFocusCapture={() => setMobileFocusWithin(true)}
         onBlurCapture={(event) => {
@@ -80,18 +94,22 @@ export function MediaWallShell({
       </div>
 
       <div className="relative flex min-w-0 items-start">
-        <DesktopFilterRail
-          open={controls.filterRailOpen}
-          value={controls.filters}
-          range={controls.filterRange}
-          sourceSuggestions={controls.sourceSuggestions}
-          sourceQuery={controls.sourceQuery}
-          sourceSearching={controls.sourceSearching}
-          onChange={controls.onDesktopFiltersChange}
-          onSourceQueryChange={controls.onSourceQueryChange}
-          onOpenChange={controls.onFilterRailOpenChange}
-          onLayoutCommit={onFilterRailLayoutCommit}
-        />
+        {(desktopRailActivated || controls.filterRailOpen) && (
+          <React.Suspense fallback={null}>
+            <DesktopFilterRail
+              open={controls.filterRailOpen}
+              value={controls.filters}
+              range={controls.filterRange}
+              sourceSuggestions={controls.sourceSuggestions}
+              sourceQuery={controls.sourceQuery}
+              sourceSearching={controls.sourceSearching}
+              onChange={controls.onDesktopFiltersChange}
+              onSourceQueryChange={controls.onSourceQueryChange}
+              onOpenChange={controls.onFilterRailOpenChange}
+              onLayoutCommit={onFilterRailLayoutCommit}
+            />
+          </React.Suspense>
+        )}
         <main
           aria-label={wallLabel}
           aria-busy={controls.resultPending || undefined}

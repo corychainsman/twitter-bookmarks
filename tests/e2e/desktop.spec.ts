@@ -192,6 +192,42 @@ test.describe("desktop media wall", () => {
       .toBeLessThan(16)
   })
 
+  test("ignores the momentum tail after active trackpad zoom", async ({ page }) => {
+    await page.goto("/?density=1")
+    const wall = await waitForMediaWall(page)
+    const gestureSurface = wall.locator("xpath=../..")
+    const initialHistoryLength = await page.evaluate(() => window.history.length)
+    const dispatchWheelBurst = (deltas: number[]) => gestureSurface.evaluate(
+      (element, wheelDeltas) => {
+        wheelDeltas.forEach((deltaY) => {
+          element.dispatchEvent(new WheelEvent("wheel", {
+            bubbles: true,
+            cancelable: true,
+            clientX: window.innerWidth / 2,
+            clientY: window.innerHeight / 2,
+            ctrlKey: true,
+            deltaY,
+          }))
+        })
+      },
+      deltas,
+    )
+
+    const activeDeltas = [-8, -9, -10, -10, -9, -8]
+    const momentumDeltas = [-5, -3, -1.5, -0.7, -0.25]
+    await dispatchWheelBurst([...activeDeltas, ...momentumDeltas])
+    const expectedDensity = Math.exp(
+      -activeDeltas.reduce((sum, delta) => sum + delta, 0) * 0.003,
+    )
+
+    await expect(page).toHaveURL((url) =>
+      Math.abs(Number(url.searchParams.get("density")) - expectedDensity) < 0.001,
+    )
+    await expect
+      .poll(() => page.evaluate(() => window.history.length))
+      .toBe(initialHistoryLength + 1)
+  })
+
   test("never starts ambient wall video when reduced motion is requested", async ({ page }) => {
     await page.emulateMedia({ reducedMotion: "reduce" })
     await page.addInitScript(() => {

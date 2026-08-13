@@ -33,6 +33,8 @@ function catalogSource(request: Request, env: Env): {
 const API_TIMEOUT_MS = 15_000
 const SOCIAL_METADATA_TIMEOUT_MS = 2_500
 const MAX_SOCIAL_METADATA_BYTES = 64 * 1_024
+const IMMUTABLE_ASSET_CACHE_CONTROL = "public, max-age=31536000, immutable"
+const DEFAULT_DISCOVERY_PRELOAD = '<link rel="preload" href="/api/discovery?q=&amp;sort=curated" as="fetch" crossorigin>'
 const DOCUMENT_SECURITY_POLICY = [
   "default-src 'self'",
   "base-uri 'none'",
@@ -69,14 +71,23 @@ const HOP_BY_HOP_HEADERS = [
 function secureDocumentResponse(
   request: Request,
   response: Response,
-  options: { cacheControl?: string; allowsViteBootstrap?: boolean } = {},
+  options: {
+    cacheControl?: string
+    allowsViteBootstrap?: boolean
+  } = {},
 ): Response {
   const headers = new Headers(response.headers)
   const policy = options.allowsViteBootstrap
     ? DOCUMENT_SECURITY_POLICY.replace("script-src 'self'", "script-src 'self' 'unsafe-inline'")
     : DOCUMENT_SECURITY_POLICY
 
-  if (options.cacheControl) headers.set("cache-control", options.cacheControl)
+  const cacheControl = options.cacheControl ?? headers.get("cache-control")
+  headers.set(
+    "cache-control",
+    cacheControl
+      ? `${cacheControl.replace(/(?:,\s*)?no-transform\b/gi, "")}, no-transform`
+      : "no-cache, no-transform",
+  )
   headers.set("content-security-policy", policy)
   headers.set("permissions-policy", "camera=(), geolocation=(), microphone=()")
   headers.set("referrer-policy", "strict-origin-when-cross-origin")
@@ -84,6 +95,23 @@ function secureDocumentResponse(
   headers.set("x-content-type-options", "nosniff")
   headers.set("x-frame-options", "DENY")
   headers.set("x-robots-tag", "noindex, nofollow")
+
+  return new Response(request.method === "HEAD" ? null : response.body, {
+    status: response.status,
+    statusText: response.statusText,
+    headers,
+  })
+}
+
+function isHashedBuildAsset(pathname: string): boolean {
+  return /^\/assets\/[^/]+-[A-Za-z0-9_-]{8,}\.[A-Za-z0-9]+$/.test(pathname)
+}
+
+function cacheImmutableBuildAsset(request: Request, response: Response): Response {
+  if (!response.ok || !isHashedBuildAsset(new URL(request.url).pathname)) return response
+
+  const headers = new Headers(response.headers)
+  headers.set("cache-control", IMMUTABLE_ASSET_CACHE_CONTROL)
 
   return new Response(request.method === "HEAD" ? null : response.body, {
     status: response.status,
@@ -234,6 +262,24 @@ class ContentAttributeHandler implements HTMLRewriterElementContentHandlers {
   }
 }
 
+async function injectDefaultDiscoveryPreload(
+  request: Request,
+  response: Response,
+): Promise<Response> {
+  if (request.method === "HEAD") return response
+
+  const html = await response.text()
+  const body = html.includes("</head>")
+    ? html.replace("</head>", `${DEFAULT_DISCOVERY_PRELOAD}</head>`)
+    : html
+
+  return new Response(body, {
+    status: response.status,
+    statusText: response.statusText,
+    headers: response.headers,
+  })
+}
+
 class TitleHandler implements HTMLRewriterElementContentHandlers {
   constructor(private readonly title: string) {}
 
@@ -322,8 +368,13 @@ export default {
     }
 
     const response = await env.ASSETS.fetch(request)
-    return response.headers.get("content-type")?.includes("text/html")
-      ? secureDocumentResponse(request, response)
+    if (!response.headers.get("content-type")?.includes("text/html")) {
+      return cacheImmutableBuildAsset(request, response)
+    }
+
+    const documentResponse = url.pathname === "/" && url.search === ""
+      ? await injectDefaultDiscoveryPreload(request, response)
       : response
+    return secureDocumentResponse(request, documentResponse)
   },
 } satisfies ExportedHandler<Env>

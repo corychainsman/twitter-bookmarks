@@ -17,7 +17,6 @@ import {
   DrawerTitle,
   DrawerTrigger,
 } from "@/components/ui/drawer"
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import type { MediaAsset, MediaRecord } from "@/greenfield/contracts/domain"
 
 import { MediaViewport } from "./MediaViewport"
@@ -270,22 +269,22 @@ export function MediaLightbox({
                   <ChevronRight className="size-4 shrink-0" aria-hidden="true" />
                   <span className="pointer-fine:hidden absolute start-1/2 top-1/2 size-[max(100%,3rem)] -translate-1/2" aria-hidden="true" />
                 </Button>
-                <Popover open={copiedOpen} onOpenChange={setCopiedOpen}>
-                  <PopoverTrigger asChild>
-                    <Button type="button" variant="ghost" size="icon" className="relative" aria-label="Copy media link" onClick={() => void copyMediaLink()}>
-                      <Share2 className="size-4 shrink-0" aria-hidden="true" />
-                      <span className="pointer-fine:hidden absolute start-1/2 top-1/2 size-[max(100%,3rem)] -translate-1/2" aria-hidden="true" />
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent
-                    role="status"
-                    side="bottom"
-                    align="center"
-                    className="w-auto px-3 py-1.5 text-xs font-medium"
-                  >
-                    Copied
-                  </PopoverContent>
-                </Popover>
+                <div className="relative">
+                  <Button type="button" variant="ghost" size="icon" className="relative" aria-label="Copy media link" onClick={() => void copyMediaLink()}>
+                    <Share2 className="size-4 shrink-0" aria-hidden="true" />
+                    <span className="pointer-fine:hidden absolute start-1/2 top-1/2 size-[max(100%,3rem)] -translate-1/2" aria-hidden="true" />
+                  </Button>
+                  {copiedOpen && (
+                    <motion.span
+                      role="status"
+                      initial={reduceMotion ? false : { opacity: 0, y: -2 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="pointer-events-none absolute top-[calc(100%+0.35rem)] left-1/2 z-50 -translate-x-1/2 rounded-md bg-popover px-3 py-1.5 text-xs font-medium text-popover-foreground shadow-md ring-1 ring-foreground/10"
+                    >
+                      Copied
+                    </motion.span>
+                  )}
+                </div>
                 <Drawer open={detailsOpen} onOpenChange={setDetailsOpen}>
                   <DrawerTrigger asChild>
                     <Button type="button" variant="ghost" size="icon" className="relative lg:hidden" aria-label="Open media details">

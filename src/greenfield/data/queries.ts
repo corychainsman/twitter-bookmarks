@@ -67,17 +67,20 @@ export function useDiscovery(state: CommittedWallState) {
   return query
 }
 
-export function useResultCount(state: CommittedWallState) {
+export function useResultCount(state: CommittedWallState, enabled = true) {
   const transport = useApiTransport()
-  const query = useQuery(resultCountOptions(transport, state))
+  const query = useQuery({
+    ...resultCountOptions(transport, state),
+    enabled,
+  })
   const refetch = query.refetch
 
   useEffect(() => {
-    if (!state.q.trim()) return
+    if (!enabled || !state.q.trim()) return
     return subscribeToSemanticReadiness(() => {
       void refetch()
     })
-  }, [refetch, state.q])
+  }, [enabled, refetch, state.q])
 
   return query
 }

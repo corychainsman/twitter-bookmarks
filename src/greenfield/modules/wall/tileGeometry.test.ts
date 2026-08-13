@@ -5,6 +5,7 @@ import {
   getJustifiedColumnRange,
   getJustifiedSizeRange,
   getTileDimensions,
+  getWallImageSizes,
   getWallRenderThreshold,
 } from "./tileGeometry"
 
@@ -99,5 +100,19 @@ describe("getWallRenderThreshold", () => {
     expect(getWallRenderThreshold("auto")).toBe(800)
     expect(getWallRenderThreshold(1)).toBe(800)
     expect(getWallRenderThreshold(1.75)).toBe(1_400)
+  })
+})
+
+describe("getWallImageSizes", () => {
+  it("tracks the effective density instead of overestimating every tile", () => {
+    expect(getWallImageSizes(0.6)).toBe(
+      "(max-width: 639px) 18vw, (max-width: 1023px) 13vw, 10vw",
+    )
+    expect(getWallImageSizes(1)).toBe(
+      "(max-width: 639px) 30vw, (max-width: 1023px) 22vw, 16vw",
+    )
+    expect(getWallImageSizes(1.75)).toBe(
+      "(max-width: 639px) 53vw, (max-width: 1023px) 39vw, 28vw",
+    )
   })
 })

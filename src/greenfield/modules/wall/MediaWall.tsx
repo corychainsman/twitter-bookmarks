@@ -31,14 +31,13 @@ import {
   getJustifiedColumnRange,
   getJustifiedSizeRange,
   getTileDimensions,
+  getWallImageSizes,
   getWallRenderThreshold,
 } from "./tileGeometry"
 
 type GridRequestAppendEvent = Parameters<
   NonNullable<ComponentProps<typeof JustifiedInfiniteGrid>["onRequestAppend"]>
 >[0]
-
-const DEFAULT_SIZES = "(max-width: 639px) 38vw, (max-width: 1023px) 28vw, 16vw"
 
 export interface WallOpenContext {
   tileId: string
@@ -157,7 +156,7 @@ const MediaWallRoot = forwardRef<MediaWallHandle, MediaWallProps>(function Media
     className,
     gap = 4,
     priorityTileCount = 8,
-    sizes = DEFAULT_SIZES,
+    sizes,
     initialLayoutFallback,
   },
   forwardedRef,
@@ -177,6 +176,23 @@ const MediaWallRoot = forwardRef<MediaWallHandle, MediaWallProps>(function Media
     : focusKeys[0]
   const sizeRange = useMemo(() => getJustifiedSizeRange(density), [density])
   const renderThreshold = useMemo(() => getWallRenderThreshold(density), [density])
+  const resolvedSizes = useMemo(
+    () => sizes ?? getWallImageSizes(density),
+    [density, sizes],
+  )
+
+  const hasStableInitialExtent = useCallback(() => {
+    const gridElement = wallElementRef.current?.querySelector<HTMLElement>("[role='list']")
+    return !hasNextPage ||
+      (gridElement?.getBoundingClientRect().height ?? 0) >= window.innerHeight + renderThreshold
+  }, [hasNextPage, renderThreshold])
+
+  const revealInitialLayout = useCallback(() => {
+    if (initialLayoutReady || !hasStableInitialExtent()) return false
+    setInitialLayoutReady(true)
+    onLayoutComplete?.()
+    return true
+  }, [hasStableInitialExtent, initialLayoutReady, onLayoutComplete])
 
   useEffect(() => {
     const frame = requestAnimationFrame(() => {
@@ -185,6 +201,22 @@ const MediaWallRoot = forwardRef<MediaWallHandle, MediaWallProps>(function Media
 
     return () => cancelAnimationFrame(frame)
   }, [density, gap])
+
+  useEffect(() => {
+    if (initialLayoutReady) return
+    const gridElement = wallElementRef.current?.querySelector<HTMLElement>("[role='list']")
+    if (!gridElement) return
+
+    const frame = requestAnimationFrame(revealInitialLayout)
+    if (typeof ResizeObserver === "undefined") return () => cancelAnimationFrame(frame)
+
+    const observer = new ResizeObserver(revealInitialLayout)
+    observer.observe(gridElement)
+    return () => {
+      cancelAnimationFrame(frame)
+      observer.disconnect()
+    }
+  }, [initialLayoutReady, revealInitialLayout, tiles])
 
   useEffect(() => {
     const wallElement = wallElementRef.current
@@ -271,15 +303,8 @@ const MediaWallRoot = forwardRef<MediaWallHandle, MediaWallProps>(function Media
   }, [hasNextPage, onAppendError, onRequestAppend])
 
   const handleRenderComplete = useCallback(() => {
-    const gridElement = wallElementRef.current?.querySelector<HTMLElement>("[role='list']")
-    const hasStableInitialExtent = !hasNextPage ||
-      (gridElement?.getBoundingClientRect().height ?? 0) >= window.innerHeight + renderThreshold
-
-    if (!initialLayoutReady && !hasStableInitialExtent) return
-
-    setInitialLayoutReady(true)
-    onLayoutComplete?.()
-  }, [hasNextPage, initialLayoutReady, onLayoutComplete, renderThreshold])
+    if (!revealInitialLayout() && initialLayoutReady) onLayoutComplete?.()
+  }, [initialLayoutReady, onLayoutComplete, revealInitialLayout])
 
   const moveFocus = useCallback((
     event: KeyboardEvent<HTMLButtonElement>,
@@ -384,7 +409,7 @@ const MediaWallRoot = forwardRef<MediaWallHandle, MediaWallProps>(function Media
                 mediaIndex,
                 preloadMargin: `${renderThreshold}px 0px`,
                 priority,
-                sizes,
+                sizes: resolvedSizes,
               }
 
               return (
@@ -418,7 +443,7 @@ const MediaWallRoot = forwardRef<MediaWallHandle, MediaWallProps>(function Media
                           <DefaultMedia
                             asset={media}
                             priority={priority}
-                            sizes={sizes}
+                            sizes={resolvedSizes}
                           />
                         )}
                   </motion.div>
