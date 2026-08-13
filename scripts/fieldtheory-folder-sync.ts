@@ -19,11 +19,13 @@ import {
 import {
   assignGlobalFolderTimelineSortIndexes,
   FIELDTHEORY_DELAY_MS,
-  FIELDTHEORY_FOLDER_NAME,
+  FIELDTHEORY_FOLDER_SUBSTRING,
   FIELDTHEORY_INCREMENTAL_INITIAL_PAGES,
   FIELDTHEORY_MAX_PAGES,
   hasKnownIncrementalBoundary,
   mergeIncrementalFolderTimeline,
+  resolveFieldTheoryTargetFolders,
+  retainFieldTheoryTargetFolders,
 } from './fieldtheory'
 import { resolveFieldTheoryXCredentials } from './x-credentials'
 
@@ -67,9 +69,9 @@ function parseArgs(argv: string[]): SyncOptions {
     const value = argv[index]
     const next = argv[index + 1]
 
-    if (value === '--folder' && next) {
-      if (next.trim() !== FIELDTHEORY_FOLDER_NAME) {
-        throw new Error(`Only the "${FIELDTHEORY_FOLDER_NAME}" folder is supported.`)
+    if (value === '--folder-contains' && next) {
+      if (next.trim().toLowerCase() !== FIELDTHEORY_FOLDER_SUBSTRING) {
+        throw new Error(`Only folders containing "${FIELDTHEORY_FOLDER_SUBSTRING}" are supported.`)
       }
       index += 1
       continue
@@ -138,46 +140,6 @@ function parseArgs(argv: string[]): SyncOptions {
   return options
 }
 
-function resolveTargetFolders(allFolders: Folder[]): Folder[] {
-  const lower = FIELDTHEORY_FOLDER_NAME.trim().toLowerCase()
-  const exact = allFolders.find((folder) => folder.name.trim().toLowerCase() === lower)
-  const prefix = allFolders.filter((folder) =>
-    folder.name.trim().toLowerCase().startsWith(lower),
-  )
-  const suffix = allFolders.filter((folder) =>
-    folder.name.trim().toLowerCase().endsWith(lower),
-  )
-  const resolved =
-    exact ??
-    (prefix.length === 1 ? prefix[0] : undefined) ??
-    (suffix.length === 1 ? suffix[0] : undefined)
-
-  if (!resolved) {
-    const hint =
-      prefix.length > 1
-        ? `Multiple matches: ${prefix.map((folder) => folder.name).join(', ')}. Be more specific.`
-        : `Available: ${allFolders.map((folder) => folder.name).join(', ') || '(none)'}`
-
-    throw new Error(`No folder matches "${FIELDTHEORY_FOLDER_NAME}". ${hint}`)
-  }
-
-  return [resolved]
-}
-
-function retainOnlyTargetFolder(
-  records: BookmarkRecord[],
-  targetFolder: Folder,
-): BookmarkRecord[] {
-  return records.filter((record) => {
-    const folderIdMatch = (record.folderIds ?? []).includes(targetFolder.id)
-    const folderNameMatch = (record.folderNames ?? []).some(
-      (folderName) => folderName.trim().toLowerCase() === targetFolder.name.trim().toLowerCase(),
-    )
-
-    return folderIdMatch || folderNameMatch
-  })
-}
-
 async function persistFolderCheckpoint(
   records: BookmarkRecord[],
   full: boolean,
@@ -239,9 +201,10 @@ async function main() {
   const cachePath = twitterBookmarksCachePath()
   const existingRecords = await readJsonLines<BookmarkRecord>(cachePath)
   const allFolders = await fetchBookmarkFolders(csrfToken, cookieHeader)
-  const targetFolders = resolveTargetFolders(allFolders)
-  let mergedRecords = retainOnlyTargetFolder(existingRecords, targetFolders[0])
+  const targetFolders = resolveFieldTheoryTargetFolders(allFolders)
+  let mergedRecords = retainFieldTheoryTargetFolders(existingRecords, targetFolders)
   const skippedFolders: Array<{ folder: Folder; reason: string }> = []
+  let everyWalkComplete = true
 
   for (const folder of targetFolders) {
     console.error(`  -> ${folder.name}...`)
@@ -254,7 +217,8 @@ async function main() {
         pageSize: options.pageSize,
       }
 
-      const knownIds = new Set(mergedRecords.map((record) => record.id))
+      const existingFolderRecords = retainFieldTheoryTargetFolders(mergedRecords, [folder])
+      const knownIds = new Set(existingFolderRecords.map((record) => record.id))
       const walkResult = options.full || knownIds.size === 0
         ? await walkFolderTimeline(csrfToken, folder.id, walkOptions)
         : await walkIncrementalFolderTimeline(
@@ -275,11 +239,12 @@ async function main() {
 
       const targetTimeline = walkResult.complete
         ? walkResult.records
-        : mergeIncrementalFolderTimeline(mergedRecords, walkResult.records)
+        : mergeIncrementalFolderTimeline(existingFolderRecords, walkResult.records)
+      everyWalkComplete &&= walkResult.complete
       const timelineRankedRecords = assignGlobalFolderTimelineSortIndexes(targetTimeline)
       mergedRecords = applyFolderMirror(mergedRecords, folder, timelineRankedRecords).merged as BookmarkRecord[]
-      mergedRecords = retainOnlyTargetFolder(mergedRecords, folder)
-      await persistFolderCheckpoint(mergedRecords, options.full || walkResult.complete)
+      mergedRecords = retainFieldTheoryTargetFolders(mergedRecords, targetFolders)
+      if (!options.full) await persistFolderCheckpoint(mergedRecords, false)
     } catch (error) {
       skippedFolders.push({
         folder,
@@ -298,8 +263,13 @@ async function main() {
     )
   }
 
+  if (options.full || everyWalkComplete) {
+    await persistFolderCheckpoint(mergedRecords, true)
+  }
+
+  const folderNames = targetFolders.map((folder) => folder.name).join(', ')
   console.log(
-    `Folder sync complete: ${targetFolders[0].name} ${options.full ? 'fully reconciled' : 'incrementally updated'}.`,
+    `Folder sync complete: ${folderNames} ${options.full ? 'fully reconciled' : 'incrementally updated'}.`,
   )
 }
 

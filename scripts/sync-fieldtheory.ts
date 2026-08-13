@@ -1,6 +1,6 @@
 import { spawnSync } from 'node:child_process'
 
-import { buildFieldTheoryFolderArgs, FIELDTHEORY_FOLDER_NAME } from './fieldtheory'
+import { buildFieldTheoryFolderArgs, FIELDTHEORY_FOLDER_SUBSTRING } from './fieldtheory'
 
 function runStep(label: string, args: string[]): void {
   const bunExecutable = process.release?.name === 'bun' ? process.execPath : 'bun'
@@ -37,9 +37,9 @@ function main() {
       continue
     }
 
-    if (value === '--folder') {
-      if (next && next !== FIELDTHEORY_FOLDER_NAME) {
-        throw new Error(`Only the "${FIELDTHEORY_FOLDER_NAME}" folder is supported.`)
+    if (value === '--folder-contains') {
+      if (next && next.toLowerCase() !== FIELDTHEORY_FOLDER_SUBSTRING) {
+        throw new Error(`Only folders containing "${FIELDTHEORY_FOLDER_SUBSTRING}" are supported.`)
       }
       if (next) {
         index += 1

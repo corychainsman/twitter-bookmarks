@@ -1,5 +1,5 @@
 export const FIELDTHEORY_VERSION = '1.3.9'
-export const FIELDTHEORY_FOLDER_NAME = '🖼️ Inspo'
+export const FIELDTHEORY_FOLDER_SUBSTRING = 'inspo'
 export const FIELDTHEORY_MAX_PAGES = 10_000
 export const FIELDTHEORY_DELAY_MS = 600
 export const FIELDTHEORY_PAGE_SIZE = 100
@@ -11,12 +11,54 @@ type TimelineSortableRecord = {
   sortIndex?: string | null
 }
 
+type NamedFolder = {
+  id: string
+  name: string
+}
+
+type FolderTaggedRecord = {
+  folderIds?: string[]
+  folderNames?: string[]
+}
+
+export function resolveFieldTheoryTargetFolders<T extends NamedFolder>(allFolders: T[]): T[] {
+  const lower = FIELDTHEORY_FOLDER_SUBSTRING.toLowerCase()
+  const matches = allFolders.filter((folder) =>
+    folder.name.trim().toLowerCase().includes(lower),
+  )
+
+  if (matches.length === 0) {
+    throw new Error(
+      `No folders contain "${FIELDTHEORY_FOLDER_SUBSTRING}". Available: ${allFolders.map((folder) => folder.name).join(', ') || '(none)'}`,
+    )
+  }
+
+  return matches
+}
+
+export function retainFieldTheoryTargetFolders<T extends FolderTaggedRecord>(
+  records: T[],
+  targetFolders: NamedFolder[],
+): T[] {
+  return records.filter((record) =>
+    targetFolders.some((targetFolder) => {
+      const folderIdMatch = (record.folderIds ?? []).includes(targetFolder.id)
+      const folderNameMatch = (record.folderNames ?? []).some(
+        (folderName) =>
+          folderName.trim().toLowerCase() === targetFolder.name.trim().toLowerCase(),
+      )
+
+      return folderIdMatch || folderNameMatch
+    }),
+  )
+}
+
 export function buildFieldTheoryFolderArgs(options: { full?: boolean } = {}): string[] {
   const args = [
     'run',
     'scripts/fieldtheory-folder-sync.ts',
-    '--folder',
-    FIELDTHEORY_FOLDER_NAME,
+    '--folder-contains',
+    FIELDTHEORY_FOLDER_SUBSTRING,
     '--max-pages',
     String(FIELDTHEORY_MAX_PAGES),
     '--delay-ms',
@@ -68,7 +110,7 @@ export function parseFieldTheorySourceContract(source: string): {
 } {
   return {
     folderSyncIsInspoOnly: source.includes(
-      `FIELDTHEORY_FOLDER_NAME = '${FIELDTHEORY_FOLDER_NAME}'`,
+      `FIELDTHEORY_FOLDER_SUBSTRING = '${FIELDTHEORY_FOLDER_SUBSTRING}'`,
     ),
     folderSyncUsesDedicatedFolderRunner: source.includes(
       "scripts/fieldtheory-folder-sync.ts",

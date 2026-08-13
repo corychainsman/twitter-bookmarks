@@ -6,13 +6,15 @@ import { describe, expect, it } from 'vitest'
 import {
   assignGlobalFolderTimelineSortIndexes,
   buildFieldTheoryFolderArgs,
-  FIELDTHEORY_FOLDER_NAME,
+  FIELDTHEORY_FOLDER_SUBSTRING,
   FIELDTHEORY_DELAY_MS,
   FIELDTHEORY_MAX_PAGES,
   FIELDTHEORY_PAGE_SIZE,
   hasKnownIncrementalBoundary,
   mergeIncrementalFolderTimeline,
   parseFieldTheorySourceContract,
+  resolveFieldTheoryTargetFolders,
+  retainFieldTheoryTargetFolders,
 } from '../scripts/fieldtheory'
 
 describe('fieldtheory sync wrapper', () => {
@@ -20,8 +22,8 @@ describe('fieldtheory sync wrapper', () => {
     expect(buildFieldTheoryFolderArgs()).toEqual([
       'run',
       'scripts/fieldtheory-folder-sync.ts',
-      '--folder',
-      FIELDTHEORY_FOLDER_NAME,
+      '--folder-contains',
+      FIELDTHEORY_FOLDER_SUBSTRING,
       '--max-pages',
       String(FIELDTHEORY_MAX_PAGES),
       '--delay-ms',
@@ -40,6 +42,32 @@ describe('fieldtheory sync wrapper', () => {
       folderSyncUsesDedicatedFolderRunner: true,
       folderSyncNormalizesTimelineSortIndexes: true,
     })
+  })
+
+  it('selects every folder containing inspo case-insensitively', () => {
+    expect(
+      resolveFieldTheoryTargetFolders([
+        { id: '1', name: '🖼️ Inspo' },
+        { id: '2', name: 'Architecture INSPo' },
+        { id: '3', name: 'Recipes' },
+      ]).map((folder) => folder.id),
+    ).toEqual(['1', '2'])
+  })
+
+  it('retains records belonging to any selected inspo folder', () => {
+    expect(
+      retainFieldTheoryTargetFolders(
+        [
+          { id: 'first', folderIds: ['1'] },
+          { id: 'second', folderNames: ['Architecture Inspo'] },
+          { id: 'other', folderIds: ['3'] },
+        ],
+        [
+          { id: '1', name: '🖼️ Inspo' },
+          { id: '2', name: 'Architecture Inspo' },
+        ],
+      ).map((record) => record.id),
+    ).toEqual(['first', 'second'])
   })
 
   it('normalizes folder timeline order to a global bookmark rank', () => {
