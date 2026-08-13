@@ -7,11 +7,13 @@ pipeline and the one-time Cloudflare/Namecheap/Drive setup.
 ## Architecture
 
 - **Local archive (source of truth)**: `.data/media/assets/` — full-fidelity
-  originals plus generated AVIF renditions, video previews, and playback
-  assets. Image originals and v2 renditions are content-addressed; rendition
+  originals plus generated AVIF renditions and wall video previews. Image
+  originals and v2 renditions are content-addressed; rendition
   records carry truthful dimensions, bytes, MIME type, and digest in
   `.data/media/mirror-manifest.json`. The width ladder is centralized in
-  `scripts/mirror-lib.ts` and capped at the oriented source width.
+  `scripts/mirror-lib.ts`: 240, 320, 480, 680, 1280, and 2048px, capped at the
+  oriented source width. The backfill command preserves verified existing
+  candidates and generates only missing widths.
 - **Serving**: Cloudflare R2 bucket `twitter-bookmarks`, public at
   `https://tbmedia.corychainsman.com` (custom domain on the Cloudflare CDN).
 - **Backup**: Google Drive at `corychainsman.com/media/twitter-bookmarks/`
@@ -30,10 +32,12 @@ pipeline and the one-time Cloudflare/Namecheap/Drive setup.
 
 `bun run refresh` runs: `sync:ft → data:mirror →
 data:backfill-image-variants → data:video-previews → mirror:sync → data:export
-→ data:embeddings → data:validate → build`.
+→ data:semantic-enrichment → data:embeddings → data:validate → build`.
 
 - `bun run data:mirror` — incremental; downloads only assets not yet mirrored.
   Flags: `--limit N`, `--concurrency N`, `--retry-failed`, `--dry-run`.
+- `bun run data:backfill-image-variants` — incrementally fills any missing
+  widths in the bounded AVIF ladder without regenerating verified candidates.
 - `bun run mirror:sync` — rclone copy to R2 (full tree) and Drive (originals
   only). Append-only; never deletes remote objects. Skips targets whose
   rclone remote is missing.
@@ -87,16 +91,18 @@ The `gdrive:` rclone remote exists; if the token has expired run
 bun run data:backfill-image-variants
 bun run data:video-previews
 bun run mirror:sync          # upload and verify newly generated objects
-bun run data:export && bun run data:embeddings && bun run data:validate
+bun run data:export && bun run data:semantic-enrichment
+bun run data:embeddings && bun run data:validate
 bun run build                # then deploy as usual
 ```
 
 ## Generated video tiers
 
-Every mirrored video gets a downscaled, audio-stripped MP4 for wall autoplay
-and a full playback MP4 for the lightbox. `bun run data:video-previews`
-(`scripts/generate-video-previews.ts`) runs ffmpeg over each `ok` video in the
-manifest and records both objects in the mirror manifest.
+Every mirrored video keeps the highest-bitrate direct MP4 exposed by X as its
+full-fidelity lightbox source. It also gets a downscaled, audio-stripped MP4
+for wall autoplay. `bun run data:video-previews`
+(`scripts/generate-video-previews.ts`) runs ffmpeg over each `ok` video and
+records only that disposable wall preview in the mirror manifest.
 
 The preview is width 480, H.264 CRF 31, audio-free, `+faststart`, and capped at
 eight seconds. Generation is incremental and supports `--force`, `--limit N`,
@@ -104,14 +110,14 @@ eight seconds. Generation is incremental and supports `--force`, `--limit N`,
 renditions, are uploaded to R2 by `mirror:sync`, and are excluded from the
 Google Drive cold backup because they are reproducible.
 
-`data:export` (`scripts/mirror-rewrite.ts`) publishes the verified preview and
-playback URLs into the catalog consumed by the Cloudflare adapter. The current
-wall admits preview sources near the viewport and autoplays with 10%/5%
-visibility hysteresis. The lightbox uses the playback source and hides native
+`data:export` (`scripts/mirror-rewrite.ts`) publishes the verified mirrored
+original and preview URLs into the catalog consumed by the Cloudflare adapter.
+The wall admits preview sources near the viewport and autoplays with 10%/5%
+visibility hysteresis. The lightbox uses the original source and hides native
 controls until hover, touch activation, or explicit keyboard activation.
 
-Preview/playback files use a one-year immutable cache TTL. Re-encoding an
-existing key requires purging that URL from Cloudflare after `mirror:sync`.
+Preview files use a one-year immutable cache TTL. Re-encoding an existing key
+requires purging that URL from Cloudflare after `mirror:sync`.
 
 ## Failure handling
 

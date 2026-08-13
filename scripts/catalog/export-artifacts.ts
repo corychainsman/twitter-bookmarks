@@ -193,6 +193,7 @@ function normalizeMediaItem(mediaObject: RawMediaObject): MediaItem | null {
 
   return {
     type,
+    altText: mediaObject.extAltText ?? mediaObject.altText,
     thumbUrl,
     fullUrl,
     posterUrl,

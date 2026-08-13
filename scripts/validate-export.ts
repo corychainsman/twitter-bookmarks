@@ -3,6 +3,12 @@ import path from 'node:path'
 import assert from 'node:assert/strict'
 
 import type { GridItem, ImageRendition, Manifest, TweetDoc } from './catalog/model'
+import type { EmbeddingIndex } from './catalog/embedding-artifacts'
+import {
+  BOOKMARKS_EMBEDDING_DIMENSIONS,
+  BOOKMARKS_EMBEDDING_INDEX_VERSION,
+  BOOKMARKS_EMBEDDING_MODEL_ID,
+} from './catalog/embedding-config'
 
 const projectRoot = process.cwd()
 const outputDirectory = path.join(projectRoot, 'public/data')
@@ -50,6 +56,26 @@ async function main() {
   }
 
   const flattenedDocs = docs.flat()
+
+  if (manifest.files.embeddings) {
+    const embeddings = await readJson<EmbeddingIndex>(
+      path.join(outputDirectory, manifest.files.embeddings),
+    )
+    assert.equal(embeddings.version, BOOKMARKS_EMBEDDING_INDEX_VERSION, 'embedding version mismatch')
+    assert.equal(embeddings.buildId, manifest.buildId, 'embedding buildId mismatch')
+    assert.equal(embeddings.model.id, BOOKMARKS_EMBEDDING_MODEL_ID, 'embedding model mismatch')
+    assert.equal(
+      embeddings.model.dimensions,
+      BOOKMARKS_EMBEDDING_DIMENSIONS,
+      'embedding dimension mismatch',
+    )
+    assert.equal(embeddings.records.length, manifest.tweetCount, 'embedding record count mismatch')
+    assert.equal(
+      Buffer.from(embeddings.vectors, 'base64').byteLength,
+      embeddings.records.length * BOOKMARKS_EMBEDDING_DIMENSIONS,
+      'embedding vector payload length mismatch',
+    )
+  }
 
   if (manifest.mediaCatalogVersion === 1 || manifest.mediaCatalogVersion === 2) {
     const mediaBaseUrl = assertNonEmptyString(manifest.mediaBaseUrl, 'mediaBaseUrl')

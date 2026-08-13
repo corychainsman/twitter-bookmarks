@@ -1,4 +1,4 @@
-import { readFile } from 'node:fs/promises'
+import { readFile, writeFile } from 'node:fs/promises'
 import path from 'node:path'
 import { pathToFileURL } from 'node:url'
 
@@ -11,11 +11,27 @@ import {
 } from './mirror-lib'
 
 export type MediaPublication = {
+  version: 2
+  manifestDigest: string
+  mediaBaseUrl: string
+  objectCount: number
+  objectKeys: string[]
+  verifiedAt: string
+  fullVerifiedAt: string
+}
+
+type LegacyMediaPublication = {
   version: 1
   manifestDigest: string
   mediaBaseUrl: string
   objectCount: number
   verifiedAt: string
+}
+
+type PublicationPlan = {
+  version: 1
+  manifestDigest: string
+  pendingKeys: string[]
 }
 
 export type PublishedMediaObject = {
@@ -26,8 +42,12 @@ export type PublishedMediaObject = {
 }
 
 const projectRoot = process.cwd()
+const defaultMediaBaseUrl = 'https://tbmedia.corychainsman.com'
 export const mirrorManifestPath = path.join(projectRoot, '.data/media/mirror-manifest.json')
 export const mediaPublicationPath = path.join(projectRoot, '.data/media/r2-publication.json')
+export const mediaPublicationPlanPath = path.join(projectRoot, '.data/media/r2-publication-plan.json')
+export const mediaUploadListPath = path.join(projectRoot, '.data/media/r2-upload-list.txt')
+const FULL_VERIFICATION_INTERVAL_MS = 7 * 24 * 60 * 60 * 1_000
 
 function normalizeContentType(value: string | null | undefined): string | undefined {
   return value?.split(';', 1)[0]?.trim().toLowerCase() || undefined
@@ -119,16 +139,20 @@ export async function recordVerifiedMediaPublication(input: {
   publicationPath?: string
   mediaBaseUrl: string
   objectCount: number
+  objectKeys?: string[]
+  fullVerifiedAt?: string
 }): Promise<MediaPublication> {
   const manifestPath = input.manifestPath ?? mirrorManifestPath
   const publicationPath = input.publicationPath ?? mediaPublicationPath
   const manifestBytes = await readFile(manifestPath)
   const publication: MediaPublication = {
-    version: 1,
+    version: 2,
     manifestDigest: sha256(manifestBytes),
     mediaBaseUrl: input.mediaBaseUrl.replace(/\/+$/, ''),
     objectCount: input.objectCount,
+    objectKeys: input.objectKeys ?? [],
     verifiedAt: new Date().toISOString(),
+    fullVerifiedAt: input.fullVerifiedAt ?? new Date().toISOString(),
   }
   await writeFileAtomically(
     publicationPath,
@@ -144,9 +168,11 @@ export async function assertVerifiedMediaPublication(input: {
 }): Promise<MediaPublication> {
   const manifestPath = input.manifestPath ?? mirrorManifestPath
   const publicationPath = input.publicationPath ?? mediaPublicationPath
-  let publication: MediaPublication
+  let publication: MediaPublication | LegacyMediaPublication
   try {
-    publication = JSON.parse(await readFile(publicationPath, 'utf8')) as MediaPublication
+    publication = JSON.parse(await readFile(publicationPath, 'utf8')) as
+      | MediaPublication
+      | LegacyMediaPublication
   } catch {
     throw new Error('Media catalog export requires a successful mirror:sync verification first.')
   }
@@ -154,24 +180,115 @@ export async function assertVerifiedMediaPublication(input: {
   const manifestDigest = sha256(await readFile(manifestPath))
   const normalizedBaseUrl = input.mediaBaseUrl.replace(/\/+$/, '')
   if (
-    publication.version !== 1 ||
     publication.manifestDigest !== manifestDigest ||
     publication.mediaBaseUrl !== normalizedBaseUrl
   ) {
     throw new Error('Media mirror changed after its last verified R2 publication; run mirror:sync again.')
   }
 
+  if (publication.version === 1) {
+    return {
+      ...publication,
+      version: 2,
+      objectKeys: [],
+      fullVerifiedAt: publication.verifiedAt,
+    }
+  }
+
   return publication
 }
 
-async function main() {
-  const mediaBaseUrl = process.env.MEDIA_BASE_URL || 'https://tbmedia.corychainsman.com'
+async function readPublication(): Promise<MediaPublication | LegacyMediaPublication | undefined> {
+  try {
+    return JSON.parse(await readFile(mediaPublicationPath, 'utf8')) as
+      | MediaPublication
+      | LegacyMediaPublication
+  } catch {
+    return undefined
+  }
+}
+
+export async function prepareMediaPublication(): Promise<PublicationPlan> {
   const manifest = await readMirrorManifest(mirrorManifestPath)
-  const objectCount = await verifyMediaPublication({ manifest, mediaBaseUrl })
-  const publication = await recordVerifiedMediaPublication({ mediaBaseUrl, objectCount })
-  console.log(
-    `Verified ${publication.objectCount} public media objects; catalog generation ${publication.manifestDigest.slice(0, 16)} is publishable.`,
-  )
+  const manifestDigest = sha256(await readFile(mirrorManifestPath))
+  const objects = publishedMediaObjects(manifest)
+  const publication = await readPublication()
+  const mediaBaseUrl = (process.env.MEDIA_BASE_URL || defaultMediaBaseUrl).replace(/\/+$/, '')
+  const previouslyPublished = publication?.version === 2 && publication.mediaBaseUrl === mediaBaseUrl
+    ? new Set(publication.objectKeys)
+    : publication?.manifestDigest === manifestDigest && publication.mediaBaseUrl === mediaBaseUrl
+      ? new Set(objects.map((object) => object.key))
+      : new Set<string>()
+  const pendingKeys = objects
+    .map((object) => object.key)
+    .filter((key) => !previouslyPublished.has(key))
+  const plan: PublicationPlan = { version: 1, manifestDigest, pendingKeys }
+
+  await writeFile(mediaPublicationPlanPath, `${JSON.stringify(plan, null, 2)}\n`)
+  await writeFile(mediaUploadListPath, pendingKeys.length > 0 ? `${pendingKeys.join('\n')}\n` : '')
+  return plan
+}
+
+export async function verifyPlannedMediaPublication(input: {
+  forceFull?: boolean
+  now?: Date
+  fetchImpl?: typeof fetch
+} = {}): Promise<MediaPublication> {
+  const manifest = await readMirrorManifest(mirrorManifestPath)
+  const objects = publishedMediaObjects(manifest)
+  const objectsByKey = new Map(objects.map((object) => [object.key, object]))
+  const plan = JSON.parse(await readFile(mediaPublicationPlanPath, 'utf8')) as PublicationPlan
+  const manifestDigest = sha256(await readFile(mirrorManifestPath))
+  if (plan.version !== 1 || plan.manifestDigest !== manifestDigest) {
+    throw new Error('Media manifest changed after the R2 publication plan was created.')
+  }
+
+  const previous = await readPublication()
+  const now = input.now ?? new Date()
+  const previousFullVerification = previous?.version === 2
+    ? previous.fullVerifiedAt
+    : previous?.verifiedAt
+  const mediaBaseUrl = (process.env.MEDIA_BASE_URL || defaultMediaBaseUrl).replace(/\/+$/, '')
+  const previousFullVerificationMs = previousFullVerification
+    ? Date.parse(previousFullVerification)
+    : Number.NaN
+  const fullVerificationDue = input.forceFull || previous?.mediaBaseUrl !== mediaBaseUrl ||
+    !previousFullVerification ||
+    !Number.isFinite(previousFullVerificationMs) ||
+    now.getTime() - previousFullVerificationMs >= FULL_VERIFICATION_INTERVAL_MS
+  const verificationObjects = fullVerificationDue
+    ? objects
+    : plan.pendingKeys.map((key) => {
+        const object = objectsByKey.get(key)
+        if (!object) throw new Error(`Publication plan references unknown media key: ${key}`)
+        return object
+      })
+
+  await runWithConcurrency(verificationObjects, 32, async (object) => {
+    await verifyObject(object, mediaBaseUrl, input.fetchImpl ?? fetch)
+  })
+
+  return recordVerifiedMediaPublication({
+    mediaBaseUrl,
+    objectCount: objects.length,
+    objectKeys: objects.map((object) => object.key),
+    fullVerifiedAt: fullVerificationDue ? now.toISOString() : previousFullVerification,
+  })
+}
+
+async function main() {
+  const command = process.argv[2] ?? 'verify'
+  if (command === 'plan') {
+    const plan = await prepareMediaPublication()
+    console.log(`R2 publication plan contains ${plan.pendingKeys.length} new immutable objects.`)
+    return
+  }
+  if (command !== 'verify') throw new Error(`Unknown media publication command: ${command}`)
+
+  const publication = await verifyPlannedMediaPublication({
+    forceFull: process.argv.includes('--full'),
+  })
+  console.log(`Published media attestation now covers ${publication.objectCount} objects.`)
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {

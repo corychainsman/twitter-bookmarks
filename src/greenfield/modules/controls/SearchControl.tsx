@@ -1,4 +1,4 @@
-import { LoaderCircle, Search } from "lucide-react"
+import { LoaderCircle, Search, X } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -9,6 +9,7 @@ interface SearchControlProps {
   placeholder?: string
   pending?: boolean
   compact?: boolean
+  onIntent?: () => void
   onChange: (value: string) => void
   onSubmit: (query: string) => void
   className?: string
@@ -19,6 +20,7 @@ export function SearchControl({
   placeholder = "Search media",
   pending = false,
   compact = false,
+  onIntent,
   onChange,
   onSubmit,
   className,
@@ -41,34 +43,53 @@ export function SearchControl({
         name="wall-search"
         type="search"
         value={value}
+        onFocus={onIntent}
         onChange={(event) => onChange(event.currentTarget.value)}
         placeholder={placeholder}
         aria-label={placeholder}
         className={cn(
-          "h-11 bg-input/30 pr-12 pl-10 text-base focus-visible:bg-input/50 sm:text-sm",
+          "h-11 bg-input/30 pl-10 text-base focus-visible:bg-input/50 sm:text-sm [&::-webkit-search-cancel-button]:hidden",
+          value ? "pr-20" : "pr-12",
           compact && "sm:h-8",
         )}
       />
-      <Button
-        type="submit"
-        variant="ghost"
-        size="icon"
-        aria-label="Submit search"
-        className="absolute top-1/2 right-1.5 size-8 -translate-y-1/2"
-      >
-        {pending ? (
-          <LoaderCircle
+      {value ? (
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon"
+          aria-label="Clear search"
+          onClick={() => {
+            onChange("")
+            onSubmit("")
+          }}
+          className="absolute top-1/2 right-10 size-10 -translate-y-1/2 sm:right-9.5 sm:size-8"
+        >
+          <X aria-hidden="true" className="size-4 shrink-0" />
+        </Button>
+      ) : null}
+      <div className="absolute top-1/2 right-0.5 -translate-y-1/2 sm:right-1.5">
+        <Button
+          type="submit"
+          variant="ghost"
+          size="icon"
+          aria-label="Submit search"
+          className="relative size-10 sm:size-8"
+        >
+          {pending ? (
+            <LoaderCircle
+              aria-hidden="true"
+              className="size-4 shrink-0 animate-spin motion-reduce:animate-none"
+            />
+          ) : (
+            <Search aria-hidden="true" className="size-4 shrink-0" />
+          )}
+          <span
             aria-hidden="true"
-            className="size-4 shrink-0 animate-spin motion-reduce:animate-none"
+            className="pointer-fine:hidden absolute top-1/2 left-1/2 size-[max(100%,3rem)] -translate-1/2"
           />
-        ) : (
-          <Search aria-hidden="true" className="size-4 shrink-0" />
-        )}
-        <span
-          aria-hidden="true"
-          className="pointer-fine:hidden absolute top-1/2 left-1/2 size-[max(100%,3rem)] -translate-1/2"
-        />
-      </Button>
+        </Button>
+      </div>
     </form>
   )
 }

@@ -19,7 +19,7 @@ export function ShuffleButton({
   return (
     <Button
       type="button"
-      variant="ghost"
+      variant="outline"
       size={compact ? "icon" : "default"}
       disabled={pending}
       onClick={onClick}

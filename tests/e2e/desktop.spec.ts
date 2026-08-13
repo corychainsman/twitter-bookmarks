@@ -8,6 +8,29 @@ import {
 } from "./media-interactions"
 
 test.describe("desktop media wall", () => {
+  test("density changes the settled row composition on an ultrawide desktop", async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 3_440, height: 1_000 })
+    await page.goto("/?density=0.6")
+    await waitForMediaWall(page)
+
+    const firstRowCount = async () => page.locator("[data-tile-id]").evaluateAll((tiles) => {
+      const firstTop = tiles[0]?.getBoundingClientRect().top
+      if (firstTop === undefined) return 0
+
+      return tiles.filter(
+        (tile) => Math.abs(tile.getBoundingClientRect().top - firstTop) < 2,
+      ).length
+    })
+    const denseRowCount = await firstRowCount()
+    const slider = page.getByRole("slider", { name: "Wall density" })
+
+    await slider.press("End")
+    await expect(page).toHaveURL((url) => url.searchParams.get("density") === "1.75")
+    await expect.poll(firstRowCount).toBeLessThan(denseRowCount - 4)
+  })
+
   test("uses uniform gutters while preserving native tile ratios", async ({ page }) => {
     await page.goto("/")
     await waitForMediaWall(page)
@@ -78,6 +101,41 @@ test.describe("desktop media wall", () => {
     await expect(page.getByRole("list", { name: "Media results" })).toBeVisible()
   })
 
+  test("preserves deep wall scroll throughout the shared-element lightbox transition", async ({
+    page,
+  }) => {
+    await page.goto("/")
+    await waitForMediaWall(page)
+    await expect.poll(async () => {
+      await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight))
+      return page.evaluate(() => window.scrollY)
+    }).toBeGreaterThan(500)
+
+    const mediaId = await page.locator("[data-media-id]").evaluateAll((buttons) => {
+      const viewportCenter = window.innerHeight / 2
+      return buttons
+        .map((button) => ({
+          id: (button as HTMLElement).dataset.mediaId,
+          rect: button.getBoundingClientRect(),
+        }))
+        .filter(({ id, rect }) => Boolean(id) && rect.bottom > 64 && rect.top < window.innerHeight)
+        .toSorted(
+          (left, right) =>
+            Math.abs(left.rect.top - viewportCenter) - Math.abs(right.rect.top - viewportCenter),
+        )[0]?.id
+    })
+    if (!mediaId) throw new Error("No visible deep-scroll media target was found")
+
+    const scrollBeforeOpen = await page.evaluate(() => window.scrollY)
+    await page.locator(`[data-media-id="${mediaId}"]`).click()
+    await expect(page.getByRole("dialog")).toBeVisible()
+    await expect.poll(() => page.evaluate(() => window.scrollY)).toBe(scrollBeforeOpen)
+
+    await page.getByRole("button", { name: "Close lightbox" }).click()
+    await expect(page.getByRole("list", { name: "Media results" })).toBeVisible()
+    await expect.poll(() => page.evaluate(() => window.scrollY)).toBe(scrollBeforeOpen)
+  })
+
   test("zooms the URL lightbox around a ctrl-wheel pointer position", async ({ page }) => {
     await page.goto("/media/record-001-media-1")
     const { dialog, image, layer, viewport } = lightboxMediaLocators(page, "Study 001.1")
@@ -132,6 +190,42 @@ test.describe("desktop media wall", () => {
     await expect
       .poll(() => anchorDisplacement(page, anchor))
       .toBeLessThan(16)
+  })
+
+  test("ignores the momentum tail after active trackpad zoom", async ({ page }) => {
+    await page.goto("/?density=1")
+    const wall = await waitForMediaWall(page)
+    const gestureSurface = wall.locator("xpath=../..")
+    const initialHistoryLength = await page.evaluate(() => window.history.length)
+    const dispatchWheelBurst = (deltas: number[]) => gestureSurface.evaluate(
+      (element, wheelDeltas) => {
+        wheelDeltas.forEach((deltaY) => {
+          element.dispatchEvent(new WheelEvent("wheel", {
+            bubbles: true,
+            cancelable: true,
+            clientX: window.innerWidth / 2,
+            clientY: window.innerHeight / 2,
+            ctrlKey: true,
+            deltaY,
+          }))
+        })
+      },
+      deltas,
+    )
+
+    const activeDeltas = [-8, -9, -10, -10, -9, -8]
+    const momentumDeltas = [-5, -3, -1.5, -0.7, -0.25]
+    await dispatchWheelBurst([...activeDeltas, ...momentumDeltas])
+    const expectedDensity = Math.exp(
+      -activeDeltas.reduce((sum, delta) => sum + delta, 0) * 0.003,
+    )
+
+    await expect(page).toHaveURL((url) =>
+      Math.abs(Number(url.searchParams.get("density")) - expectedDensity) < 0.001,
+    )
+    await expect
+      .poll(() => page.evaluate(() => window.history.length))
+      .toBe(initialHistoryLength + 1)
   })
 
   test("never starts ambient wall video when reduced motion is requested", async ({ page }) => {

@@ -15,7 +15,7 @@ describe("wall URL state", () => {
         { id: "tag", values: ["motion", "portrait"] },
         { id: "kind", values: ["video"] },
       ],
-      sort: "newest",
+      sort: "random",
       mode: "hybrid",
       seed: "editorial-42",
       density: 1.375,
@@ -28,6 +28,7 @@ describe("wall URL state", () => {
     expect(encoded).toContain("filters=kind:video")
     expect(encoded).toContain("filters=tag:motion")
     expect(encoded).toContain("mode=hybrid")
+    expect(encoded).toContain("sort=random")
     expect(decodeWallSearch(encoded)).toEqual(validateWallSearch(state))
   })
 
@@ -44,6 +45,14 @@ describe("wall URL state", () => {
       seed: "gallery",
       density: "auto",
     })
+  })
+
+  it("only serializes a composition seed for random sorting", () => {
+    const curated = validateWallSearch({ sort: "curated", seed: "hidden-seed" })
+    const random = validateWallSearch({ sort: "random", seed: "visible-seed" })
+
+    expect(stringifyWallSearch(curated)).not.toContain("seed=")
+    expect(stringifyWallSearch(random)).toContain("seed=visible-seed")
   })
 
   it("rejects density values outside the supported continuous control range", () => {

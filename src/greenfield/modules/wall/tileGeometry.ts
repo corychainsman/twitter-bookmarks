@@ -9,6 +9,8 @@ const SCALE_AREA: Record<WallTile["scale"], number> = {
 
 const BASE_TILE_AREA = 68_000
 const BASE_JUSTIFIED_ROW_SIZE = 220
+const BASE_RENDER_THRESHOLD = 800
+const MAX_LAYOUT_GROUP_COLUMNS = 20
 
 function densityFactor(density: Density): number {
   if (density === "auto" || !Number.isFinite(density)) {
@@ -24,6 +26,35 @@ export interface TileDimensions {
 }
 
 export type JustifiedSizeRange = [number, number]
+export type JustifiedColumnRange = [number, number]
+
+/**
+ * InfiniteGrid applies threshold symmetrically before and after the viewport.
+ * Scaling it with row size keeps several rows mounted and loading offscreen at
+ * every zoom level instead of letting large-density rows enter cold.
+ */
+export function getWallRenderThreshold(density: Density): number {
+  return Math.max(600, Math.round(BASE_RENDER_THRESHOLD * densityFactor(density)))
+}
+
+/**
+ * Gives the browser a density-aware estimate before InfiniteGrid has measured
+ * the justified row. The estimate intentionally trends slightly low because
+ * the rendition ladder can step up without distorting the media, while an
+ * oversized `sizes` value permanently downloads a needlessly large source.
+ */
+export function getWallImageSizes(density: Density): string {
+  const factor = densityFactor(density)
+  const mobile = Math.round(30 * factor)
+  const tablet = Math.round(22 * factor)
+  const desktop = Math.round(16 * factor)
+
+  return `(max-width: 639px) ${mobile}vw, (max-width: 1023px) ${tablet}vw, ${desktop}vw`
+}
+
+export function getJustifiedColumnRange(containerInlineSize: number): JustifiedColumnRange {
+  return containerInlineSize < 640 ? [1, 4] : [1, MAX_LAYOUT_GROUP_COLUMNS]
+}
 
 /**
  * Keeps the density control meaningful after JustifiedInfiniteGrid takes

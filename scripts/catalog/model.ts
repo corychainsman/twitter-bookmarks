@@ -17,6 +17,7 @@ export type ImageRendition = {
 
 export type MediaItem = {
   type: MediaType
+  altText?: string
   thumbUrl: string
   fullUrl: string
   posterUrl?: string

@@ -1,3 +1,12 @@
+import {
+  SEMANTIC_EMBEDDING_DIMENSIONS,
+  SEMANTIC_INDEX_VERSION,
+  SEMANTIC_MODEL_ID,
+  SEMANTIC_PROTOCOL_VERSION,
+  SEMANTIC_RESULT_LIMIT,
+} from "../src/greenfield/semantic/config"
+import { decodeInt8Base64Url } from "../src/greenfield/semantic/vector-codec"
+
 interface CatalogManifest {
   buildId: string
   builtAt: string
@@ -8,6 +17,7 @@ interface CatalogManifest {
     orderBookmarked: string
     orderPosted: string
     searchStore: string
+    embeddings?: string
   }
 }
 
@@ -44,7 +54,25 @@ interface CatalogSearchEntry {
   folderNames: string
 }
 
+interface CatalogEmbeddingIndex {
+  version: number
+  buildId: string
+  model: {
+    id: string
+    dimensions: number
+    quantization: string
+  }
+  records: Array<{ tweetId: string }>
+  vectors: string
+}
+
+interface LoadedEmbeddingIndex {
+  records: Array<{ tweetId: string }>
+  vectors: Int8Array
+}
+
 interface CatalogDocument extends Omit<CatalogSearchEntry, "folderNames"> {
+  url: string
   postedAt: string
   folderNames: string[]
 }
@@ -81,7 +109,9 @@ interface MediaRecord {
   title: string
   description: string
   sourceLabel: string
-  capturedAt: string
+  authorUrl: string
+  sourceUrl: string
+  postedAt: string
   tags: string[]
   assets: MediaAsset[]
   eligibleRepresentativeAssetIds: string[]
@@ -89,6 +119,7 @@ interface MediaRecord {
 
 interface CatalogIndex {
   origin: string
+  fetcher: CatalogFetcher
   manifest: CatalogManifest
   gridItems: CatalogGridItem[]
   mediaById: Map<string, CatalogGridItem>
@@ -103,8 +134,13 @@ interface CatalogIndex {
 interface DiscoveryRequest {
   q: string
   filters: FacetSelection[]
-  sort: "curated" | "newest" | "oldest"
+  sort: "curated" | "random" | "newest" | "oldest"
+  seed: string
   similar?: string
+  semantic?: {
+    encoded: string
+    vector: Int8Array
+  }
 }
 
 export interface CatalogSocialMetadata {
@@ -118,6 +154,9 @@ const PAGE_SIZE = 24
 const SNAPSHOT_LIFETIME_MS = 7 * 24 * 60 * 60 * 1_000
 const catalogPromises = new Map<string, Promise<CatalogIndex>>()
 const documentChunkPromises = new Map<string, Promise<Map<string, CatalogDocument>>>()
+const embeddingIndexPromises = new Map<string, Promise<LoadedEmbeddingIndex | undefined>>()
+
+export type CatalogFetcher = (request: Request) => Promise<Response>
 
 function normalizedOrigin(origin: string): string {
   const url = new URL(origin)
@@ -134,8 +173,14 @@ function artifactUrl(origin: string, path: string): string {
   return new URL(path.replace(/^\//, ""), normalizedOrigin(origin)).toString()
 }
 
-async function fetchJson<T>(url: string): Promise<T> {
-  const response = await fetch(new Request(url, {
+function versionedArtifactUrl(origin: string, path: string, buildId: string): string {
+  const url = new URL(artifactUrl(origin, path))
+  url.searchParams.set("catalog", buildId)
+  return url.toString()
+}
+
+async function fetchJson<T>(url: string, fetcher: CatalogFetcher): Promise<T> {
+  const response = await fetcher(new Request(url, {
     headers: { accept: "application/json" },
   }))
   if (!response.ok) throw new Error(`Catalog request failed (${response.status}): ${url}`)
@@ -150,14 +195,22 @@ function sourceLabel(entry: CatalogSearchEntry): string {
   return entry.authorHandle ? `@${entry.authorHandle.replace(/^@/, "")}` : entry.authorName
 }
 
-async function createCatalog(origin: string): Promise<CatalogIndex> {
+function xAuthorUrl(entry: CatalogSearchEntry): string {
+  return `https://x.com/${encodeURIComponent(entry.authorHandle.replace(/^@/, ""))}`
+}
+
+async function createCatalog(origin: string, fetcher: CatalogFetcher): Promise<CatalogIndex> {
   const normalized = normalizedOrigin(origin)
-  const manifest = await fetchJson<CatalogManifest>(artifactUrl(normalized, "manifest.json"))
+  const manifest = await fetchJson<CatalogManifest>(versionedArtifactUrl(
+    normalized,
+    "manifest.json",
+    Date.now().toString(36),
+  ), fetcher)
   const [gridItems, searchEntries, bookmarkedOrder, postedOrder] = await Promise.all([
-    fetchJson<CatalogGridItem[]>(artifactUrl(normalized, manifest.files.gridAll)),
-    fetchJson<CatalogSearchEntry[]>(artifactUrl(normalized, manifest.files.searchStore)),
-    fetchJson<string[]>(artifactUrl(normalized, manifest.files.orderBookmarked)),
-    fetchJson<string[]>(artifactUrl(normalized, manifest.files.orderPosted)),
+    fetchJson<CatalogGridItem[]>(versionedArtifactUrl(normalized, manifest.files.gridAll, manifest.buildId), fetcher),
+    fetchJson<CatalogSearchEntry[]>(versionedArtifactUrl(normalized, manifest.files.searchStore, manifest.buildId), fetcher),
+    fetchJson<string[]>(versionedArtifactUrl(normalized, manifest.files.orderBookmarked, manifest.buildId), fetcher),
+    fetchJson<string[]>(versionedArtifactUrl(normalized, manifest.files.orderPosted, manifest.buildId), fetcher),
   ])
   const mediaByRecord = new Map<string, CatalogGridItem[]>()
   const mediaById = new Map<string, CatalogGridItem>()
@@ -182,6 +235,7 @@ async function createCatalog(origin: string): Promise<CatalogIndex> {
 
   return {
     origin: normalized,
+    fetcher,
     manifest,
     gridItems,
     mediaById,
@@ -194,12 +248,12 @@ async function createCatalog(origin: string): Promise<CatalogIndex> {
   }
 }
 
-async function loadCatalog(origin: string): Promise<CatalogIndex> {
+async function loadCatalog(origin: string, fetcher: CatalogFetcher = fetch): Promise<CatalogIndex> {
   const normalized = normalizedOrigin(origin)
   const current = catalogPromises.get(normalized)
   if (current) return current
 
-  const promise = createCatalog(normalized).catch((error) => {
+  const promise = createCatalog(normalized, fetcher).catch((error) => {
     catalogPromises.delete(normalized)
     throw error
   })
@@ -214,7 +268,11 @@ async function loadDocumentChunk(catalog: CatalogIndex, chunkIndex: number) {
   const current = documentChunkPromises.get(key)
   if (current) return current
 
-  const promise = fetchJson<CatalogDocument[]>(artifactUrl(catalog.origin, path))
+  const promise = fetchJson<CatalogDocument[]>(versionedArtifactUrl(
+    catalog.origin,
+    path,
+    catalog.manifest.buildId,
+  ), catalog.fetcher)
     .then((documents) => new Map(documents.map((document) => [document.id, document])))
     .catch((error) => {
       documentChunkPromises.delete(key)
@@ -264,14 +322,106 @@ function parseFilters(values: string[]): FacetSelection[] {
 
 function parseDiscoveryRequest(url: URL): DiscoveryRequest {
   const sort = url.searchParams.get("sort")
+  const seed = (url.searchParams.get("seed") ?? "gallery").trim().slice(0, 96) || "gallery"
+  const semanticEncoded = url.searchParams.get("semantic") ?? ""
+  const semanticVector = semanticEncoded.length <= 4096
+    && url.searchParams.get("semanticModel") === SEMANTIC_MODEL_ID
+    && Number(url.searchParams.get("semanticVersion")) === SEMANTIC_PROTOCOL_VERSION
+    ? decodeInt8Base64Url(semanticEncoded)
+    : undefined
+
   return {
     q: (url.searchParams.get("q") ?? "").trim().replace(/\s+/g, " "),
     filters: parseFilters(url.searchParams.getAll("filter")),
-    sort: sort === "newest" || sort === "oldest" ? sort : "curated",
+    sort: sort === "random" || sort === "newest" || sort === "oldest" ? sort : "curated",
+    seed,
     ...(url.searchParams.get("similar")
       ? { similar: url.searchParams.get("similar") ?? undefined }
       : {}),
+    ...(semanticVector?.length === SEMANTIC_EMBEDDING_DIMENSIONS
+      ? { semantic: { encoded: semanticEncoded, vector: semanticVector } }
+      : {}),
   }
+}
+
+function decodeStandardBase64(value: string): Int8Array | undefined {
+  try {
+    const binary = atob(value)
+    const bytes = new Uint8Array(binary.length)
+    for (let index = 0; index < binary.length; index += 1) {
+      bytes[index] = binary.charCodeAt(index)
+    }
+    return new Int8Array(bytes.buffer)
+  } catch {
+    return undefined
+  }
+}
+
+async function loadEmbeddingIndex(catalog: CatalogIndex): Promise<LoadedEmbeddingIndex | undefined> {
+  const path = catalog.manifest.files.embeddings
+  if (!path) return undefined
+  const key = `${catalog.origin}\u001f${catalog.manifest.buildId}\u001f${path}`
+  const current = embeddingIndexPromises.get(key)
+  if (current) return current
+
+  const promise = fetchJson<CatalogEmbeddingIndex>(versionedArtifactUrl(
+    catalog.origin,
+    path,
+    catalog.manifest.buildId,
+  ), catalog.fetcher).then((index) => {
+    if (
+      index.version !== SEMANTIC_INDEX_VERSION
+      || index.buildId !== catalog.manifest.buildId
+      || index.model.id !== SEMANTIC_MODEL_ID
+      || index.model.dimensions !== SEMANTIC_EMBEDDING_DIMENSIONS
+      || index.model.quantization !== "int8-unit-vector"
+    ) return undefined
+
+    const vectors = decodeStandardBase64(index.vectors)
+    if (!vectors || vectors.length !== index.records.length * SEMANTIC_EMBEDDING_DIMENSIONS) {
+      return undefined
+    }
+    return { records: index.records, vectors }
+  }).catch(() => {
+    embeddingIndexPromises.delete(key)
+    return undefined
+  })
+  embeddingIndexPromises.set(key, promise)
+  return promise
+}
+
+function quantizedDot(left: Int8Array, right: Int8Array, rightOffset: number): number {
+  let score = 0
+  for (let index = 0; index < SEMANTIC_EMBEDDING_DIMENSIONS; index += 1) {
+    score += (left[index] ?? 0) * (right[rightOffset + index] ?? 0)
+  }
+  return score / (127 * 127)
+}
+
+async function semanticRanking(
+  catalog: CatalogIndex,
+  request: DiscoveryRequest,
+): Promise<Array<{ id: string; score: number }>> {
+  if (!request.semantic || !request.q) return []
+  const index = await loadEmbeddingIndex(catalog)
+  if (!index) return []
+
+  const bestByRecord = new Map<string, number>()
+  index.records.forEach((record, rowIndex) => {
+    const score = quantizedDot(
+      request.semantic!.vector,
+      index.vectors,
+      rowIndex * SEMANTIC_EMBEDDING_DIMENSIONS,
+    )
+    if (score > (bestByRecord.get(record.tweetId) ?? Number.NEGATIVE_INFINITY)) {
+      bestByRecord.set(record.tweetId, score)
+    }
+  })
+  const ranked = [...bestByRecord].map(([id, score]) => ({ id, score }))
+    .toSorted((left, right) => right.score - left.score)
+  const best = ranked[0]?.score ?? 0
+  const minimum = Math.max(0.18, best - 0.32)
+  return ranked.filter((candidate) => candidate.score >= minimum).slice(0, SEMANTIC_RESULT_LIMIT)
 }
 
 function entryHaystack(entry: CatalogSearchEntry): string {
@@ -314,19 +464,19 @@ function matchesNonDateFilter(
 
 function matchesDate(document: CatalogDocument | undefined, values: string[]): boolean {
   if (!document) return false
-  const capturedAt = Date.parse(document.postedAt)
-  if (!Number.isFinite(capturedAt)) return false
+  const postedAt = Date.parse(document.postedAt)
+  if (!Number.isFinite(postedAt)) return false
   const now = Date.now()
 
   return values.some((value) => {
-    if (value === "week") return capturedAt >= now - 7 * 86_400_000
-    if (value === "month") return capturedAt >= now - 30 * 86_400_000
-    if (value === "year") return capturedAt >= now - 365 * 86_400_000
+    if (value === "week") return postedAt >= now - 7 * 86_400_000
+    if (value === "month") return postedAt >= now - 30 * 86_400_000
+    if (value === "year") return postedAt >= now - 365 * 86_400_000
     if (!value.startsWith("custom:")) return false
     const [, from, to] = value.split(":")
     const minimum = from ? Date.parse(`${from}T00:00:00.000Z`) : Number.NEGATIVE_INFINITY
     const maximum = to ? Date.parse(`${to}T23:59:59.999Z`) : Number.POSITIVE_INFINITY
-    return capturedAt >= minimum && capturedAt <= maximum
+    return postedAt >= minimum && postedAt <= maximum
   })
 }
 
@@ -343,16 +493,52 @@ async function matchingIds(
     : request.sort === "oldest"
       ? [...catalog.postedOrder].reverse()
       : catalog.bookmarkedOrder
-  const filtered = order.filter((id) => {
+  const eligible = order.filter((id) => {
     const entry = catalog.searchById.get(id)
     if (!entry || !catalog.mediaByRecord.has(id)) return false
-    if (!terms.every((term) => entryHaystack(entry).includes(term))) return false
     return filters.every((filter) => filter.id === "date"
       ? matchesDate(documents?.get(id), filter.values)
       : matchesNonDateFilter(catalog, id, filter))
   })
 
-  if (!request.similar) return filtered
+  const lexical = request.q
+    ? eligible.filter((id) => {
+        const entry = catalog.searchById.get(id)
+        return Boolean(entry && terms.every((term) => entryHaystack(entry).includes(term)))
+      })
+    : eligible
+  const semantic = await semanticRanking(catalog, request)
+  const eligibleSet = new Set(eligible)
+  const semanticEligible = semantic.filter((candidate) => eligibleSet.has(candidate.id))
+  const semanticRank = new Map(semanticEligible.map((candidate, index) => [candidate.id, index]))
+  const lexicalRank = new Map(lexical.map((id, index) => [id, index]))
+  const candidateSet = new Set([...lexical, ...semanticEligible.map((candidate) => candidate.id)])
+  const filtered = request.q ? eligible.filter((id) => candidateSet.has(id)) : eligible
+
+  if (request.q && request.sort === "curated" && semanticEligible.length > 0) {
+    const phrase = request.q.toLocaleLowerCase()
+    filtered.sort((left, right) => {
+      const score = (id: string) => {
+        const lexicalPosition = lexicalRank.get(id)
+        const semanticPosition = semanticRank.get(id)
+        const phraseBoost = catalog.searchById.get(id)
+          && entryHaystack(catalog.searchById.get(id)!).includes(phrase) ? 0.5 : 0
+        return phraseBoost
+          + (lexicalPosition === undefined ? 0 : 60 / (60 + lexicalPosition))
+          + (semanticPosition === undefined ? 0 : 60 / (60 + semanticPosition))
+      }
+      return score(right) - score(left)
+        || (catalog.bookmarkedRank.get(left) ?? 0) - (catalog.bookmarkedRank.get(right) ?? 0)
+    })
+  }
+
+  if (!request.similar) {
+    return request.sort === "random"
+      ? filtered.toSorted(
+          (left, right) => hash(`${request.seed}:${left}`) - hash(`${request.seed}:${right}`),
+        )
+      : filtered
+  }
   return filtered.toSorted(
     (left, right) => hash(`${request.similar}:${left}`) - hash(`${request.similar}:${right}`),
   )
@@ -368,7 +554,10 @@ function hash(value: string): number {
 }
 
 function cursorSignature(request: DiscoveryRequest): string {
-  return hash(JSON.stringify(request)).toString(36)
+  return hash(JSON.stringify({
+    ...request,
+    semantic: request.semantic?.encoded,
+  })).toString(36)
 }
 
 function encodeCursor(catalog: CatalogIndex, request: DiscoveryRequest, offset: number): string {
@@ -399,6 +588,10 @@ function rendition(candidate: CatalogRendition): RenditionCandidate {
   }
 }
 
+function displayPostText(value: string): string {
+  return value.replace(/https?:\/\/t\.co\/\S+/g, "").trim()
+}
+
 function itemAsset(item: CatalogGridItem, entry: CatalogSearchEntry): MediaAsset {
   const id = mediaId(item)
   const kind = item.mediaType === "photo" ? "image" : "video"
@@ -427,7 +620,7 @@ function itemAsset(item: CatalogGridItem, entry: CatalogSearchEntry): MediaAsset
     recordId: item.tweetId,
     kind,
     title,
-    description: entry.text || entry.articleTitle || entry.quotedText || "",
+    description: displayPostText(entry.text || entry.articleTitle || entry.quotedText || ""),
     width: item.width,
     height: item.height,
     placeholder: item.thumbhash ?? "",
@@ -439,9 +632,7 @@ function itemAsset(item: CatalogGridItem, entry: CatalogSearchEntry): MediaAsset
 }
 
 function recordTitle(entry: CatalogSearchEntry): string {
-  const text = (entry.articleTitle || entry.text || entry.quotedText || "")
-    .replace(/https?:\/\/t\.co\/\S+/g, "")
-    .trim()
+  const text = displayPostText(entry.articleTitle || entry.text || entry.quotedText || "")
   if (text) return text.length > 120 ? `${text.slice(0, 117)}…` : text
   return `${entry.authorName || entry.authorHandle} on X`
 }
@@ -455,16 +646,19 @@ function createRecord(
   const items = catalog.mediaByRecord.get(id)
   if (!entry || !items?.length) return undefined
   const assets = items.map((item) => itemAsset(item, entry))
-  const capturedAt = document ? new Date(document.postedAt).toISOString() : catalog.manifest.builtAt
+  const postedAt = document ? new Date(document.postedAt).toISOString() : catalog.manifest.builtAt
   const tags = document?.folderNames ?? entry.folderNames.split(/\s*,\s*/).filter(Boolean)
 
   return {
     id,
     title: recordTitle(entry),
     description: [entry.text, entry.quotedText, entry.articleTitle, entry.articleText]
-      .filter(Boolean).join("\n\n"),
+      .filter((value): value is string => Boolean(value))
+      .map(displayPostText).filter(Boolean).join("\n\n"),
     sourceLabel: sourceLabel(entry),
-    capturedAt,
+    authorUrl: xAuthorUrl(entry),
+    sourceUrl: document?.url ?? `https://x.com/i/status/${encodeURIComponent(id)}`,
+    postedAt,
     tags,
     assets,
     eligibleRepresentativeAssetIds: assets.map((asset) => asset.id),
@@ -552,7 +746,10 @@ async function mediaResponse(catalog: CatalogIndex, encodedId: string): Promise<
   const item = id ? catalog.mediaById.get(id) : undefined
   const entry = item ? catalog.searchById.get(item.tweetId) : undefined
   if (!item || !entry) return apiError(404, "not_found", "Media was not found.")
-  return json(itemAsset(item, entry), 200, "public, max-age=60, stale-while-revalidate=300")
+  const documents = await loadDocuments(catalog, [item.tweetId])
+  const record = createRecord(catalog, item.tweetId, documents.get(item.tweetId))
+  if (!record) return apiError(404, "not_found", "Media record was not found.")
+  return json({ media: itemAsset(item, entry), record }, 200, "public, max-age=60, stale-while-revalidate=300")
 }
 
 function sourceSuggestions(catalog: CatalogIndex, url: URL): Response {
@@ -568,8 +765,9 @@ function sourceSuggestions(catalog: CatalogIndex, url: URL): Response {
 export async function getCatalogSocialMetadata(
   origin: string,
   mediaIdValue: string,
+  fetcher: CatalogFetcher = fetch,
 ): Promise<CatalogSocialMetadata | undefined> {
-  const catalog = await loadCatalog(origin)
+  const catalog = await loadCatalog(origin, fetcher)
   const item = catalog.mediaById.get(mediaIdValue)
   const entry = item ? catalog.searchById.get(item.tweetId) : undefined
   if (!item || !entry) return undefined
@@ -582,7 +780,11 @@ export async function getCatalogSocialMetadata(
   }
 }
 
-export async function handleCatalogApi(request: Request, origin: string): Promise<Response> {
+export async function handleCatalogApi(
+  request: Request,
+  origin: string,
+  fetcher: CatalogFetcher = fetch,
+): Promise<Response> {
   if (request.method !== "GET" && request.method !== "HEAD") {
     return new Response(null, { status: 405, headers: { allow: "GET, HEAD" } })
   }
@@ -590,7 +792,7 @@ export async function handleCatalogApi(request: Request, origin: string): Promis
   const path = url.pathname.replace(/^\/api/, "") || "/"
 
   try {
-    const catalog = await loadCatalog(origin)
+    const catalog = await loadCatalog(origin, fetcher)
     let response: Response
 
     if (path === "/discovery") response = await discovery(catalog, url)
@@ -601,6 +803,7 @@ export async function handleCatalogApi(request: Request, origin: string): Promis
       response = json({
         sorts: [
           { id: "curated", label: "Curated", default: true },
+          { id: "random", label: "Random" },
           { id: "newest", label: "Newest" },
           { id: "oldest", label: "Oldest" },
         ],

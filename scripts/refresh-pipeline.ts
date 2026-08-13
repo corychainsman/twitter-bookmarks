@@ -1,6 +1,6 @@
 import { spawnSync } from 'node:child_process'
 
-export type RefreshPipelineMode = 'default' | 'resume' | 'full' | 'embeddings'
+export type RefreshPipelineMode = 'default' | 'resume' | 'full' | 'embeddings' | 'publish'
 
 export type RefreshPipelineStepId =
   | 'sync:ft'
@@ -11,6 +11,7 @@ export type RefreshPipelineStepId =
   | 'data:video-previews'
   | 'mirror:sync'
   | 'data:export'
+  | 'data:semantic-enrichment'
   | 'data:embeddings'
   | 'data:validate'
   | 'build'
@@ -38,6 +39,7 @@ const REFRESH_STEP_SEQUENCE: RefreshPipelineStepId[] = [
   'data:video-previews',
   'mirror:sync',
   'data:export',
+  'data:semantic-enrichment',
   'data:embeddings',
   'data:validate',
   'build',
@@ -88,6 +90,11 @@ const REFRESH_STEPS: Record<RefreshPipelineStepId, RefreshPipelineStep> = {
     id: 'data:embeddings',
     label: 'Semantic embeddings export',
     packageScript: 'data:embeddings',
+  },
+  'data:semantic-enrichment': {
+    id: 'data:semantic-enrichment',
+    label: 'Incremental local media caption and OCR enrichment',
+    packageScript: 'data:semantic-enrichment',
   },
   'data:validate': {
     id: 'data:validate',
@@ -149,6 +156,10 @@ function syncStepForMode(mode: RefreshPipelineMode): RefreshPipelineStepId {
 }
 
 export function buildRefreshPipeline(mode: RefreshPipelineMode = 'default'): RefreshPipelineStep[] {
+  if (mode === 'publish') {
+    return REFRESH_STEP_SEQUENCE.map((id) => REFRESH_STEPS[id])
+  }
+
   return [syncStepForMode(mode), ...REFRESH_STEP_SEQUENCE].map((id) => REFRESH_STEPS[id])
 }
 

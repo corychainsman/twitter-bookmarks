@@ -4,20 +4,54 @@ import {
   sanitizeSocialMetadata,
   type SocialMetadata,
 } from "./social-metadata"
-import { getCatalogSocialMetadata, handleCatalogApi } from "./production-catalog"
+import {
+  getCatalogSocialMetadata,
+  handleCatalogApi,
+  type CatalogFetcher,
+} from "./production-catalog"
 
 interface Env {
   API_ORIGIN?: string
   DATA_ORIGIN?: string
+  USE_LOCAL_DATA?: string
   ASSETS: Fetcher
+}
+
+function catalogSource(request: Request, env: Env): {
+  origin: string
+  fetcher?: CatalogFetcher
+} | undefined {
+  if (env.USE_LOCAL_DATA === "true") {
+    return {
+      origin: new URL("/data/", request.url).toString(),
+      fetcher: (assetRequest) => env.ASSETS.fetch(assetRequest),
+    }
+  }
+  return env.DATA_ORIGIN ? { origin: env.DATA_ORIGIN } : undefined
 }
 
 const API_TIMEOUT_MS = 15_000
 const SOCIAL_METADATA_TIMEOUT_MS = 2_500
 const MAX_SOCIAL_METADATA_BYTES = 64 * 1_024
+const IMMUTABLE_ASSET_CACHE_CONTROL = "public, max-age=31536000, immutable"
+const DEFAULT_DISCOVERY_PRELOAD = '<link rel="preload" href="/api/discovery?q=&amp;sort=curated" as="fetch" crossorigin>'
+const DOCUMENT_SECURITY_POLICY = [
+  "default-src 'self'",
+  "base-uri 'none'",
+  "connect-src 'self' https:",
+  "font-src 'self'",
+  "form-action 'self'",
+  "frame-ancestors 'none'",
+  "img-src 'self' https: data:",
+  "media-src 'self' https:",
+  "object-src 'none'",
+  "script-src 'self'",
+  "style-src 'self' 'unsafe-inline'",
+  "worker-src 'self' blob:",
+].join("; ")
 
 const FALLBACK_SOCIAL_METADATA: SocialMetadata = {
-  title: "Elsewhere — Media discovery",
+  title: "X Inspo",
   description: "Open this media in the discovery wall.",
   imageUrl: "https://assets.ui.sh/wallpapers/horizon.webp?variant=jade-corner",
 }
@@ -33,6 +67,58 @@ const HOP_BY_HOP_HEADERS = [
   "transfer-encoding",
   "upgrade",
 ]
+
+function secureDocumentResponse(
+  request: Request,
+  response: Response,
+  options: {
+    cacheControl?: string
+    allowsViteBootstrap?: boolean
+  } = {},
+): Response {
+  const headers = new Headers(response.headers)
+  const policy = options.allowsViteBootstrap
+    ? DOCUMENT_SECURITY_POLICY.replace("script-src 'self'", "script-src 'self' 'unsafe-inline'")
+    : DOCUMENT_SECURITY_POLICY
+
+  const cacheControl = options.cacheControl ?? headers.get("cache-control")
+  headers.set(
+    "cache-control",
+    cacheControl
+      ? `${cacheControl.replace(/(?:,\s*)?no-transform\b/gi, "")}, no-transform`
+      : "no-cache, no-transform",
+  )
+  headers.set("content-security-policy", policy)
+  headers.set("permissions-policy", "camera=(), geolocation=(), microphone=()")
+  headers.set("referrer-policy", "strict-origin-when-cross-origin")
+  headers.set("strict-transport-security", "max-age=31536000; includeSubDomains")
+  headers.set("x-content-type-options", "nosniff")
+  headers.set("x-frame-options", "DENY")
+  headers.set("x-robots-tag", "noindex, nofollow")
+
+  return new Response(request.method === "HEAD" ? null : response.body, {
+    status: response.status,
+    statusText: response.statusText,
+    headers,
+  })
+}
+
+function isHashedBuildAsset(pathname: string): boolean {
+  return /^\/assets\/[^/]+-[A-Za-z0-9_-]{8,}\.[A-Za-z0-9]+$/.test(pathname)
+}
+
+function cacheImmutableBuildAsset(request: Request, response: Response): Response {
+  if (!response.ok || !isHashedBuildAsset(new URL(request.url).pathname)) return response
+
+  const headers = new Headers(response.headers)
+  headers.set("cache-control", IMMUTABLE_ASSET_CACHE_CONTROL)
+
+  return new Response(request.method === "HEAD" ? null : response.body, {
+    status: response.status,
+    statusText: response.statusText,
+    headers,
+  })
+}
 
 function jsonError(status: number, code: string, requestId: string, headOnly = false) {
   const body = JSON.stringify({ error: { code, requestId } })
@@ -137,9 +223,10 @@ async function proxyApi(request: Request, env: Env) {
   }
 }
 
-async function readSocialMetadata(mediaId: string, env: Env) {
+async function readSocialMetadata(mediaId: string, request: Request, env: Env) {
   try {
-    if (env.DATA_ORIGIN) return getCatalogSocialMetadata(env.DATA_ORIGIN, mediaId)
+    const catalog = catalogSource(request, env)
+    if (catalog) return getCatalogSocialMetadata(catalog.origin, mediaId, catalog.fetcher)
     if (!env.API_ORIGIN) return undefined
     if (new URL(env.API_ORIGIN).hostname.endsWith(".invalid")) return undefined
     const socialUrl = resolveUpstreamUrl(`/media/${encodeURIComponent(mediaId)}/social`, "", env.API_ORIGIN)
@@ -175,6 +262,24 @@ class ContentAttributeHandler implements HTMLRewriterElementContentHandlers {
   }
 }
 
+async function injectDefaultDiscoveryPreload(
+  request: Request,
+  response: Response,
+): Promise<Response> {
+  if (request.method === "HEAD") return response
+
+  const html = await response.text()
+  const body = html.includes("</head>")
+    ? html.replace("</head>", `${DEFAULT_DISCOVERY_PRELOAD}</head>`)
+    : html
+
+  return new Response(body, {
+    status: response.status,
+    statusText: response.statusText,
+    headers: response.headers,
+  })
+}
+
 class TitleHandler implements HTMLRewriterElementContentHandlers {
   constructor(private readonly title: string) {}
 
@@ -207,7 +312,7 @@ async function renderSocialShell(request: Request, env: Env, mediaId: string) {
   const requestUrl = new URL(request.url)
   const allowsViteBootstrap = requestUrl.port.length > 0
   const canonicalUrl = new URL(`/media/${encodeURIComponent(mediaId)}`, requestUrl.origin).toString()
-  const metadata = (await readSocialMetadata(mediaId, env)) ?? FALLBACK_SOCIAL_METADATA
+  const metadata = (await readSocialMetadata(mediaId, request, env)) ?? FALLBACK_SOCIAL_METADATA
   const tags = renderSocialMetadataTags(metadata, canonicalUrl)
 
   let shell: Response | undefined
@@ -235,21 +340,9 @@ async function renderSocialShell(request: Request, env: Env, mediaId: string) {
     })
   }
 
-  const headers = new Headers(response.headers)
-  headers.set("cache-control", "public, max-age=60, stale-while-revalidate=300")
-  headers.set(
-    "content-security-policy",
-    `default-src 'self'; img-src 'self' https: data:; media-src 'self' https:; script-src 'self'${allowsViteBootstrap ? " 'unsafe-inline'" : ""}; style-src 'self' 'unsafe-inline'; base-uri 'none'; frame-ancestors 'none'`,
-  )
-  headers.set("referrer-policy", "strict-origin-when-cross-origin")
-  headers.set("x-content-type-options", "nosniff")
-  headers.set("x-frame-options", "DENY")
-  headers.set("x-robots-tag", "noindex, nofollow")
-
-  return new Response(request.method === "HEAD" ? null : response.body, {
-    status: response.status,
-    statusText: response.statusText,
-    headers,
+  return secureDocumentResponse(request, response, {
+    cacheControl: "public, max-age=60, stale-while-revalidate=300",
+    allowsViteBootstrap,
   })
 }
 
@@ -258,7 +351,8 @@ export default {
     const url = new URL(request.url)
 
     if (url.pathname === "/api" || url.pathname.startsWith("/api/")) {
-      if (env.DATA_ORIGIN) return handleCatalogApi(request, env.DATA_ORIGIN)
+      const catalog = catalogSource(request, env)
+      if (catalog) return handleCatalogApi(request, catalog.origin, catalog.fetcher)
       return proxyApi(request, env)
     }
 
@@ -273,6 +367,14 @@ export default {
       return renderSocialShell(request, env, mediaId)
     }
 
-    return env.ASSETS.fetch(request)
+    const response = await env.ASSETS.fetch(request)
+    if (!response.headers.get("content-type")?.includes("text/html")) {
+      return cacheImmutableBuildAsset(request, response)
+    }
+
+    const documentResponse = url.pathname === "/" && url.search === ""
+      ? await injectDefaultDiscoveryPreload(request, response)
+      : response
+    return secureDocumentResponse(request, documentResponse)
   },
 } satisfies ExportedHandler<Env>

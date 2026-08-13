@@ -1,13 +1,7 @@
 import { mkdir, readFile, writeFile } from 'node:fs/promises'
 import path from 'node:path'
 
-import {
-  AutoProcessor,
-  AutoTokenizer,
-  CLIPTextModelWithProjection,
-  CLIPVisionModelWithProjection,
-  RawImage,
-} from '@huggingface/transformers'
+import { env, pipeline } from '@huggingface/transformers'
 
 import {
   BOOKMARKS_EMBEDDING_DIMENSIONS,
@@ -22,19 +16,18 @@ import {
   type EmbeddingIndex,
   type EmbeddingRecord,
 } from './catalog/embedding-artifacts'
-import type { Manifest, MediaItem, TweetDoc } from './catalog/model'
+import {
+  enrichmentTextByGridId,
+  readSemanticEnrichment,
+} from './catalog/semantic-enrichment'
+import type { Manifest, TweetDoc } from './catalog/model'
 
 const projectRoot = process.cwd()
 const outputDirectory = path.join(projectRoot, 'public/data')
 const manifestPath = path.join(outputDirectory, 'manifest.json')
 const embeddingsFileName = 'embeddings/index.json'
-const textBatchSize = 48
-const imageBatchSize = 8
-
-type MediaEmbeddingCandidate = {
-  record: EmbeddingRecord
-  url: string
-}
+const enrichmentPath = path.join(projectRoot, 'data/semantic-enrichment.json')
+const textBatchSize = 64
 
 async function readJson<T>(filePath: string): Promise<T> {
   return JSON.parse(await readFile(filePath, 'utf8')) as T
@@ -45,7 +38,16 @@ async function writeJson(filePath: string, value: unknown): Promise<void> {
   await writeFile(filePath, `${JSON.stringify(value, null, 2)}\n`, 'utf8')
 }
 
-function getTensorRows(tensor: { data: ArrayLike<number>; dims: number[] }): Int8Array[] {
+async function loadDocs(manifest: Manifest): Promise<TweetDoc[]> {
+  const chunks = await Promise.all(
+    manifest.files.docs.map((fileName) =>
+      readJson<TweetDoc[]>(path.join(outputDirectory, fileName)),
+    ),
+  )
+  return chunks.flat()
+}
+
+function tensorRows(tensor: { data: ArrayLike<number | bigint>; dims: readonly number[] }): Int8Array[] {
   const [rowCount = 0, dimensions = 0] = tensor.dims
   if (dimensions !== BOOKMARKS_EMBEDDING_DIMENSIONS) {
     throw new Error(
@@ -53,184 +55,58 @@ function getTensorRows(tensor: { data: ArrayLike<number>; dims: number[] }): Int
     )
   }
 
-  const rows: Int8Array[] = []
-  for (let rowIndex = 0; rowIndex < rowCount; rowIndex += 1) {
-    const start = rowIndex * dimensions
+  return Array.from({ length: rowCount }, (_, rowIndex) => {
+    const offset = rowIndex * dimensions
     const row = new Float32Array(dimensions)
-
     for (let index = 0; index < dimensions; index += 1) {
-      row[index] = tensor.data[start + index] ?? 0
+      row[index] = Number(tensor.data[offset + index] ?? 0)
     }
-
-    rows.push(quantizeUnitVector(normalizeEmbeddingVector(row)))
-  }
-
-  return rows
-}
-
-function mediaSourceUrl(media: MediaItem): string {
-  return media.posterUrl ?? media.thumbUrl ?? media.fullUrl
-}
-
-const mirrorAssetsRoot = path.join(projectRoot, '.data/media/assets')
-
-// Mirrored URLs (<base>/pbs/... or <base>/vid/...) map 1:1 onto the local
-// archive, so embedding never needs the media CDN to be reachable.
-function readableMediaSource(url: string): string {
-  try {
-    const pathname = new URL(url).pathname
-    if (pathname.startsWith('/pbs/') || pathname.startsWith('/vid/')) {
-      return path.join(mirrorAssetsRoot, decodeURIComponent(pathname.slice(1)))
-    }
-  } catch {
-    // Fall through to the original URL.
-  }
-
-  return url
-}
-
-function mediaRecordKind(media: MediaItem): EmbeddingRecord['kind'] {
-  return media.type === 'photo' ? 'media-image' : 'media-video'
-}
-
-function mediaRecordLabel(tweet: TweetDoc, media: MediaItem): string {
-  const author = tweet.authorHandle ? `@${tweet.authorHandle}` : tweet.authorName
-  const mediaLabel = media.type.replace('_', ' ')
-
-  return [mediaLabel, author, tweet.text].filter(Boolean).join(' | ')
-}
-
-function buildMediaCandidates(docs: TweetDoc[]): MediaEmbeddingCandidate[] {
-  return docs.flatMap((tweet) =>
-    tweet.media.map((media, mediaIndex) => {
-      const gridId = `${tweet.id}:${mediaIndex}`
-      const url = mediaSourceUrl(media)
-
-      return {
-        url,
-        record: {
-          id: `${gridId}:visual`,
-          tweetId: tweet.id,
-          gridId,
-          mediaIndex,
-          kind: mediaRecordKind(media),
-          label: mediaRecordLabel(tweet, media),
-          sourceUrl: url,
-        },
-      }
-    }),
-  )
+    return quantizeUnitVector(normalizeEmbeddingVector(row))
+  })
 }
 
 function flattenRows(rows: Int8Array[]): Int8Array {
-  const vectors = new Int8Array(rows.length * BOOKMARKS_EMBEDDING_DIMENSIONS)
-
-  rows.forEach((row, index) => {
-    vectors.set(row, index * BOOKMARKS_EMBEDDING_DIMENSIONS)
-  })
-
-  return vectors
-}
-
-async function loadDocs(manifest: Manifest): Promise<TweetDoc[]> {
-  const chunks = await Promise.all(
-    manifest.files.docs.map((fileName) =>
-      readJson<TweetDoc[]>(path.join(outputDirectory, fileName)),
-    ),
-  )
-
-  return chunks.flat()
+  const values = new Int8Array(rows.length * BOOKMARKS_EMBEDDING_DIMENSIONS)
+  rows.forEach((row, index) => values.set(row, index * BOOKMARKS_EMBEDDING_DIMENSIONS))
+  return values
 }
 
 async function main() {
   const manifest = await readJson<Manifest>(manifestPath)
   const docs = await loadDocs(manifest)
+  const enrichment = enrichmentTextByGridId(await readSemanticEnrichment(enrichmentPath))
   const records: EmbeddingRecord[] = []
   const rows: Int8Array[] = []
 
-  console.log(`Loading ${BOOKMARKS_EMBEDDING_MODEL_ID} text encoder...`)
-  const tokenizer = await AutoTokenizer.from_pretrained(BOOKMARKS_EMBEDDING_MODEL_ID)
-  const textModel = await CLIPTextModelWithProjection.from_pretrained(
-    BOOKMARKS_EMBEDDING_MODEL_ID,
-    { dtype: 'q8' },
-  )
+  env.allowRemoteModels = false
+  env.allowLocalModels = true
+  env.localModelPath = `${path.join(projectRoot, 'public/models')}${path.sep}`
+
+  console.log(`Loading local ${BOOKMARKS_EMBEDDING_MODEL_ID} query-compatible encoder...`)
+  const extractor = await pipeline('feature-extraction', BOOKMARKS_EMBEDDING_MODEL_ID, {
+    dtype: 'q8',
+    local_files_only: true,
+  })
 
   for (let index = 0; index < docs.length; index += textBatchSize) {
     const batch = docs.slice(index, index + textBatchSize)
-    const textInputs = tokenizer(batch.map(buildTweetEmbeddingText), {
-      padding: true,
-      truncation: true,
-    })
-    const { text_embeds: textEmbeds } = await textModel(textInputs)
-    const batchRows = getTensorRows(textEmbeds)
+    const labels = batch.map((tweet) => buildTweetEmbeddingText(tweet, enrichment))
+    const output = await extractor(labels, { pooling: 'mean', normalize: true })
+    const batchRows = tensorRows(output)
 
     batch.forEach((tweet, batchIndex) => {
       const row = batchRows[batchIndex]
-      if (!row) {
-        return
-      }
-
+      if (!row) return
       records.push({
-        id: `${tweet.id}:text`,
+        id: `${tweet.id}:record`,
         tweetId: tweet.id,
-        kind: 'tweet-text',
-        label: buildTweetEmbeddingText(tweet),
+        kind: 'record-text',
+        label: labels[batchIndex] ?? '',
       })
       rows.push(row)
     })
 
-    console.log(`Embedded text ${Math.min(index + batch.length, docs.length)} / ${docs.length}`)
-  }
-
-  console.log(`Loading ${BOOKMARKS_EMBEDDING_MODEL_ID} vision encoder...`)
-  const processor = await AutoProcessor.from_pretrained(BOOKMARKS_EMBEDDING_MODEL_ID)
-  const visionModel = await CLIPVisionModelWithProjection.from_pretrained(
-    BOOKMARKS_EMBEDDING_MODEL_ID,
-    { dtype: 'q8' },
-  )
-  const mediaCandidates = buildMediaCandidates(docs)
-  let skippedMediaCount = 0
-
-  for (let index = 0; index < mediaCandidates.length; index += imageBatchSize) {
-    const batch = mediaCandidates.slice(index, index + imageBatchSize)
-    const loadedImages = await Promise.all(
-      batch.map(async (candidate) => {
-        try {
-          return {
-            candidate,
-            image: await RawImage.read(readableMediaSource(candidate.url)),
-          }
-        } catch (error) {
-          skippedMediaCount += 1
-          const reason = error instanceof Error ? error.message : 'unknown error'
-          console.warn(`Skipping ${candidate.record.id}: ${reason}`)
-          return null
-        }
-      }),
-    )
-    const validImages = loadedImages.filter(
-      (loaded): loaded is NonNullable<(typeof loadedImages)[number]> => loaded !== null,
-    )
-
-    if (validImages.length > 0) {
-      const imageInputs = await processor(validImages.map((loaded) => loaded.image))
-      const { image_embeds: imageEmbeds } = await visionModel(imageInputs)
-      const batchRows = getTensorRows(imageEmbeds)
-
-      validImages.forEach(({ candidate }, batchIndex) => {
-        const row = batchRows[batchIndex]
-        if (!row) {
-          return
-        }
-
-        records.push(candidate.record)
-        rows.push(row)
-      })
-    }
-
-    console.log(
-      `Embedded media ${Math.min(index + batch.length, mediaCandidates.length)} / ${mediaCandidates.length}`,
-    )
+    console.log(`Embedded records ${Math.min(index + batch.length, docs.length)} / ${docs.length}`)
   }
 
   const embeddingIndex: EmbeddingIndex = {
@@ -247,27 +123,15 @@ async function main() {
   }
   const nextManifest: Manifest = {
     ...manifest,
-    files: {
-      ...manifest.files,
-      embeddings: embeddingsFileName,
-    },
+    files: { ...manifest.files, embeddings: embeddingsFileName },
   }
 
   await writeJson(path.join(outputDirectory, embeddingsFileName), embeddingIndex)
   await writeJson(manifestPath, nextManifest)
-
-  console.log(
-    `Exported ${records.length} embedding records to ${path.relative(
-      projectRoot,
-      path.join(outputDirectory, embeddingsFileName),
-    )}.`,
-  )
-  if (skippedMediaCount > 0) {
-    console.warn(`Skipped ${skippedMediaCount} media assets that could not be loaded.`)
-  }
+  console.log(`Exported ${records.length} enriched record embeddings.`)
 }
 
-main().catch((error) => {
+main().catch((error: unknown) => {
   const reason = error instanceof Error ? error.message : 'Unknown embedding export failure'
   console.error(`export-embeddings failed: ${reason}`)
   process.exitCode = 1

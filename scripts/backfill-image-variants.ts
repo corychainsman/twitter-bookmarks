@@ -136,16 +136,39 @@ async function main() {
       if (!sourceKey) throw new Error(`Cannot derive mirror key for ${job.sourceUrl}`)
       const contentKey = mirrorContentKey(sourceKey, sha256(buffer))
       await writeFileAtomically(path.join(assetsRoot, contentKey), buffer)
+      const expectedWidths = imageRenditionWidths(record.width ?? 0)
+      const reusableVariants = record.key === contentKey
+        ? (await Promise.all(
+            (record.variants ?? []).map(async (variant) => ({
+              variant,
+              reusable:
+                expectedWidths.includes(variant.width) &&
+                Boolean(
+                  variant.digest &&
+                    variant.bytes &&
+                    variant.height &&
+                    variant.contentType === 'image/avif' &&
+                    variant.key.includes('/renditions/v2/'),
+                ) &&
+                await fileExists(path.join(assetsRoot, variant.key)),
+            })),
+          )).filter(({ reusable }) => reusable).map(({ variant }) => variant)
+        : []
+      const reusableWidths = new Set(reusableVariants.map((variant) => variant.width))
+      const missingWidths = expectedWidths.filter((width) => !reusableWidths.has(width))
       const generated = await generateImageRenditions({
         assetsRoot,
         buffer,
         originalKey: contentKey,
+        requestedWidths: missingWidths,
       })
       record.key = contentKey
       record.digest = generated.digest
       record.width = generated.width
       record.height = generated.height
-      record.variants = generated.variants
+      record.variants = [...reusableVariants, ...generated.variants].toSorted(
+        (left, right) => left.width - right.width,
+      )
       record.thumbhash = generated.thumbhash
       completed += 1
     } catch (error) {

@@ -7,7 +7,6 @@ import {
   readMirrorManifest,
   runWithConcurrency,
   videoPreviewKey,
-  videoPlaybackKey,
   writeMirrorManifest,
   type MirrorManifest,
 } from './mirror-lib'
@@ -19,16 +18,14 @@ const manifestPath = path.join(mirrorRoot, 'mirror-manifest.json')
 
 const MANIFEST_FLUSH_INTERVAL = 25
 
-// Downscaled, muted preview tier for in-grid autoplay. The full-resolution
-// original is still served in the lightbox; the grid only needs a small clip
-// that many tiles can decode at once without saturating bandwidth.
+// Downscaled, muted preview tier for in-grid autoplay. The original mirrored
+// source is served in the lightbox; the grid only needs a small clip that many
+// tiles can decode at once without saturating bandwidth.
 const PREVIEW_WIDTH = 480
 const PREVIEW_CRF = 31
 // The grid only ever shows a muted loop, so previews never need the full runtime.
 // Capping the clip keeps long videos from producing multi-MB previews.
 const PREVIEW_MAX_SECONDS = 8
-const PLAYBACK_MAX_EDGE = 1280
-const PLAYBACK_CRF = 23
 
 type CliOptions = {
   limit?: number
@@ -127,56 +124,12 @@ function runPreviewFfmpeg(inputPath: string, outputPath: string): Promise<void> 
   return runFfmpeg(buildPreviewFfmpegArgs(inputPath, outputPath))
 }
 
-export function buildPlaybackFfmpegArgs(inputPath: string, outputPath: string): string[] {
-  return [
-    '-y',
-    '-i',
-    inputPath,
-    '-map',
-    '0:v:0',
-    '-map',
-    '0:a:0?',
-    '-vf',
-    `scale='if(gt(iw,ih),min(${PLAYBACK_MAX_EDGE},iw),-2)':'if(gt(iw,ih),-2,min(${PLAYBACK_MAX_EDGE},ih))':flags=lanczos`,
-    '-c:v',
-    'libx264',
-    '-profile:v',
-    'main',
-    '-level:v',
-    '4.0',
-    '-tag:v',
-    'avc1',
-    '-pix_fmt',
-    'yuv420p',
-    '-crf',
-    String(PLAYBACK_CRF),
-    '-preset',
-    'veryfast',
-    '-c:a',
-    'aac',
-    '-b:a',
-    '128k',
-    '-movflags',
-    '+faststart',
-    '-loglevel',
-    'error',
-    outputPath,
-  ]
-}
-
-function runPlaybackFfmpeg(inputPath: string, outputPath: string): Promise<void> {
-  return runFfmpeg(buildPlaybackFfmpegArgs(inputPath, outputPath))
-}
-
 type PreviewJob = {
   sourceUrl: string
   inputPath: string
   previewKey: string
   outputPath: string
   previewDone: boolean
-  playbackKey: string
-  playbackOutputPath: string
-  playbackDone: boolean
 }
 
 async function main() {
@@ -193,14 +146,11 @@ async function main() {
     }
 
     const previewKey = videoPreviewKey(record.key)
-    const playbackKey = videoPlaybackKey(record.key)
     const outputPath = path.join(assetsRoot, previewKey)
-    const playbackOutputPath = path.join(assetsRoot, playbackKey)
     const inputPath = path.join(assetsRoot, record.key)
 
     const previewDone = record.previewKey && (await fileExists(outputPath))
-    const playbackDone = record.playbackKey && (await fileExists(playbackOutputPath))
-    if (!options.force && previewDone && playbackDone) {
+    if (!options.force && previewDone) {
       alreadyDone += 1
       continue
     }
@@ -215,17 +165,14 @@ async function main() {
       previewKey,
       outputPath,
       previewDone: Boolean(previewDone),
-      playbackKey,
-      playbackOutputPath,
-      playbackDone: Boolean(playbackDone),
     })
   }
 
   const queue = options.limit ? jobs.slice(0, options.limit) : jobs
 
   console.log(
-    `Video previews/playback: ${alreadyDone} already generated, ${missingOriginal} missing local original, ` +
-      `${queue.length} to encode (preview width ${PREVIEW_WIDTH}, playback max edge ${PLAYBACK_MAX_EDGE}).`,
+    `Video previews: ${alreadyDone} already generated, ${missingOriginal} missing local original, ` +
+      `${queue.length} to encode (preview width ${PREVIEW_WIDTH}).`,
   )
 
   if (options.dryRun || queue.length === 0) {
@@ -240,23 +187,16 @@ async function main() {
   await runWithConcurrency(queue, options.concurrency, async (job) => {
     try {
       await mkdir(path.dirname(job.outputPath), { recursive: true })
-      await mkdir(path.dirname(job.playbackOutputPath), { recursive: true })
       if (!job.previewDone || options.force) {
         await runPreviewFfmpeg(job.inputPath, job.outputPath)
       }
-      if (!job.playbackDone || options.force) {
-        await runPlaybackFfmpeg(job.inputPath, job.playbackOutputPath)
-      }
       const { size: previewSize } = await stat(job.outputPath)
-      const { size: playbackSize } = await stat(job.playbackOutputPath)
 
       const record = manifest.assets[job.sourceUrl]
       record.previewKey = job.previewKey
       record.previewBytes = previewSize
-      record.playbackKey = job.playbackKey
-      record.playbackBytes = playbackSize
       completed += 1
-      previewBytes += previewSize + playbackSize
+      previewBytes += previewSize
     } catch (error) {
       failed += 1
       const reason = error instanceof Error ? error.message : 'unknown error'

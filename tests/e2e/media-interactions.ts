@@ -47,7 +47,7 @@ export async function readMediaTransform(layer: Locator): Promise<MediaTransform
 }
 
 export async function readWallGeometry(page: Page): Promise<WallGeometry> {
-  return page.locator("article[data-tile-id]").evaluateAll((items) => {
+  return page.locator("[data-tile-id]").evaluateAll((items) => {
     const rects = items.slice(0, 20).map((element) => {
       const rect = element.getBoundingClientRect()
       return {

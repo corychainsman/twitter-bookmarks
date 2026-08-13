@@ -42,6 +42,7 @@ export async function generateImageRenditions(input: {
   assetsRoot: string
   buffer: Buffer
   originalKey: string
+  requestedWidths?: number[]
 }): Promise<GeneratedImageRenditions> {
   const metadata = await sharp(input.buffer).metadata()
   const dimensions = orientedDimensions(metadata)
@@ -50,7 +51,14 @@ export async function generateImageRenditions(input: {
   }
 
   const variants: MirrorVariant[] = []
-  for (const requestedWidth of imageRenditionWidths(dimensions.width)) {
+  const availableWidths = new Set(imageRenditionWidths(dimensions.width))
+  const requestedWidths = input.requestedWidths
+    ? [...new Set(input.requestedWidths)]
+        .filter((width) => availableWidths.has(width))
+        .toSorted((left, right) => left - right)
+    : [...availableWidths]
+
+  for (const requestedWidth of requestedWidths) {
     const { data, info } = await sharp(input.buffer)
       .rotate()
       .resize({ width: requestedWidth, withoutEnlargement: true })

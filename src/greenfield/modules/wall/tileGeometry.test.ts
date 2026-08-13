@@ -1,7 +1,13 @@
 import { describe, expect, it } from "vitest"
 
 import type { MediaAsset, WallTile } from "../../contracts/domain"
-import { getJustifiedSizeRange, getTileDimensions } from "./tileGeometry"
+import {
+  getJustifiedColumnRange,
+  getJustifiedSizeRange,
+  getTileDimensions,
+  getWallImageSizes,
+  getWallRenderThreshold,
+} from "./tileGeometry"
 
 function media(width = 1_600, height = 900, id = "media-1"): MediaAsset {
   return {
@@ -77,5 +83,36 @@ describe("getJustifiedSizeRange", () => {
     expect(getJustifiedSizeRange("auto")).toEqual([180, 260])
     expect(getJustifiedSizeRange(Number.NaN)).toEqual([180, 260])
     expect(getJustifiedSizeRange(5)).toEqual([316, 454])
+  })
+})
+
+describe("getJustifiedColumnRange", () => {
+  it("keeps mobile rows bounded while allowing density to reshape a full desktop group", () => {
+    expect(getJustifiedColumnRange(390)).toEqual([1, 4])
+    expect(getJustifiedColumnRange(1_440)).toEqual([1, 20])
+    expect(getJustifiedColumnRange(3_440)).toEqual([1, 20])
+  })
+})
+
+describe("getWallRenderThreshold", () => {
+  it("keeps a baseline buffer and scales both offscreen directions with density", () => {
+    expect(getWallRenderThreshold(0.6)).toBe(600)
+    expect(getWallRenderThreshold("auto")).toBe(800)
+    expect(getWallRenderThreshold(1)).toBe(800)
+    expect(getWallRenderThreshold(1.75)).toBe(1_400)
+  })
+})
+
+describe("getWallImageSizes", () => {
+  it("tracks the effective density instead of overestimating every tile", () => {
+    expect(getWallImageSizes(0.6)).toBe(
+      "(max-width: 639px) 18vw, (max-width: 1023px) 13vw, 10vw",
+    )
+    expect(getWallImageSizes(1)).toBe(
+      "(max-width: 639px) 30vw, (max-width: 1023px) 22vw, 16vw",
+    )
+    expect(getWallImageSizes(1.75)).toBe(
+      "(max-width: 639px) 53vw, (max-width: 1023px) 39vw, 28vw",
+    )
   })
 })

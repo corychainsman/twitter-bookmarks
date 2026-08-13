@@ -1,6 +1,6 @@
-# Elsewhere System Architecture
+# X Inspo System Architecture
 
-This is the canonical implementation map for the greenfield Elsewhere
+This is the canonical implementation map for the greenfield X Inspo
 frontend. Read `CONTEXT.md` first for the domain vocabulary. The retired
 bookmark-browser runtime has been deleted; the catalog pipeline remains as an
 operator-facing data producer and is not an architectural input to the UI.
@@ -53,6 +53,9 @@ The UI stack is:
 
 The default visual system is dark, neutral, media-first, and uses a restrained
 mint accent. Media carries the visual color; surrounding chrome stays quiet.
+The Latin Geist variable font uses `font-display: optional`, so slow first
+visits keep the metric-compatible system fallback instead of delaying paint or
+introducing a late font swap.
 
 ## Domain and API Boundaries
 
@@ -90,7 +93,9 @@ TanStack Router defines two routes in `src/greenfield/router/router.tsx`:
 - `/media/$mediaId` renders the same wall with an addressable lightbox over it.
 
 The root owns `GreenfieldApp`; route leaves are intentionally empty so route
-changes never unmount the wall. Router scroll restoration remains enabled.
+changes never unmount the wall. Router scroll restoration remains enabled,
+while lightbox overlay navigations explicitly suppress scroll reset so Motion
+measures both shared elements in the same viewport coordinate space.
 
 `validateWallSearch` is the only normalization boundary for committed state.
 It tolerates malformed external links and always produces renderable defaults.
@@ -107,14 +112,15 @@ The state fields are:
 | --- | --- | --- |
 | `q` | Committed search text | Yes |
 | `filters` | Canonical facet selections | Yes |
-| `sort` | `curated`, `newest`, or `oldest` | Yes |
+| `sort` | `curated`, `random`, `newest`, or `oldest` | Yes |
 | `similar` | Optional similar-media target | Yes |
 | `mode` | `asset`, `record`, or `hybrid` | No |
-| `seed` | Deterministic representative/size shuffle | No |
+| `seed` | Deterministic random order and representative/size shuffle | Only for `random` sort |
 | `density` | `auto` or numeric tile-size multiplier | No |
 
-This split is reflected in TanStack Query keys. Changing mode, seed, or density
-recomposes cached records rather than requesting the same result set again.
+This split is reflected in TanStack Query keys. Changing mode or density
+recomposes cached records. Changing seed does the same for chronological and
+curated sorts, but requests a newly frozen record order for random sort.
 
 ### History policy
 
@@ -164,6 +170,29 @@ loading. The shell sets `aria-busy` and shows pending state near the controls.
 Infinite append requests originate in JustifiedInfiniteGrid, are deduplicated by
 the wall adapter, and resolve through `fetchNextPage`.
 
+### Static semantic retrieval
+
+Free-form semantic search does not depend on an inference service. The first
+query keeps the lexical API path responsive while a dedicated browser Web
+Worker lazily loads the vendored quantized `all-MiniLM-L6-v2` text encoder.
+When the encoder becomes ready, TanStack Query automatically refreshes the
+active search with a normalized int8 query vector. The service worker caches
+the roughly 23 MB model after first use; clients requesting reduced data retain
+lexical search without downloading it.
+
+The catalog Worker validates the model and protocol identifiers, scans the
+version-matched static int8 index, and fuses semantic and lexical ranks.
+Exact phrases, handles, and names therefore retain their lexical advantage,
+while descriptive natural-language queries can retrieve records with no
+literal overlap. Explicit newest, oldest, and random sorts retain their
+ordering after the relevant candidate set is selected.
+
+During refresh, Florence-2 incrementally generates detailed captions and OCR
+for newly encountered images and sampled video frames. The resumable,
+Git-tracked `data/semantic-enrichment.json` cache is incorporated with post,
+article, author, folder, and supplied alt text before static record embeddings
+are generated. `.data/models` is only the ignored local model download cache.
+
 If exact matching returns no records, the API may return the closest results by
 relaxing the smallest possible facet set. The UI places an explicit message
 above the wall and offers an action that commits those broader filters.
@@ -187,22 +216,30 @@ Mode behavior:
   one collage tile, capped at four visible assets; the rest become an overflow
   count.
 
-The seed still assigns deterministic scale hints for composition stability and
-a possible future collage layout. In the justified wall, visible size variance
+The seed assigns deterministic scale hints for composition stability and
+random-sort record order. In the justified wall, visible size variance
 comes from intrinsic aspect ratios, composite hybrid ratios, and naturally
-varying row heights. Changing the seed reshuffles ordering and representatives
-without changing the server query.
+varying row heights. Changing the seed also changes representatives; it only
+changes the server query when random sort is selected.
 
 ### Justified layout ownership
 
 `src/greenfield/modules/wall/MediaWall.tsx` is the single layout adapter. It
-uses react-infinitegrid's `JustifiedInfiniteGrid` with recycling, resize
-observation, and direct `top`/`left` placement (`useTransform={false}`). Stable
-`data-grid-groupkey` values allow independent append groups and reliable
-recycling. Detached recycling is not enabled.
+uses react-infinitegrid's `JustifiedInfiniteGrid` with resize observation and
+direct `top`/`left` placement (`useTransform={false}`). Rendered groups remain
+mounted: recycling whole groups can expose a transient empty band when the
+library advances its render range during continuous scrolling. Stable
+`data-grid-groupkey` values still allow independent append groups. Detached
+recycling is not enabled.
 
-JustifiedInfiniteGrid alone owns placement, measurement, request-append, and
-recycling. TanStack Virtual is intentionally absent. Do not wrap this wall in
+An incomplete trailing composition group is buffered while another cursor page
+exists, with a compact loading status after the stable wall. This prevents a
+single remainder item from temporarily becoming a full-width justified row.
+At the terminal page, the remainder joins the preceding group so the grid
+balances the final rows once without cropping or stretching.
+
+JustifiedInfiniteGrid alone owns placement, measurement, and request-append.
+TanStack Virtual is intentionally absent. Do not wrap this wall in
 another virtual list or add a competing masonry algorithm.
 
 Initial tile dimensions derive from an aspect-aware slice layout. Each slice
@@ -211,17 +248,38 @@ Cropping and stretching are disabled. The grid varies row heights to fill
 completed rows while preserving every tile ratio, and applies one uniform 4px
 inter-tile gap. Wall images,
 videos, and lightbox media retain `object-contain` as a defensive guarantee
-against crop or distortion. Rows admit at most four tiles below 640px and at
-most eight on wider walls, preventing illegibly small portrait-heavy rows.
-Images expose explicit responsive width candidates; videos use posters and
-admitted preview sources. The first visible group receives eager image
-priority, while the rest use native lazy loading and decoding.
+against crop or distortion. Rows admit at most four tiles below 640px and up to
+the 20-tile composition-group size on wider walls, allowing density to remain
+effective on ultrawide displays.
+Images expose explicit responsive width candidates and density-aware `sizes`
+estimates; videos use posters and admitted preview sources. The first visible
+group receives high fetch priority. The wider offscreen grid lookahead keeps
+the remaining eager image requests ahead of scrolling, while async decoding
+keeps them off the critical rendering path.
+The candidate ladder is 240, 320, 480, 680, 1280, and 2048px, bounded by the
+oriented source width. Motion tiles render those poster candidates through a
+responsive picture above the video and remove it only after the first decoded
+video frame is presented.
+The symmetric InfiniteGrid threshold grows from 600px to 1400px with effective
+density, keeping several rows mounted both ahead of and behind the viewport.
+Video source admission uses that same offscreen margin.
 
 Tile width and height are known before media decoding. Responsive `<picture>`
 subtrees carry `data-grid-skip`, isolating their image readiness from
 JustifiedInfiniteGrid's item readiness. Loading or swapping a rendition therefore
 does not make the layout engine wait on or separately track nested media; an
 explicit repack remains the response to a genuine geometry change.
+
+Before the first stable JustifiedInfiniteGrid render completes, the grid is
+transparent, `visibility:hidden`, and non-interactive beneath the same shadcn
+skeleton used during discovery. It is revealed only after positioned content
+covers the viewport plus the active render threshold, so both the library's
+static-to-positioned pass and its initial lookahead appends stay out of CLS.
+Grid completion is the primary readiness signal; a resize-observed extent check
+provides the same reveal when reduced-motion rendering suppresses that callback.
+The mobile filter drawer, closed desktop filter rail, compact density popover,
+and desktop density slider are imported only when their surfaces become active.
+The lightbox chunk is preloaded only after delayed idle time on capable desktops.
 
 ### Density and stability
 
@@ -237,7 +295,9 @@ packed placement.
 Continuous pinch/trackpad zoom belongs at the gesture layer and must feed the
 same draft/commit density path: update the visual scale continuously, then
 commit a single reflow at gesture end. Never trigger a full pack on every raw
-gesture event.
+gesture event. Modified wheel input passes through an intent filter so the
+decaying trackpad momentum tail is ignored and the density commits when active
+finger motion ends.
 
 ### Wall accessibility
 
@@ -280,6 +340,12 @@ lightbox provides:
 - Pinch or Ctrl/Meta-wheel zoom from 1× to 5×.
 - Pan while zoomed and double-click/reset behavior.
 - Full media in the main viewport.
+- Byte-for-byte mirrored source MP4s in the lightbox; compact preview MP4s
+  remain a wall-only optimization.
+- Linked X author handles and linked, localized post timestamps in the metadata
+  rail/drawer; the API supplies canonical profile and post URLs.
+- Direct media lookups return the asset together with its parent record, so a
+  copied lightbox URL has the same metadata as one opened from the wall.
 - Record metadata and sibling assets only in a desktop side rail or mobile
   details drawer.
 
@@ -301,22 +367,38 @@ metadata use clear live text rather than hidden icon-only meaning.
 ## Edge Gateway and Social HTML
 
 `worker/index.ts` is the Cloudflare Worker entry point. `wrangler.jsonc`
-configures a static-assets binding with SPA fallback and routes `/api/*` plus
-`/media/*` through the Worker first.
+configures a static-assets binding with SPA fallback and routes requests through
+the Worker before the binding, allowing one response-policy boundary for API,
+HTML, and fingerprinted build assets.
 
-For `/api/*`, the Worker has two contract-compatible upstream modes:
+For `/api/*`, the Worker has three contract-compatible upstream modes:
 
-1. With `DATA_ORIGIN`, `worker/production-catalog.ts` reads the production
+1. With `USE_LOCAL_DATA=true`, `worker/production-catalog.ts` reads the
+   deployment's own versioned catalog through the static-assets binding. This
+   is the staging and production configuration and keeps their catalogs
+   isolated without a recursive hostname fetch.
+2. With `DATA_ORIGIN`, `worker/production-catalog.ts` reads an external
    manifest, grid, search store, ordering, and only the document chunks needed
    for a page. It exposes discovery, count, cursor, media, source-facet, and
    social endpoints in the greenfield OpenAPI shape.
-2. With `API_ORIGIN`, the Worker removes browser credentials and hop-by-hop
+3. With `API_ORIGIN`, the Worker removes browser credentials and hop-by-hop
    headers, proxies the request to a dedicated API, and returns the upstream
    stream with a request ID and `nosniff` header.
 
-The staging deployment uses the catalog adapter against the deployed catalog
-assets. The adapter is a translation seam, not a source of frontend
-requirements.
+The staging and production workers each read their own bundled catalog.
+Candidate dev assets can therefore be validated without changing the
+production catalog. The adapter is a translation seam, not a source of
+frontend requirements.
+
+Catalog adapters cache-bust the manifest on initialization and version every
+dependent artifact request with that manifest's build ID. A newly deployed
+catalog therefore cannot be mixed with stale edge-cached chunks.
+
+The canonical root response advertises the default curated discovery request
+as a fetch preload, allowing the browser to overlap its first result page with
+application JavaScript. URL-backed queries do not preload that default result,
+and the staged mobile result-count request stays disabled until its drawer is
+actually open.
 
 For a direct `GET /media/:mediaId`, it fetches the application shell and asks
 the upstream `/media/:mediaId/social` endpoint for title, description, image,
@@ -327,6 +409,19 @@ is used when metadata is unavailable.
 Both the static `index.html` and injected media shells remain
 `noindex,nofollow`. Search-engine crawling is not a requirement; rich unfurl
 metadata for copied media links is.
+
+Document responses include `Cache-Control: no-transform`, preventing optional
+Cloudflare Web Analytics and bot-detection scripts from being injected into the
+strict-CSP application shell. Fingerprinted Vite assets under `/assets/` receive
+a one-year immutable browser cache lifetime; HTML retains revalidation and
+media social shells keep their short explicit freshness window.
+
+R2 media publication is manifest-driven and append-only: the hourly refresh
+writes only previously unpublished immutable keys and never traverses the
+remote bucket. New objects are verified through the cached public media origin;
+a weekly full-catalog CDN verification provides integrity coverage without
+Class A R2 listings. The bucket must never be exposed as a persistent FUSE
+mount because filesystem indexers can recursively list every object prefix.
 
 ## Offline and Cache Policy
 
@@ -351,8 +446,9 @@ Vite PWA uses Workbox InjectManifest with
   cross-origin images, and 2/4/8 for videos. Expiration also purges on quota
   errors.
 - Cleans obsolete precaches and claims clients, but does not force an
-  uncontrolled mid-session reload. A waiting update activates only after an
-  explicit `SKIP_WAITING` message.
+  uncontrolled mid-session reload. A waiting update found during navigation or
+  initial registration receives an automatic `SKIP_WAITING` message and one
+  controlled reload; updates found later retain the explicit refresh prompt.
 
 The offline promise is a resilient recent revisit, not a complete downloadable
 archive. An unavailable result that was never cached must surface a clear
@@ -428,11 +524,11 @@ bundling failures that unit tests cannot.
 ## Invariants for Future Agents
 
 1. Never use retired frontend behavior or catalog-pipeline implementation
-   details as an implicit requirement for Elsewhere.
+   details as an implicit requirement for X Inspo.
 2. Never add TanStack Virtual to the wall. JustifiedInfiniteGrid is the sole
    placement and recycling authority.
-3. Keep server result identity separate from client-only mode, seed, and
-   density composition.
+3. Keep server result identity separate from client-only mode and density
+   composition; include seed only when random sort makes it result-affecting.
 4. Keep all committed result-affecting state validated, readable, shareable,
    and represented in browser history.
 5. Preserve the mounted wall beneath an addressable lightbox and keep stable

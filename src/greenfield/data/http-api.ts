@@ -4,6 +4,7 @@ import type { CommittedWallState, FacetSelection } from "../contracts/domain"
 import type { ApiTransport, SourceSuggestion } from "../contracts/interfaces"
 import type { paths } from "../generated/api"
 import { discoveryRequestIdentity } from "./query-keys"
+import { encodeSemanticQuery } from "../semantic/query-client"
 
 const client = createClient<paths>({ baseUrl: "/api" })
 
@@ -13,14 +14,17 @@ function filterTokens(filters: FacetSelection[]): string[] {
   )
 }
 
-function requestQuery(state: CommittedWallState) {
+async function requestQuery(state: CommittedWallState, signal?: AbortSignal) {
   const identity = discoveryRequestIdentity(state)
+  const semantic = await encodeSemanticQuery(identity.q, signal)
 
   return {
     q: identity.q,
     sort: identity.sort,
+    ...(identity.seed ? { seed: identity.seed } : {}),
     filter: filterTokens(identity.filters),
     ...(identity.similar ? { similar: identity.similar } : {}),
+    ...semantic,
   }
 }
 
@@ -37,7 +41,7 @@ export function createHttpApiTransport(): ApiTransport {
       const { data, error, response } = await client.GET("/discovery", {
         params: {
           query: {
-            ...requestQuery(state),
+            ...await requestQuery(state, signal),
             ...(cursor ? { cursor } : {}),
           },
         },
@@ -50,7 +54,7 @@ export function createHttpApiTransport(): ApiTransport {
 
     async count(state, signal) {
       const { data, error, response } = await client.GET("/discovery/count", {
-        params: { query: requestQuery(state) },
+        params: { query: await requestQuery(state, signal) },
         signal,
       })
 

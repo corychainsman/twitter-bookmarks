@@ -30,6 +30,7 @@ describe('buildExportArtifacts', () => {
           {
             type: 'photo',
             url: 'https://pbs.twimg.com/media/tweet-1-photo.jpg',
+            extAltText: 'A compiler graph diagram',
             width: 1200,
             height: 900,
           },
@@ -106,6 +107,7 @@ describe('buildExportArtifacts', () => {
       reposts: 30,
       representativeMediaIndex: 0,
       representativeMotionMediaIndex: 1,
+      media: [{ altText: 'A compiler graph diagram' }, { type: 'video' }],
     })
 
     expect(artifacts.gridOne).toEqual([

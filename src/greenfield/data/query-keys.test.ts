@@ -34,6 +34,14 @@ describe("discovery query keys", () => {
     )
   })
 
+  it("uses the seed as result identity only for random sorting", () => {
+    const random = { ...base, sort: "random" as const }
+
+    expect(discoveryKeys.pages({ ...random, seed: "one" })).not.toEqual(
+      discoveryKeys.pages({ ...random, seed: "two" }),
+    )
+  })
+
   it("canonicalizes filter and value ordering", () => {
     const first = discoveryKeys.pages({
       ...base,
@@ -53,4 +61,3 @@ describe("discovery query keys", () => {
     expect(first).toEqual(second)
   })
 })
-

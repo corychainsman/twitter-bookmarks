@@ -7,6 +7,7 @@ import type { MediaAsset } from "@/greenfield/contracts/domain"
 interface MediaViewportProps {
   media: MediaAsset
   sharedElement?: boolean
+  bottomInset?: number
   onClose: () => void
   onPrevious: () => void
   onNext: () => void
@@ -18,6 +19,7 @@ const clamp = (value: number, minimum: number, maximum: number) =>
 export function MediaViewport({
   media,
   sharedElement = false,
+  bottomInset = 0,
   onClose,
   onPrevious,
   onNext,
@@ -104,71 +106,80 @@ export function MediaViewport({
   )
 
   const largest = media.lightbox.at(-1) ?? media.wall.at(-1)
+  const playbackVideoUrl = media.lightbox.find(
+    (candidate) => candidate.mimeType.startsWith("video/"),
+  )?.url ?? media.previewVideoUrl
 
   return (
-    <div
-      ref={containerRef}
-      className="relative flex min-h-0 flex-1 touch-none items-center justify-center overflow-hidden bg-black/35"
-      onDoubleClick={reset}
-    >
-      <motion.div
-        layoutId={sharedElement ? `media-${media.id}` : undefined}
-        className="flex size-full items-center justify-center"
-        style={{ scale, x, y }}
-        transition={reduceMotion ? { duration: 0 } : { type: "spring", bounce: 0.08, duration: 0.42 }}
+    <div className="relative min-h-0 flex-1 overflow-hidden bg-black/35">
+      <div
+        ref={containerRef}
+        className="absolute inset-x-0 top-0 flex touch-none items-center justify-center transition-[bottom] duration-300 ease-out motion-reduce:transition-none"
+        data-media-stage="true"
+        onDoubleClick={reset}
+        style={{ bottom: bottomInset }}
       >
-        {media.kind === "video" && media.previewVideoUrl ? (
-          <video
-            aria-label={media.title}
-            aria-description="Press Enter or Space to show video controls"
-            autoPlay
-            className="max-h-full max-w-full object-contain focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
-            controls={videoControlsVisible}
-            loop
-            muted
-            onBlur={() => setVideoControlsVisible(false)}
-            onKeyDown={(event) => {
-              if (!videoControlsVisible && (event.key === "Enter" || event.key === " ")) {
-                event.preventDefault()
-                setVideoControlsVisible(true)
-              }
-            }}
-            onPointerEnter={(event) => {
-              if (event.pointerType === "mouse") setVideoControlsVisible(true)
-            }}
-            onPointerLeave={(event) => {
-              if (event.pointerType === "mouse") setVideoControlsVisible(false)
-            }}
-            onPointerUp={(event) => {
-              if (event.pointerType !== "mouse") {
-                setVideoControlsVisible((visible) => !visible)
-              }
-            }}
-            playsInline
-            poster={media.poster?.url}
-            src={media.previewVideoUrl}
-            tabIndex={0}
-          />
-        ) : (
-          <picture>
-            <img
-              alt={media.title}
-              className="max-h-[calc(100dvh-5rem)] max-w-full select-none object-contain"
-              draggable={false}
-              height={media.height}
-              sizes="(min-width: 1024px) calc(100vw - 22rem), 100vw"
-              src={largest?.url}
-              srcSet={media.lightbox.map((candidate) => `${candidate.url} ${candidate.width}w`).join(", ")}
-              width={media.width}
+        <motion.div
+          layoutId={sharedElement ? `media-${media.id}` : undefined}
+          className="flex size-full items-center justify-center"
+          style={{ scale, x, y }}
+          transition={reduceMotion ? { duration: 0 } : { type: "spring", bounce: 0.08, duration: 0.42 }}
+        >
+          {media.kind === "video" && playbackVideoUrl ? (
+            <video
+              aria-label={media.title}
+              aria-description="Press Enter or Space to show video controls"
+              autoPlay
+              className="size-full object-contain focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+              controls={videoControlsVisible}
+              loop
+              muted
+              onBlur={() => setVideoControlsVisible(false)}
+              onKeyDown={(event) => {
+                if (!videoControlsVisible && (event.key === "Enter" || event.key === " ")) {
+                  event.preventDefault()
+                  setVideoControlsVisible(true)
+                }
+              }}
+              onPointerEnter={(event) => {
+                if (event.pointerType === "mouse") setVideoControlsVisible(true)
+              }}
+              onPointerLeave={(event) => {
+                if (event.pointerType === "mouse") setVideoControlsVisible(false)
+              }}
+              onPointerUp={(event) => {
+                if (event.pointerType !== "mouse") {
+                  setVideoControlsVisible((visible) => !visible)
+                }
+              }}
+              playsInline
+              poster={media.poster?.url}
+              preload="auto"
+              src={playbackVideoUrl}
+              tabIndex={0}
             />
-          </picture>
-        )}
-      </motion.div>
+          ) : (
+            <picture className="contents">
+              <img
+                alt={media.title}
+                className="max-h-full max-w-full select-none object-contain"
+                draggable={false}
+                height={media.height}
+                sizes="(min-width: 1024px) calc(100vw - 22rem), 100vw"
+                src={largest?.url}
+                srcSet={media.lightbox.map((candidate) => `${candidate.url} ${candidate.width}w`).join(", ")}
+                width={media.width}
+              />
+            </picture>
+          )}
+        </motion.div>
+      </div>
       {zoomed && (
         <button
           type="button"
-          className="absolute bottom-4 rounded-full bg-black/65 px-3 py-2 text-sm text-white ring-1 ring-white/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+          className="absolute rounded-full bg-black/65 px-3 py-2 text-sm text-white ring-1 ring-white/10 transition-[bottom] duration-300 ease-out focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary motion-reduce:transition-none"
           onClick={reset}
+          style={{ bottom: bottomInset + 16 }}
         >
           Reset zoom
         </button>

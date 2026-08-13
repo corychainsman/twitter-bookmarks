@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query"
-import { useNavigate, useRouterState } from "@tanstack/react-router"
+import { useNavigate, useRouter, useRouterState } from "@tanstack/react-router"
 import { useGesture } from "@use-gesture/react"
 import { LayoutGroup, useReducedMotion } from "motion/react"
 import {
@@ -31,12 +31,13 @@ import {
 import { VideoPreview } from "@/greenfield/modules/playback/VideoPreview"
 import {
   createCompositionEngine,
+  stabilizeWallTail,
 } from "@/greenfield/modules/composition"
 import type {
   ControlFilterValues,
   FilterRangeConfig,
 } from "@/greenfield/modules/controls"
-import { MediaWallShell } from "@/greenfield/shell"
+import { WheelIntentFilter } from "@/greenfield/modules/controls/wheelIntent"
 import {
   MediaWall,
   ResponsivePicture,
@@ -45,9 +46,16 @@ import {
 } from "@/greenfield/modules/wall"
 import {
   planWallNavigation,
+  stringifyWallSearch,
   validateWallSearch,
   type WallMutation,
 } from "@/greenfield/router"
+import {
+  prepareSemanticQuery,
+  prepareSemanticSearch,
+  scheduleSemanticSearchIdlePreload,
+} from "@/greenfield/semantic/query-client"
+import { MediaWallShell } from "@/greenfield/shell"
 
 const compositionEngine = createCompositionEngine()
 const loadMediaLightbox = () => import("@/greenfield/modules/lightbox/MediaLightbox")
@@ -63,12 +71,51 @@ const FILTER_RANGE: FilterRangeConfig = {
 }
 const SORT_OPTIONS = [
   { value: "curated" as const, label: "Curated" },
+  { value: "random" as const, label: "Random" },
   { value: "newest" as const, label: "Newest" },
   { value: "oldest" as const, label: "Oldest" },
 ]
+
+interface ConnectionHints {
+  saveData?: boolean
+}
+
+function scheduleMediaLightboxIdlePreload(): () => void {
+  const connection = (navigator as Navigator & { connection?: ConnectionHints }).connection
+  const capableDesktop = window.matchMedia("(min-width: 1024px)").matches &&
+    !window.matchMedia("(prefers-reduced-motion: reduce)").matches &&
+    !connection?.saveData &&
+    navigator.hardwareConcurrency >= 6
+
+  if (!capableDesktop) return () => undefined
+
+  let idleCallback: number | undefined
+  let fallbackCallback: number | undefined
+  const delay = window.setTimeout(() => {
+    const requestIdle = (window as unknown as {
+      requestIdleCallback?: Window["requestIdleCallback"]
+    }).requestIdleCallback
+
+    if (requestIdle) {
+      idleCallback = requestIdle(
+        () => void loadMediaLightbox(),
+        { timeout: 4_000 },
+      )
+    } else {
+      fallbackCallback = window.setTimeout(() => void loadMediaLightbox(), 1_000)
+    }
+  }, 4_000)
+
+  return () => {
+    window.clearTimeout(delay)
+    if (idleCallback !== undefined) window.cancelIdleCallback(idleCallback)
+    if (fallbackCallback !== undefined) window.clearTimeout(fallbackCallback)
+  }
+}
 interface AnchorSnapshot {
   mediaId: string
   top: number
+  density?: number
 }
 
 interface DensityPreview {
@@ -182,6 +229,10 @@ function renderWallMedia(asset: MediaAsset, context: WallMediaRenderContext) {
         className="relative size-full"
         label={asset.title}
         poster={asset.poster?.url}
+        posterAsset={asset}
+        posterPriority={context.priority}
+        posterSizes={context.sizes}
+        preloadMargin={context.preloadMargin}
         src={asset.previewVideoUrl}
       />
     )
@@ -199,6 +250,7 @@ function renderWallMedia(asset: MediaAsset, context: WallMediaRenderContext) {
 
 export function GreenfieldApp() {
   const navigate = useNavigate()
+  const router = useRouter()
   const routeState = useRouterState()
   const routeSearch = routeState.location.search
   const search = useMemo(
@@ -217,7 +269,10 @@ export function GreenfieldApp() {
   const wallRef = useRef<MediaWallHandle>(null)
   const wallScaleRef = useRef<HTMLDivElement>(null)
   const gestureDensityRef = useRef(1)
+  const wheelZoomActiveRef = useRef(false)
+  const wheelIntentFilterRef = useRef(new WheelIntentFilter())
   const pendingAnchorRef = useRef<AnchorSnapshot | null>(null)
+  const anchorRestoreFrameRef = useRef<number | undefined>(undefined)
   const returnFocusMediaIdRef = useRef<string | undefined>(undefined)
   const [openedFromWall, setOpenedFromWall] = useState(false)
   const [searchDraftState, setSearchDraftState] = useState(() => ({
@@ -232,12 +287,39 @@ export function GreenfieldApp() {
   )
   const [densityPreview, setDensityPreview] = useState<DensityPreview>()
 
+  useEffect(() => {
+    if (
+      search.sort === "random" ||
+      !new URLSearchParams(window.location.search).has("seed")
+    ) return
+
+    router.history.replace(
+      `${pathname}${stringifyWallSearch(search)}${routeState.location.hash}`,
+      routeState.location.state,
+    )
+  }, [
+    pathname,
+    routeState.location.hash,
+    routeState.location.searchStr,
+    routeState.location.state,
+    router.history,
+    search,
+  ])
+
   const searchDraft = searchDraftState.committed === search.q
     ? searchDraftState.value
     : search.q
   const setSearchDraft = useCallback((value: string) => {
     setSearchDraftState({ committed: search.q, value })
   }, [search.q])
+
+  useEffect(() => scheduleSemanticSearchIdlePreload(), [])
+
+  useEffect(() => {
+    if (searchDraft.trim().length < 2) return
+    const timeout = window.setTimeout(() => prepareSemanticQuery(searchDraft), 250)
+    return () => window.clearTimeout(timeout)
+  }, [searchDraft])
 
   const records = useMemo(
     () => dedupeRecords(discovery.data?.pages.map((page) => page.records) ?? []),
@@ -247,6 +329,10 @@ export function GreenfieldApp() {
     () => compositionEngine.compose(records, search),
     [records, search],
   )
+  const stableWall = useMemo(
+    () => stabilizeWallTail(tiles, discovery.hasNextPage),
+    [discovery.hasNextPage, tiles],
+  )
   const committedControls = useMemo(
     () => controlsFromFilters(search.filters),
     [search.filters],
@@ -255,27 +341,28 @@ export function GreenfieldApp() {
     () => ({ ...search, filters: filtersFromControls(mobileDraftFilters) }),
     [mobileDraftFilters, search],
   )
-  const mobileCount = useResultCount(mobileDraftState)
+  const mobileCount = useResultCount(mobileDraftState, mobileFiltersOpen)
   const sourceSuggestions = useSourceSuggestions(sourceQuery)
   const loadedMedia = useMemo(
     () => records.flatMap((record) => record.assets),
     [records],
   )
   const selectedLoadedMedia = loadedMedia.find((media) => media.id === selectedMediaId)
-  const selectedRecord = records.find((record) =>
+  const selectedLoadedRecord = records.find((record) =>
     record.assets.some((media) => media.id === selectedMediaId),
   )
   const directMedia = useQuery({
     ...mediaOptions(transport, selectedMediaId ?? "__no-media__"),
     enabled: Boolean(selectedMediaId && !selectedLoadedMedia),
   })
-  const selectedMedia = selectedLoadedMedia ?? directMedia.data
+  const selectedMedia = selectedLoadedMedia ?? directMedia.data?.media
+  const selectedRecord = selectedLoadedRecord ?? directMedia.data?.record
   const navigableMedia = useMemo(() => {
     const seen = new Set<string>()
-    return tiles
+    return stableWall.tiles
       .flatMap((tile) => tile.media)
       .filter((media) => !seen.has(media.id) && seen.add(media.id))
-  }, [tiles])
+  }, [stableWall.tiles])
   const firstPage = discovery.data?.pages[0]
   const committedDensity = search.density === "auto" ? autoDensity : search.density
   const shownDensity = densityPreview?.value ?? search.density
@@ -324,12 +411,45 @@ export function GreenfieldApp() {
     const anchor = pendingAnchorRef.current
     const wall = wallRef.current?.getElement()
     if (!anchor || !wall) return
-    const target = [...wall.querySelectorAll<HTMLElement>("[data-media-id]")].find(
-      (element) => element.dataset.mediaId === anchor.mediaId,
-    )
-    if (!target) return
-    window.scrollBy({ top: target.getBoundingClientRect().top - anchor.top, behavior: "auto" })
-    pendingAnchorRef.current = null
+    if (
+      anchor.density !== undefined &&
+      Math.abs(anchor.density - committedDensity) > 0.001
+    ) return
+
+    if (anchorRestoreFrameRef.current !== undefined) {
+      cancelAnimationFrame(anchorRestoreFrameRef.current)
+    }
+
+    let remainingFrames = 12
+    const correctAfterLayout = () => {
+      if (pendingAnchorRef.current !== anchor) return
+      const target = [...wall.querySelectorAll<HTMLElement>("[data-media-id]")].find(
+        (element) => element.dataset.mediaId === anchor.mediaId,
+      )
+      if (!target) return
+
+      const delta = target.getBoundingClientRect().top - anchor.top
+      if (Math.abs(delta) > 0.5) {
+        window.scrollBy({ top: delta, behavior: "auto" })
+      }
+
+      remainingFrames -= 1
+      if (remainingFrames > 0) {
+        anchorRestoreFrameRef.current = requestAnimationFrame(correctAfterLayout)
+        return
+      }
+
+      anchorRestoreFrameRef.current = undefined
+      pendingAnchorRef.current = null
+    }
+
+    anchorRestoreFrameRef.current = requestAnimationFrame(correctAfterLayout)
+  }, [committedDensity])
+
+  useEffect(() => () => {
+    if (anchorRestoreFrameRef.current !== undefined) {
+      cancelAnimationFrame(anchorRestoreFrameRef.current)
+    }
   }, [])
 
   useEffect(() => {
@@ -357,18 +477,18 @@ export function GreenfieldApp() {
     return () => cancelAnimationFrame(frame)
   }, [selectedMediaId])
 
-  useEffect(() => {
-    const timeout = window.setTimeout(() => {
-      void loadMediaLightbox()
-    }, 1_500)
-    return () => window.clearTimeout(timeout)
-  }, [])
+  useEffect(() => scheduleMediaLightboxIdlePreload(), [])
 
   const commit = useCallback(
     (mutation: WallMutation) => {
       const plan = planWallNavigation(search, mutation)
       if (plan.landing === "preserve-anchor" && !pendingAnchorRef.current) {
         captureAnchor()
+      }
+      if (mutation.type === "density" && pendingAnchorRef.current) {
+        pendingAnchorRef.current.density = mutation.density === "auto"
+          ? autoDensity
+          : mutation.density
       }
       const replace = plan.history === "replace"
       if (selectedMediaId) {
@@ -387,7 +507,7 @@ export function GreenfieldApp() {
         )
       }
     },
-    [captureAnchor, navigate, reduceMotion, search, selectedMediaId],
+    [autoDensity, captureAnchor, navigate, reduceMotion, search, selectedMediaId],
   )
 
   const openMedia = useCallback(
@@ -399,6 +519,7 @@ export function GreenfieldApp() {
         to: "/media/$mediaId",
         params: { mediaId },
         search,
+        resetScroll: false,
       })
     },
     [navigate, search],
@@ -411,6 +532,7 @@ export function GreenfieldApp() {
         params: { mediaId },
         search,
         replace: true,
+        resetScroll: false,
       })
     },
     [navigate, search],
@@ -435,7 +557,7 @@ export function GreenfieldApp() {
       window.history.back()
       return
     }
-    void navigate({ to: "/", search, replace: true })
+    void navigate({ to: "/", search, replace: true, resetScroll: false })
   }, [navigate, openedFromWall, search])
 
   const requestNextPage = useCallback(async () => {
@@ -454,19 +576,35 @@ export function GreenfieldApp() {
           commit({ type: "density", density: nextDensity })
         }
       },
-      onWheel: ({ event, first, last, delta: [, deltaY] }) => {
+      onWheel: ({ event, last, delta: [, deltaY] }) => {
         if (!event.ctrlKey && !event.metaKey) return
         event.preventDefault()
-        if (first) gestureDensityRef.current = committedDensity
+
+        const finishWheelZoom = () => {
+          if (!wheelZoomActiveRef.current) return
+          wheelZoomActiveRef.current = false
+          setDensityPreview(undefined)
+          commit({ type: "density", density: gestureDensityRef.current })
+        }
+        const intentional = wheelIntentFilterRef.current.check(
+          event.deltaY,
+          event.timeStamp,
+        )
+
+        if (!intentional) {
+          finishWheelZoom()
+          return
+        }
+        if (!wheelZoomActiveRef.current) {
+          wheelZoomActiveRef.current = true
+          gestureDensityRef.current = committedDensity
+        }
         const nextDensity = clampDensity(
           gestureDensityRef.current * Math.exp(-deltaY * 0.003),
         )
         gestureDensityRef.current = nextDensity
         previewDensity(nextDensity, { clientX: event.clientX, clientY: event.clientY })
-        if (last) {
-          setDensityPreview(undefined)
-          commit({ type: "density", density: nextDensity })
-        }
+        if (last) finishWheelZoom()
       },
     },
     {
@@ -481,7 +619,6 @@ export function GreenfieldApp() {
   return (
     <LayoutGroup id="media-wall">
       <MediaWallShell
-        brandName="Elsewhere"
         searchDraft={searchDraft}
         searchPlaceholder="Search media"
         resultPending={discovery.isFetching}
@@ -504,6 +641,7 @@ export function GreenfieldApp() {
           max: DENSITY_MAX,
           step: 0.025,
         }}
+        onSearchIntent={prepareSemanticSearch}
         onSearchDraftChange={setSearchDraft}
         onSearchSubmit={(q) => commit({ type: "search", q })}
         onDesktopFiltersChange={(filters) =>
@@ -584,7 +722,7 @@ export function GreenfieldApp() {
         ) : (
           <div
             ref={wallScaleRef}
-            className="touch-pan-y will-change-transform [transform:scale(var(--wall-draft-scale))]"
+            className="relative touch-pan-y will-change-transform [transform:scale(var(--wall-draft-scale))]"
             style={{
               "--wall-draft-scale": draftScale,
               transformOrigin: `${densityPreview?.originX ?? 0}px ${densityPreview?.originY ?? 0}px`,
@@ -592,20 +730,25 @@ export function GreenfieldApp() {
           >
             <MediaWall
               ref={wallRef}
-              tiles={tiles}
+              tiles={stableWall.tiles}
               density={committedDensity}
               hasNextPage={discovery.hasNextPage}
               onOpenMedia={openMedia}
               onLayoutComplete={restoreAnchor}
+              initialLayoutFallback={<WallLoadingState />}
               renderMedia={renderWallMedia}
               onRequestAppend={requestNextPage}
             />
+            {stableWall.bufferedTileCount > 0 && (
+              <div role="status" className="sr-only">Loading more media…</div>
+            )}
           </div>
         )}
       </MediaWallShell>
 
       <Suspense fallback={null}>
         <MediaLightbox
+          key={selectedMedia ? "open" : "closed"}
           media={selectedMedia}
           record={selectedRecord}
           sharedElement={openedFromWall}

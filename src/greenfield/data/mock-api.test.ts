@@ -43,6 +43,20 @@ describe("mock ApiTransport", () => {
     expect(second.records[0]?.id).toBe("record-005")
   })
 
+  it("returns stable random orders that change with the seed", async () => {
+    const transport = createMockApiTransport({ latencyMs: 0, pageSize: 96 })
+    const first = await transport.discover({ ...state, sort: "random", seed: "one" })
+    const repeated = await transport.discover({ ...state, sort: "random", seed: "one" })
+    const reshuffled = await transport.discover({ ...state, sort: "random", seed: "two" })
+
+    expect(repeated.records.map((record) => record.id)).toEqual(
+      first.records.map((record) => record.id),
+    )
+    expect(reshuffled.records.map((record) => record.id)).not.toEqual(
+      first.records.map((record) => record.id),
+    )
+  })
+
   it("rejects cursors from a different result set", async () => {
     const transport = createMockApiTransport({ latencyMs: 0, pageSize: 4 })
     const first = await transport.discover(state)
@@ -66,7 +80,10 @@ describe("mock ApiTransport", () => {
 
     expect(count.count).toBeGreaterThan(0)
     expect(page.records.every((record) => record.tags.includes("design"))).toBe(true)
-    expect(media && (await transport.media(media.id))).toEqual(media)
+    expect(media && (await transport.media(media.id))).toEqual({
+      media,
+      record: page.records[0],
+    })
 
     const relaxed = await transport.discover({
       ...state,

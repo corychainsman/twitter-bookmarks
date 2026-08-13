@@ -15,11 +15,33 @@ declare global {
 
 let registrationStarted = false
 
+const STARTUP_UPDATE_WINDOW_MS = 15_000
+
+interface WaitingUpdateContext {
+  elapsedSinceRegistrationMs: number
+  wasWaitingBeforeRegister: boolean
+}
+
+type UpdateActivationSource = "startup" | "user"
+
+export function shouldActivateWaitingUpdateOnStartup({
+  elapsedSinceRegistrationMs,
+  wasWaitingBeforeRegister,
+}: WaitingUpdateContext) {
+  return wasWaitingBeforeRegister || elapsedSinceRegistrationMs <= STARTUP_UPDATE_WINDOW_MS
+}
+
+export function shouldReloadAfterServiceWorkerActivation(
+  source: UpdateActivationSource,
+) {
+  return source === "user"
+}
+
 function dismissPrompt(prompt: HTMLElement) {
   prompt.remove()
 }
 
-function showDefaultUpdatePrompt(detail: ServiceWorkerUpdateDetail) {
+export function showDefaultUpdatePrompt(detail: ServiceWorkerUpdateDetail) {
   if (document.querySelector('[data-service-worker-update="true"]')) return
 
   const prompt = document.createElement("aside")
@@ -42,6 +64,7 @@ function showDefaultUpdatePrompt(detail: ServiceWorkerUpdateDetail) {
     marginInline: "auto",
     maxWidth: "30rem",
     padding: "0.75rem",
+    pointerEvents: "auto",
     position: "fixed",
     zIndex: "2147483647",
   })
@@ -110,29 +133,48 @@ export function registerServiceWorker() {
   registrationStarted = true
 
   const workbox = new Workbox("/sw.js", { scope: "/" })
+  const registrationStartedAt = performance.now()
   let reloadWhenControlling = false
-  let updatedWorkerControlsPage = false
+  let reloadStarted = false
+  let updateRequested = false
   let waitingWorkerAnnounced = false
 
+  const reloadOnce = () => {
+    if (!reloadWhenControlling || reloadStarted) return
+    reloadStarted = true
+    window.location.reload()
+  }
+
+  const applyUpdate = (source: UpdateActivationSource) => {
+    if (updateRequested) return
+    updateRequested = true
+    reloadWhenControlling = shouldReloadAfterServiceWorkerActivation(source)
+    workbox.messageSkipWaiting()
+  }
+
   workbox.addEventListener("waiting", (event) => {
+    const wasWaitingBeforeRegister = event.wasWaitingBeforeRegister ?? false
+
+    if (
+      shouldActivateWaitingUpdateOnStartup({
+        elapsedSinceRegistrationMs: performance.now() - registrationStartedAt,
+        wasWaitingBeforeRegister,
+      })
+    ) {
+      applyUpdate("startup")
+      return
+    }
+
+    if (waitingWorkerAnnounced) return
     waitingWorkerAnnounced = true
     announceUpdate({
-      applyUpdate: () => {
-        if (updatedWorkerControlsPage) {
-          window.location.reload()
-          return
-        }
-        reloadWhenControlling = true
-        workbox.messageSkipWaiting()
-      },
-      wasWaitingBeforeRegister: event.wasWaitingBeforeRegister ?? false,
+      applyUpdate: () => applyUpdate("user"),
+      wasWaitingBeforeRegister,
     })
   })
 
-  workbox.addEventListener("controlling", () => {
-    if (waitingWorkerAnnounced) updatedWorkerControlsPage = true
-    if (reloadWhenControlling) window.location.reload()
-  })
+  workbox.addEventListener("activated", reloadOnce)
+  workbox.addEventListener("controlling", reloadOnce)
 
   void workbox.register().catch(() => {
     registrationStarted = false

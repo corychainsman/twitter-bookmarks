@@ -3,15 +3,30 @@ import { useEffect, useRef, useState } from "react"
 
 import { shouldPlayForVisibility } from "./autoplay-policy"
 import { useAutoplayPreferences } from "./use-autoplay-preferences"
+import type { MediaAsset } from "../../contracts/domain"
+import { ResponsivePicture } from "../wall/ResponsivePicture"
 
 interface VideoPreviewProps {
   src: string
   poster?: string
+  posterAsset?: MediaAsset
+  posterPriority?: boolean
+  posterSizes?: string
   label: string
   className?: string
+  preloadMargin?: string
 }
 
-export function VideoPreview({ src, poster, label, className }: VideoPreviewProps) {
+export function VideoPreview({
+  src,
+  poster,
+  posterAsset,
+  posterPriority = false,
+  posterSizes = "100vw",
+  label,
+  className,
+  preloadMargin = "100% 0px",
+}: VideoPreviewProps) {
   const rootRef = useRef<HTMLDivElement>(null)
   const videoRef = useRef<HTMLVideoElement>(null)
   const frameCallbackRef = useRef<number | undefined>(undefined)
@@ -40,12 +55,12 @@ export function VideoPreview({ src, poster, label, className }: VideoPreviewProp
         if (!entry) return
         setSourceAdmitted((admitted) => admitted || entry.isIntersecting)
       },
-      { rootMargin: "100% 0px", threshold: 0 },
+      { rootMargin: preloadMargin, threshold: 0 },
     )
 
     observer.observe(root)
     return () => observer.disconnect()
-  }, [])
+  }, [preloadMargin])
 
   useEffect(() => {
     const root = rootRef.current
@@ -116,19 +131,28 @@ export function VideoPreview({ src, poster, label, className }: VideoPreviewProp
         muted
         onPlaying={revealPresentedFrame}
         playsInline
-        poster={poster}
+        poster={posterAsset ? undefined : poster}
         preload={sourceAdmitted ? "auto" : "none"}
         src={sourceAdmitted ? src : undefined}
       />
-      {poster && !hasPresentedFrame && (
-        <img
-          alt=""
-          aria-hidden="true"
-          className="pointer-events-none absolute inset-0 z-10 size-full select-none object-contain"
-          decoding="sync"
-          draggable={false}
-          src={poster}
-        />
+      {(posterAsset || poster) && !hasPresentedFrame && (
+        posterAsset ? (
+          <ResponsivePicture
+            asset={posterAsset}
+            className="pointer-events-none absolute inset-0 z-10 size-full select-none object-contain"
+            priority={posterPriority}
+            sizes={posterSizes}
+          />
+        ) : (
+          <img
+            alt=""
+            aria-hidden="true"
+            className="pointer-events-none absolute inset-0 z-10 size-full select-none object-contain"
+            decoding="sync"
+            draggable={false}
+            src={poster}
+          />
+        )
       )}
       {!ambientAllowed && (
         <div className="pointer-events-none absolute end-2 top-2 z-20 rounded-full bg-black/65 p-2 text-white ring-1 ring-white/10">

@@ -11,7 +11,7 @@ export const DEFAULT_SORT: SortMode = "curated"
 export const DEFAULT_VIEW_MODE: ViewMode = "asset"
 export const DEFAULT_DENSITY: Density = "auto"
 
-const sortModes = new Set<SortMode>(["curated", "newest", "oldest"])
+const sortModes = new Set<SortMode>(["curated", "random", "newest", "oldest"])
 const viewModes = new Set<ViewMode>(["asset", "record", "hybrid"])
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -156,7 +156,7 @@ export function stringifyWallSearch(rawSearch: unknown): string {
   }
   entries.push(`sort=${encode(search.sort)}`)
   entries.push(`mode=${encode(search.mode)}`)
-  entries.push(`seed=${encode(search.seed)}`)
+  if (search.sort === "random") entries.push(`seed=${encode(search.seed)}`)
   entries.push(`density=${encode(String(search.density))}`)
   if (search.similar) entries.push(`similar=${encode(search.similar)}`)
 

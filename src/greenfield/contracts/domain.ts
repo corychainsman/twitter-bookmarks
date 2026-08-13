@@ -1,5 +1,5 @@
 export type ViewMode = "asset" | "record" | "hybrid"
-export type SortMode = "curated" | "newest" | "oldest"
+export type SortMode = "curated" | "random" | "newest" | "oldest"
 export type Density = "auto" | number
 export type MediaKind = "image" | "video"
 export type TileScale = "small" | "medium" | "large"
@@ -31,10 +31,17 @@ export interface MediaRecord {
   title: string
   description: string
   sourceLabel: string
-  capturedAt: string
+  authorUrl: string
+  sourceUrl: string
+  postedAt: string
   tags: string[]
   assets: MediaAsset[]
   eligibleRepresentativeAssetIds: string[]
+}
+
+export interface DirectMedia {
+  media: MediaAsset
+  record: MediaRecord
 }
 
 export interface FacetSelection {

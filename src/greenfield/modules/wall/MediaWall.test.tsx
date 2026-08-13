@@ -1,5 +1,5 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react"
-import { forwardRef, useImperativeHandle, type ReactNode } from "react"
+import { forwardRef, useImperativeHandle, type CSSProperties, type ReactNode } from "react"
 import { beforeEach, describe, expect, it, vi } from "vitest"
 
 import type { MediaAsset, WallTile } from "../../contracts/domain"
@@ -14,12 +14,17 @@ const gridSpies = vi.hoisted(() => ({
 interface MockGridProps {
   children?: ReactNode
   "aria-label"?: string
+  "aria-busy"?: boolean
   role?: string
   useTransform?: boolean
   gap?: number
   isCroppedSize?: boolean
   sizeRange?: number[]
   stretch?: boolean
+  threshold?: number
+  useRecycle?: boolean
+  style?: CSSProperties
+  onRenderComplete?: () => void
   onRequestAppend?: (event: {
     groupKey: string
     nextGroupKeys: string[]
@@ -32,7 +37,7 @@ interface MockGridProps {
 
 vi.mock("@egjs/react-infinitegrid", () => ({
   JustifiedInfiniteGrid: forwardRef<unknown, MockGridProps>(function MockJustifiedGrid(
-    { children, onRequestAppend, ...props },
+    { children, onRequestAppend, onRenderComplete, ...props },
     ref,
   ) {
     useImperativeHandle(ref, () => ({ renderItems: gridSpies.renderItems }))
@@ -40,16 +45,21 @@ vi.mock("@egjs/react-infinitegrid", () => ({
     return (
       <div
         aria-label={props["aria-label"]}
+        aria-busy={props["aria-busy"]}
         data-testid="justified-grid"
         data-gap={props.gap}
         data-is-cropped-size={String(props.isCroppedSize)}
         data-size-range={props.sizeRange?.join(",")}
         data-stretch={String(props.stretch)}
+        data-threshold={props.threshold}
+        data-use-recycle={String(props.useRecycle)}
         data-use-transform={String(props.useTransform)}
+        style={props.style}
         role={props.role}
       >
         {children}
         <button
+          data-testid="request-append"
           type="button"
           onClick={() => onRequestAppend?.({
             groupKey: "layout-0",
@@ -61,6 +71,9 @@ vi.mock("@egjs/react-infinitegrid", () => ({
           })}
         >
           Request append
+        </button>
+        <button data-testid="complete-layout" type="button" onClick={onRenderComplete}>
+          Complete layout
         </button>
       </div>
     )
@@ -147,7 +160,9 @@ describe("MediaWall", () => {
     )
     expect(screen.getByTestId("justified-grid")).toHaveAttribute("data-stretch", "false")
     expect(screen.getByTestId("justified-grid")).toHaveAttribute("data-size-range", "180,260")
-    expect(screen.getByRole("listitem")).toHaveAttribute(
+    expect(screen.getByTestId("justified-grid")).toHaveAttribute("data-threshold", "800")
+    expect(screen.getByTestId("justified-grid")).toHaveAttribute("data-use-recycle", "false")
+    expect(document.querySelector("[role='listitem']")).toHaveAttribute(
       "data-grid-groupkey",
       "layout-independent-0",
     )
@@ -161,11 +176,87 @@ describe("MediaWall", () => {
     expect(document.querySelector("[data-media-layout-id='media-media-1']")).toBeInTheDocument()
   })
 
+  it("keeps the fallback visible until the first positioned layout completes", () => {
+    render(
+      <MediaWall
+        tiles={[tile()]}
+        initialLayoutFallback={<div>Stable wall skeleton</div>}
+        onOpenMedia={() => undefined}
+      />,
+    )
+
+    expect(screen.getByText("Stable wall skeleton")).toBeInTheDocument()
+    expect(screen.getByTestId("justified-grid")).toHaveStyle({
+      opacity: "0",
+      visibility: "hidden",
+    })
+    expect(screen.getByTestId("justified-grid")).toHaveAttribute("aria-busy", "true")
+
+    fireEvent.click(screen.getByTestId("complete-layout"))
+
+    expect(screen.queryByText("Stable wall skeleton")).not.toBeInTheDocument()
+    expect(screen.getByTestId("justified-grid")).toHaveStyle({
+      opacity: "1",
+      visibility: "visible",
+    })
+    expect(screen.getByTestId("justified-grid")).not.toHaveAttribute("aria-busy")
+  })
+
+  it("recomputes the grid options after a committed density change", async () => {
+    const { rerender } = render(
+      <MediaWall density={0.6} tiles={[tile()]} onOpenMedia={() => undefined} />,
+    )
+
+    expect(screen.getByTestId("justified-grid")).toHaveAttribute(
+      "data-size-range",
+      "108,156",
+    )
+
+    rerender(<MediaWall density={1.75} tiles={[tile()]} onOpenMedia={() => undefined} />)
+
+    expect(screen.getByTestId("justified-grid")).toHaveAttribute(
+      "data-size-range",
+      "316,454",
+    )
+    expect(screen.getByTestId("justified-grid")).toHaveAttribute(
+      "data-threshold",
+      "1400",
+    )
+    await waitFor(() => {
+      expect(gridSpies.renderItems).toHaveBeenCalledWith({ useResize: true })
+    })
+  })
+
+  it("does not force a full remeasure when cursor pages append tiles", async () => {
+    const firstTile = tile()
+    const secondMedia = asset(2)
+    const secondTile: WallTile = {
+      ...tile(),
+      id: "asset:record-2:0",
+      recordId: "record-2",
+      media: [secondMedia],
+      representative: secondMedia,
+      groupKey: "layout-independent-1",
+    }
+    const { rerender } = render(
+      <MediaWall tiles={[firstTile]} onOpenMedia={() => undefined} />,
+    )
+
+    await waitFor(() => expect(gridSpies.renderItems).toHaveBeenCalledOnce())
+    gridSpies.renderItems.mockClear()
+
+    rerender(
+      <MediaWall tiles={[firstTile, secondTile]} onOpenMedia={() => undefined} />,
+    )
+
+    expect(gridSpies.renderItems).not.toHaveBeenCalled()
+  })
+
   it("renders at most four individually addressable collage cells and overflow", () => {
     const onOpenMedia = vi.fn()
     render(<MediaWall tiles={[tile(4, 3)]} onOpenMedia={onOpenMedia} />)
 
-    const mediaButtons = screen.getAllByRole("button", { name: /^Open Media/ })
+    const mediaButtons = [...document.querySelectorAll<HTMLButtonElement>("[data-media-id]")]
     expect(mediaButtons).toHaveLength(4)
     expect(screen.getByText("+3")).toBeInTheDocument()
 
@@ -182,7 +273,7 @@ describe("MediaWall", () => {
 
   it("keeps one tab stop and moves focus using mounted visual geometry", () => {
     render(<MediaWall tiles={[tile(4)]} onOpenMedia={() => undefined} />)
-    const mediaButtons = screen.getAllByRole<HTMLButtonElement>("button", { name: /^Open Media/ })
+    const mediaButtons = [...document.querySelectorAll<HTMLButtonElement>("[data-media-id]")]
     const positions = [
       domRect(0, 0, 100, 100),
       domRect(120, 0, 100, 100),
@@ -216,7 +307,7 @@ describe("MediaWall", () => {
       />,
     )
 
-    fireEvent.click(screen.getByRole("button", { name: "Request append" }))
+    fireEvent.click(screen.getByTestId("request-append"))
 
     expect(gridSpies.wait).toHaveBeenCalledOnce()
     await waitFor(() => expect(onRequestAppend).toHaveBeenCalledWith({
@@ -235,7 +326,7 @@ describe("MediaWall", () => {
     render(<MediaWall ref={ref} tiles={[tile(2)]} onOpenMedia={() => undefined} />)
 
     expect(ref.current?.focusMedia("media-2")).toBe(true)
-    expect(screen.getByRole("button", { name: "Open Media 2" })).toHaveFocus()
+    expect(document.querySelector("[data-media-id='media-2']")).toHaveFocus()
     ref.current?.repack()
     expect(gridSpies.renderItems).toHaveBeenCalledWith({ useResize: true })
   })

@@ -1,6 +1,6 @@
-import { ChevronLeft, ChevronRight, Info, X } from "lucide-react"
-import { motion, useReducedMotion } from "motion/react"
-import { useEffect, useState } from "react"
+import { ChevronLeft, ChevronRight, Info, Share2, X } from "lucide-react"
+import { AnimatePresence, motion, useReducedMotion, type Variants } from "motion/react"
+import { useCallback, useEffect, useRef, useState } from "react"
 
 import { Button } from "@/components/ui/button"
 import {
@@ -31,6 +31,49 @@ interface MediaLightboxProps {
   onSelectSibling: (mediaId: string) => void
 }
 
+type NavigationDirection = -1 | 0 | 1
+
+const mediaSlideVariants: Variants = {
+  enter: (direction: NavigationDirection) => ({
+    opacity: direction === 0 ? 0 : 0.88,
+    x: `${direction * 8}%`,
+    zIndex: 1,
+    transition: { duration: 0.18, ease: [0.22, 1, 0.36, 1] },
+  }),
+  center: {
+    opacity: 1,
+    x: "0%",
+    zIndex: 1,
+    transition: { duration: 0.18, ease: [0.22, 1, 0.36, 1] },
+  },
+  exit: (direction: NavigationDirection) => ({
+    opacity: 0,
+    x: `${direction * -8}%`,
+    zIndex: 0,
+    transition: { duration: 0.1, ease: [0.4, 0, 1, 1] },
+  }),
+}
+
+async function copyToClipboard(value: string) {
+  if (navigator.clipboard?.writeText) {
+    await navigator.clipboard.writeText(value)
+    return
+  }
+
+  const textarea = document.createElement("textarea")
+  textarea.value = value
+  textarea.style.position = "fixed"
+  textarea.style.opacity = "0"
+  document.body.append(textarea)
+  textarea.select()
+
+  try {
+    if (!document.execCommand("copy")) throw new Error("Clipboard copy failed")
+  } finally {
+    textarea.remove()
+  }
+}
+
 function Metadata({
   media,
   record,
@@ -40,34 +83,55 @@ function Metadata({
   record?: MediaRecord
   onSelectSibling: (mediaId: string) => void
 }) {
+  const postedAt = record ? new Date(record.postedAt) : undefined
+
   return (
-    <div className="flex flex-col gap-6">
-      <div className="flex flex-col gap-2">
-        <p className="font-mono text-sm tracking-wide text-muted-foreground uppercase">
-          {record?.sourceLabel ?? "Media record"}
-        </p>
-        <h2 className="text-balance text-2xl font-semibold tracking-tight">{media.title}</h2>
-        <p className="text-pretty text-base text-muted-foreground sm:text-sm">
+    <div className="flex flex-col gap-5">
+      <div className="flex flex-col gap-3">
+        {record ? (
+          <a
+            className="w-fit font-mono text-sm tracking-wide text-muted-foreground underline-offset-4 transition-colors hover:text-foreground hover:underline focus-visible:rounded-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+            href={record.authorUrl}
+            rel="noreferrer"
+            target="_blank"
+          >
+            {record.sourceLabel}
+          </a>
+        ) : (
+          <p className="font-mono text-sm tracking-wide text-muted-foreground uppercase">
+            Media record
+          </p>
+        )}
+        <p className="text-pretty text-base leading-relaxed text-foreground/85 sm:text-sm">
           {media.description}
         </p>
+        <div className="flex items-center gap-2 text-xs text-muted-foreground">
+          {record && (
+            <>
+              <a
+                aria-label={`Posted ${postedAt?.toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" })}`}
+                className="tabular-nums underline-offset-4 transition-colors hover:text-foreground hover:underline focus-visible:rounded-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+                href={record.sourceUrl}
+                rel="noreferrer"
+                target="_blank"
+              >
+                <span className="sr-only">Posted </span>
+                <time dateTime={record.postedAt}>
+                  {postedAt?.toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" })}
+                </time>
+              </a>
+              <span aria-hidden="true">·</span>
+            </>
+          )}
+          <span className="tabular-nums">
+            <span className="sr-only">Dimensions </span>
+            {media.width} × {media.height}
+          </span>
+        </div>
       </div>
 
-      <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-2 text-base sm:text-sm">
-        {record && (
-          <>
-          <dt className="text-muted-foreground">Captured</dt>
-          <dd className="tabular-nums">{new Date(record.capturedAt).toLocaleDateString()}</dd>
-          </>
-        )}
-        <dt className="text-muted-foreground">Dimensions</dt>
-        <dd className="tabular-nums">{media.width} × {media.height}</dd>
-        <dt className="text-muted-foreground">Type</dt>
-        <dd className="capitalize">{media.kind}</dd>
-      </dl>
-
       {record && record.assets.length > 1 && (
-        <div className="flex flex-col gap-3">
-          <h3 className="font-medium">More from this record</h3>
+        <div>
           <ul role="list" className="grid grid-cols-4 gap-2">
             {record.assets.map((sibling) => (
               <li key={sibling.id}>
@@ -104,6 +168,28 @@ export function MediaLightbox({
 }: MediaLightboxProps) {
   const reduceMotion = useReducedMotion()
   const [detailsOpen, setDetailsOpen] = useState(false)
+  const [detailsHeight, setDetailsHeight] = useState(0)
+  const [copiedOpen, setCopiedOpen] = useState(false)
+  const [navigationDirection, setNavigationDirection] = useState<NavigationDirection>(0)
+  const [hasNavigated, setHasNavigated] = useState(false)
+  const detailsContentRef = useRef<HTMLDivElement>(null)
+  const copiedTimeoutRef = useRef<number | undefined>(undefined)
+  const setDetailsContent = useCallback((content: HTMLDivElement | null) => {
+    detailsContentRef.current = content
+    if (content) setDetailsHeight(Math.ceil(content.getBoundingClientRect().height))
+  }, [])
+
+  useEffect(() => {
+    if (!detailsOpen) return
+    const content = detailsContentRef.current
+    if (!content) return
+
+    const measure = () => setDetailsHeight(Math.ceil(content.getBoundingClientRect().height))
+    if (typeof ResizeObserver === "undefined") return
+    const observer = new ResizeObserver(measure)
+    observer.observe(content)
+    return () => observer.disconnect()
+  }, [detailsOpen, media?.id])
 
   useEffect(() => {
     if (!media) return
@@ -114,15 +200,45 @@ export function MediaLightbox({
     }
   }, [media])
 
+  const navigatePrevious = useCallback(() => {
+    setNavigationDirection(-1)
+    setHasNavigated(true)
+    onPrevious()
+  }, [onPrevious])
+
+  const navigateNext = useCallback(() => {
+    setNavigationDirection(1)
+    setHasNavigated(true)
+    onNext()
+  }, [onNext])
+
+  const selectSibling = useCallback((mediaId: string) => {
+    setNavigationDirection(0)
+    setHasNavigated(true)
+    onSelectSibling(mediaId)
+  }, [onSelectSibling])
+
   useEffect(() => {
     if (!media) return
     const handleKey = (event: KeyboardEvent) => {
-      if (event.key === "ArrowLeft") onPrevious()
-      if (event.key === "ArrowRight") onNext()
+      if (event.key === "ArrowLeft") navigatePrevious()
+      if (event.key === "ArrowRight") navigateNext()
     }
     window.addEventListener("keydown", handleKey)
     return () => window.removeEventListener("keydown", handleKey)
-  }, [media, onNext, onPrevious])
+  }, [media, navigateNext, navigatePrevious])
+
+  useEffect(() => () => window.clearTimeout(copiedTimeoutRef.current), [])
+
+  const copyMediaLink = useCallback(async () => {
+    if (!media) return
+
+    const mediaUrl = new URL(`/media/${encodeURIComponent(media.id)}`, window.location.origin)
+    await copyToClipboard(mediaUrl.toString())
+    window.clearTimeout(copiedTimeoutRef.current)
+    setCopiedOpen(true)
+    copiedTimeoutRef.current = window.setTimeout(() => setCopiedOpen(false), 1_400)
+  }, [media])
 
   return (
     <Dialog open={Boolean(media)} onOpenChange={(open) => !open && onClose()}>
@@ -145,14 +261,30 @@ export function MediaLightbox({
                 <span className="pointer-fine:hidden absolute start-1/2 top-1/2 size-[max(100%,3rem)] -translate-1/2" aria-hidden="true" />
               </Button>
               <div className="flex items-center gap-1">
-                <Button type="button" variant="ghost" size="icon" className="relative" aria-label="Previous media" onClick={onPrevious}>
+                <Button type="button" variant="ghost" size="icon" className="relative" aria-label="Previous media" onClick={navigatePrevious}>
                   <ChevronLeft className="size-4 shrink-0" aria-hidden="true" />
                   <span className="pointer-fine:hidden absolute start-1/2 top-1/2 size-[max(100%,3rem)] -translate-1/2" aria-hidden="true" />
                 </Button>
-                <Button type="button" variant="ghost" size="icon" className="relative" aria-label="Next media" onClick={onNext}>
+                <Button type="button" variant="ghost" size="icon" className="relative" aria-label="Next media" onClick={navigateNext}>
                   <ChevronRight className="size-4 shrink-0" aria-hidden="true" />
                   <span className="pointer-fine:hidden absolute start-1/2 top-1/2 size-[max(100%,3rem)] -translate-1/2" aria-hidden="true" />
                 </Button>
+                <div className="relative">
+                  <Button type="button" variant="ghost" size="icon" className="relative" aria-label="Copy media link" onClick={() => void copyMediaLink()}>
+                    <Share2 className="size-4 shrink-0" aria-hidden="true" />
+                    <span className="pointer-fine:hidden absolute start-1/2 top-1/2 size-[max(100%,3rem)] -translate-1/2" aria-hidden="true" />
+                  </Button>
+                  {copiedOpen && (
+                    <motion.span
+                      role="status"
+                      initial={reduceMotion ? false : { opacity: 0, y: -2 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="pointer-events-none absolute top-[calc(100%+0.35rem)] left-1/2 z-50 -translate-x-1/2 rounded-md bg-popover px-3 py-1.5 text-xs font-medium text-popover-foreground shadow-md ring-1 ring-foreground/10"
+                    >
+                      Copied
+                    </motion.span>
+                  )}
+                </div>
                 <Drawer open={detailsOpen} onOpenChange={setDetailsOpen}>
                   <DrawerTrigger asChild>
                     <Button type="button" variant="ghost" size="icon" className="relative lg:hidden" aria-label="Open media details">
@@ -160,31 +292,53 @@ export function MediaLightbox({
                       <span className="pointer-fine:hidden absolute start-1/2 top-1/2 size-[max(100%,3rem)] -translate-1/2" aria-hidden="true" />
                     </Button>
                   </DrawerTrigger>
-                  <DrawerContent className="max-h-[92dvh] bg-popover">
-                    <DrawerHeader className="text-start">
+                  <DrawerContent
+                    ref={setDetailsContent}
+                    className="max-h-[92dvh] border-white/10 bg-background/98"
+                    overlayClassName="supports-backdrop-filter:backdrop-blur-none"
+                  >
+                    <DrawerHeader className="sr-only">
                       <DrawerTitle>Media details</DrawerTitle>
                       <DrawerDescription>Record metadata and sibling assets.</DrawerDescription>
                     </DrawerHeader>
-                    <div className="overflow-y-auto p-4 pb-[calc(env(safe-area-inset-bottom)+1rem)]">
-                      <Metadata media={media} record={record} onSelectSibling={onSelectSibling} />
+                    <div className="overflow-y-auto px-5 pt-5 pb-[calc(env(safe-area-inset-bottom)+1.25rem)]">
+                      <Metadata media={media} record={record} onSelectSibling={selectSibling} />
                     </div>
                   </DrawerContent>
                 </Drawer>
               </div>
             </div>
 
-            <MediaViewport
-              key={media.id}
-              media={media}
-              sharedElement={sharedElement}
-              onClose={onClose}
-              onPrevious={onPrevious}
-              onNext={onNext}
-            />
+            <div
+              className="relative min-h-0 flex-1 overflow-hidden"
+              data-media-navigation-direction={navigationDirection}
+            >
+              <AnimatePresence initial={false} custom={navigationDirection}>
+                <motion.div
+                  key={media.id}
+                  className="absolute inset-0 flex"
+                  custom={navigationDirection}
+                  variants={mediaSlideVariants}
+                  initial={reduceMotion ? false : "enter"}
+                  animate="center"
+                  exit={reduceMotion ? undefined : "exit"}
+                  transition={reduceMotion ? { duration: 0 } : undefined}
+                >
+                  <MediaViewport
+                    media={media}
+                    sharedElement={sharedElement && !hasNavigated}
+                    bottomInset={detailsOpen ? detailsHeight : 0}
+                    onClose={onClose}
+                    onPrevious={navigatePrevious}
+                    onNext={navigateNext}
+                  />
+                </motion.div>
+              </AnimatePresence>
+            </div>
           </div>
 
           <aside className="hidden w-88 shrink-0 overflow-y-auto border-s border-white/8 bg-card/45 p-6 lg:block">
-            <Metadata media={media} record={record} onSelectSibling={onSelectSibling} />
+            <Metadata media={media} record={record} onSelectSibling={selectSibling} />
           </aside>
           </motion.div>
         </DialogContent>

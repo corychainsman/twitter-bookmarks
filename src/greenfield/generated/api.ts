@@ -186,11 +186,19 @@ export interface components {
             title: string;
             description: string;
             sourceLabel: string;
+            /** Format: uri */
+            authorUrl: string;
+            /** Format: uri */
+            sourceUrl: string;
             /** Format: date-time */
-            capturedAt: string;
+            postedAt: string;
             tags: string[];
             assets: components["schemas"]["MediaAsset"][];
             eligibleRepresentativeAssetIds: string[];
+        };
+        DirectMedia: {
+            media: components["schemas"]["MediaAsset"];
+            record: components["schemas"]["MediaRecord"];
         };
         DiscoveryPage: {
             records: components["schemas"]["MediaRecord"][];
@@ -224,10 +232,15 @@ export interface components {
     };
     parameters: {
         Query: string;
-        Sort: "curated" | "newest" | "oldest";
+        Sort: "curated" | "random" | "newest" | "oldest";
+        Seed: string;
         Cursor: string;
         AnchorMediaId: string;
         SimilarMediaId: string;
+        /** @description Base64url-encoded normalized int8 query vector produced locally by the browser. */
+        SemanticVector: string;
+        SemanticModel: string;
+        SemanticVersion: number;
     };
     requestBodies: never;
     headers: never;
@@ -240,9 +253,14 @@ export interface operations {
             query?: {
                 q?: components["parameters"]["Query"];
                 sort?: components["parameters"]["Sort"];
+                seed?: components["parameters"]["Seed"];
                 cursor?: components["parameters"]["Cursor"];
                 anchorMediaId?: components["parameters"]["AnchorMediaId"];
                 similar?: components["parameters"]["SimilarMediaId"];
+                /** @description Base64url-encoded normalized int8 query vector produced locally by the browser. */
+                semantic?: components["parameters"]["SemanticVector"];
+                semanticModel?: components["parameters"]["SemanticModel"];
+                semanticVersion?: components["parameters"]["SemanticVersion"];
                 filter?: string[];
             };
             header?: never;
@@ -268,7 +286,12 @@ export interface operations {
             query?: {
                 q?: components["parameters"]["Query"];
                 sort?: components["parameters"]["Sort"];
+                seed?: components["parameters"]["Seed"];
                 similar?: components["parameters"]["SimilarMediaId"];
+                /** @description Base64url-encoded normalized int8 query vector produced locally by the browser. */
+                semantic?: components["parameters"]["SemanticVector"];
+                semanticModel?: components["parameters"]["SemanticModel"];
+                semanticVersion?: components["parameters"]["SemanticVersion"];
                 filter?: string[];
             };
             header?: never;
@@ -382,7 +405,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["MediaAsset"];
+                    "application/json": components["schemas"]["DirectMedia"];
                 };
             };
             404: components["responses"]["NotFound"];

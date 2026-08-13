@@ -1,6 +1,6 @@
 openapi: 3.1.0
 info:
-  title: Elsewhere Discovery API
+  title: X Inspo Discovery API
   version: 0.1.0
   description: Runtime contract for the greenfield media-discovery frontend.
 servers:
@@ -12,9 +12,13 @@ paths:
       parameters:
         - $ref: '#/components/parameters/Query'
         - $ref: '#/components/parameters/Sort'
+        - $ref: '#/components/parameters/Seed'
         - $ref: '#/components/parameters/Cursor'
         - $ref: '#/components/parameters/AnchorMediaId'
         - $ref: '#/components/parameters/SimilarMediaId'
+        - $ref: '#/components/parameters/SemanticVector'
+        - $ref: '#/components/parameters/SemanticModel'
+        - $ref: '#/components/parameters/SemanticVersion'
         - name: filter
           in: query
           schema:
@@ -38,7 +42,11 @@ paths:
       parameters:
         - $ref: '#/components/parameters/Query'
         - $ref: '#/components/parameters/Sort'
+        - $ref: '#/components/parameters/Seed'
         - $ref: '#/components/parameters/SimilarMediaId'
+        - $ref: '#/components/parameters/SemanticVector'
+        - $ref: '#/components/parameters/SemanticModel'
+        - $ref: '#/components/parameters/SemanticVersion'
         - name: filter
           in: query
           schema:
@@ -141,7 +149,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/MediaAsset'
+                $ref: '#/components/schemas/DirectMedia'
         '404':
           $ref: '#/components/responses/NotFound'
   /media/{mediaId}/social:
@@ -209,8 +217,15 @@ components:
       in: query
       schema:
         type: string
-        enum: [curated, newest, oldest]
+        enum: [curated, random, newest, oldest]
         default: curated
+    Seed:
+      name: seed
+      in: query
+      schema:
+        type: string
+        default: gallery
+        maxLength: 96
     Cursor:
       name: cursor
       in: query
@@ -226,6 +241,25 @@ components:
       in: query
       schema:
         type: string
+    SemanticVector:
+      name: semantic
+      in: query
+      description: Base64url-encoded normalized int8 query vector produced locally by the browser.
+      schema:
+        type: string
+        maxLength: 4096
+    SemanticModel:
+      name: semanticModel
+      in: query
+      schema:
+        type: string
+        maxLength: 128
+    SemanticVersion:
+      name: semanticVersion
+      in: query
+      schema:
+        type: integer
+        minimum: 1
   responses:
     CursorExpired:
       description: The frozen result snapshot expired.
@@ -342,7 +376,7 @@ components:
           format: uri
     MediaRecord:
       type: object
-      required: [id, title, description, sourceLabel, capturedAt, tags, assets, eligibleRepresentativeAssetIds]
+      required: [id, title, description, sourceLabel, authorUrl, sourceUrl, postedAt, tags, assets, eligibleRepresentativeAssetIds]
       properties:
         id:
           type: string
@@ -352,7 +386,13 @@ components:
           type: string
         sourceLabel:
           type: string
-        capturedAt:
+        authorUrl:
+          type: string
+          format: uri
+        sourceUrl:
+          type: string
+          format: uri
+        postedAt:
           type: string
           format: date-time
         tags:
@@ -369,6 +409,14 @@ components:
           minItems: 1
           items:
             type: string
+    DirectMedia:
+      type: object
+      required: [media, record]
+      properties:
+        media:
+          $ref: '#/components/schemas/MediaAsset'
+        record:
+          $ref: '#/components/schemas/MediaRecord'
     DiscoveryPage:
       type: object
       required: [records, snapshotExpiresAt, exact, relaxedFilters]

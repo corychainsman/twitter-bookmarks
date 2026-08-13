@@ -1,7 +1,7 @@
 import type {
   CommittedWallState,
   DiscoveryPage,
-  MediaAsset,
+  DirectMedia,
   MediaRecord,
   ResultCount,
   WallTile,
@@ -14,7 +14,7 @@ export interface ApiTransport {
     signal?: AbortSignal,
   ): Promise<DiscoveryPage>
   count(state: CommittedWallState, signal?: AbortSignal): Promise<ResultCount>
-  media(mediaId: string, signal?: AbortSignal): Promise<MediaAsset>
+  media(mediaId: string, signal?: AbortSignal): Promise<DirectMedia>
   suggestSources(query: string, signal?: AbortSignal): Promise<SourceSuggestion[]>
 }
 

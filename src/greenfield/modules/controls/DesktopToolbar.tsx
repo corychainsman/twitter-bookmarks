@@ -1,5 +1,3 @@
-import { GalleryVerticalEnd } from "lucide-react"
-
 import { cn } from "@/lib/utils"
 
 import type { WallControlProps } from "./types"
@@ -16,7 +14,6 @@ interface DesktopToolbarProps extends WallControlProps {
 }
 
 export function DesktopToolbar({
-  brandName,
   searchDraft,
   searchPlaceholder,
   resultPending = false,
@@ -27,6 +24,7 @@ export function DesktopToolbar({
   sortOptions,
   density,
   shufflePending,
+  onSearchIntent,
   onSearchDraftChange,
   onSearchSubmit,
   onFilterRailOpenChange,
@@ -45,22 +43,12 @@ export function DesktopToolbar({
         className,
       )}
     >
-      <a
-        href="/"
-        aria-label="Homepage"
-        className="flex shrink-0 items-center gap-2 rounded-md text-sm font-medium text-foreground outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
-      >
-        <GalleryVerticalEnd
-          aria-hidden="true"
-          className="size-4 shrink-0 stroke-foreground"
-        />
-        {brandName}
-      </a>
       <SearchControl
         value={searchDraft}
         placeholder={searchPlaceholder}
         pending={false}
         compact
+        onIntent={onSearchIntent}
         onChange={onSearchDraftChange}
         onSubmit={onSearchSubmit}
         className="min-w-48 max-w-xl flex-1"
@@ -74,6 +62,9 @@ export function DesktopToolbar({
           onClick={() => onFilterRailOpenChange(!filterRailOpen)}
         />
         <SortControl value={sort} options={sortOptions} onChange={onSortChange} />
+        {sort === "random" && (
+          <ShuffleButton pending={shufflePending} onClick={onShuffle} />
+        )}
         <ModeControl value={mode} onChange={onModeChange} />
         <DensityControl
           density={density}
@@ -81,7 +72,6 @@ export function DesktopToolbar({
           onCommit={onDensityCommit}
           onAuto={onDensityAuto}
         />
-        <ShuffleButton pending={shufflePending} onClick={onShuffle} />
       </div>
     </header>
   )

@@ -41,6 +41,7 @@ declare module 'fieldtheory/dist/graphql-bookmarks.js' {
       cookieHeader?: string
       delayMs?: number
       maxPages?: number
+      pageSize?: number
     },
   ): Promise<{
     complete: boolean

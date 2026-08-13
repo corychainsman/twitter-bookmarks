@@ -27,13 +27,17 @@ import {
   type SpatialDirection,
   type SpatialRect,
 } from "./spatialNavigation"
-import { getJustifiedSizeRange, getTileDimensions } from "./tileGeometry"
+import {
+  getJustifiedColumnRange,
+  getJustifiedSizeRange,
+  getTileDimensions,
+  getWallImageSizes,
+  getWallRenderThreshold,
+} from "./tileGeometry"
 
 type GridRequestAppendEvent = Parameters<
   NonNullable<ComponentProps<typeof JustifiedInfiniteGrid>["onRequestAppend"]>
 >[0]
-
-const DEFAULT_SIZES = "(max-width: 639px) 58vw, (max-width: 1023px) 38vw, 24vw"
 
 export interface WallOpenContext {
   tileId: string
@@ -48,6 +52,7 @@ export interface WallAppendRequest {
 }
 
 export interface WallMediaRenderContext extends WallOpenContext {
+  preloadMargin: string
   priority: boolean
   sizes: string
 }
@@ -73,6 +78,7 @@ export interface MediaWallProps {
   gap?: number
   priorityTileCount?: number
   sizes?: string
+  initialLayoutFallback?: ReactNode
 }
 
 function focusKey(tile: WallTile, media: MediaAsset): string {
@@ -150,7 +156,8 @@ const MediaWallRoot = forwardRef<MediaWallHandle, MediaWallProps>(function Media
     className,
     gap = 4,
     priorityTileCount = 8,
-    sizes = DEFAULT_SIZES,
+    sizes,
+    initialLayoutFallback,
   },
   forwardedRef,
 ) {
@@ -163,10 +170,29 @@ const MediaWallRoot = forwardRef<MediaWallHandle, MediaWallProps>(function Media
     [tiles],
   )
   const [activeFocusKey, setActiveFocusKey] = useState<string | undefined>(focusKeys[0])
+  const [initialLayoutReady, setInitialLayoutReady] = useState(false)
   const effectiveFocusKey = activeFocusKey && focusKeys.includes(activeFocusKey)
     ? activeFocusKey
     : focusKeys[0]
   const sizeRange = useMemo(() => getJustifiedSizeRange(density), [density])
+  const renderThreshold = useMemo(() => getWallRenderThreshold(density), [density])
+  const resolvedSizes = useMemo(
+    () => sizes ?? getWallImageSizes(density),
+    [density, sizes],
+  )
+
+  const hasStableInitialExtent = useCallback(() => {
+    const gridElement = wallElementRef.current?.querySelector<HTMLElement>("[role='list']")
+    return !hasNextPage ||
+      (gridElement?.getBoundingClientRect().height ?? 0) >= window.innerHeight + renderThreshold
+  }, [hasNextPage, renderThreshold])
+
+  const revealInitialLayout = useCallback(() => {
+    if (initialLayoutReady || !hasStableInitialExtent()) return false
+    setInitialLayoutReady(true)
+    onLayoutComplete?.()
+    return true
+  }, [hasStableInitialExtent, initialLayoutReady, onLayoutComplete])
 
   useEffect(() => {
     const frame = requestAnimationFrame(() => {
@@ -174,7 +200,23 @@ const MediaWallRoot = forwardRef<MediaWallHandle, MediaWallProps>(function Media
     })
 
     return () => cancelAnimationFrame(frame)
-  }, [density, gap, tiles])
+  }, [density, gap])
+
+  useEffect(() => {
+    if (initialLayoutReady) return
+    const gridElement = wallElementRef.current?.querySelector<HTMLElement>("[role='list']")
+    if (!gridElement) return
+
+    const frame = requestAnimationFrame(revealInitialLayout)
+    if (typeof ResizeObserver === "undefined") return () => cancelAnimationFrame(frame)
+
+    const observer = new ResizeObserver(revealInitialLayout)
+    observer.observe(gridElement)
+    return () => {
+      cancelAnimationFrame(frame)
+      observer.disconnect()
+    }
+  }, [initialLayoutReady, revealInitialLayout, tiles])
 
   useEffect(() => {
     const wallElement = wallElementRef.current
@@ -260,6 +302,10 @@ const MediaWallRoot = forwardRef<MediaWallHandle, MediaWallProps>(function Media
     )
   }, [hasNextPage, onAppendError, onRequestAppend])
 
+  const handleRenderComplete = useCallback(() => {
+    if (!revealInitialLayout() && initialLayoutReady) onLayoutComplete?.()
+  }, [initialLayoutReady, onLayoutComplete, revealInitialLayout])
+
   const moveFocus = useCallback((
     event: KeyboardEvent<HTMLButtonElement>,
     currentFocusKey: string,
@@ -310,28 +356,37 @@ const MediaWallRoot = forwardRef<MediaWallHandle, MediaWallProps>(function Media
     <section
       ref={wallElementRef}
       aria-label={ariaLabel}
-      className={className}
+      className={className ? `relative ${className}` : "relative"}
     >
+      {!initialLayoutReady && initialLayoutFallback && (
+        <div className="pointer-events-none absolute inset-x-0 top-0 z-10">
+          {initialLayoutFallback}
+        </div>
+      )}
       <JustifiedInfiniteGrid
         ref={gridRef}
         aria-label={ariaLabel}
+        aria-busy={!initialLayoutReady || undefined}
         role="list"
         className="relative min-h-[40vh] w-full"
-        columnRange={(grid) => (
-          grid.getContainerInlineSize() < 640 ? [1, 4] : [1, 8]
-        )}
+        columnRange={(grid) => getJustifiedColumnRange(grid.getContainerInlineSize())}
         gap={gap}
         isCroppedSize={false}
         isReachEnd={!hasNextPage}
         passUnstretchRow
         sizeRange={sizeRange}
         stretch={false}
-        threshold={600}
-        useRecycle
+        threshold={renderThreshold}
+        useRecycle={false}
         useResizeObserver
         useTransform={false}
+        style={{
+          opacity: initialLayoutReady ? 1 : 0,
+          pointerEvents: initialLayoutReady ? undefined : "none",
+          visibility: initialLayoutReady ? "visible" : "hidden",
+        }}
         onRequestAppend={handleRequestAppend}
-        onRenderComplete={onLayoutComplete}
+        onRenderComplete={handleRenderComplete}
       >
         {tiles.map((tile, tileIndex) => {
           const dimensions = getTileDimensions(tile, density)
@@ -352,8 +407,9 @@ const MediaWallRoot = forwardRef<MediaWallHandle, MediaWallProps>(function Media
                 tileId: tile.id,
                 recordId: tile.recordId,
                 mediaIndex,
+                preloadMargin: `${renderThreshold}px 0px`,
                 priority,
-                sizes,
+                sizes: resolvedSizes,
               }
 
               return (
@@ -383,7 +439,13 @@ const MediaWallRoot = forwardRef<MediaWallHandle, MediaWallProps>(function Media
                   >
                     {renderMedia
                       ? renderMedia(media, context)
-                      : <DefaultMedia asset={media} priority={priority} sizes={sizes} />}
+                      : (
+                          <DefaultMedia
+                            asset={media}
+                            priority={priority}
+                            sizes={resolvedSizes}
+                          />
+                        )}
                   </motion.div>
                   {mediaIndex === tile.media.length - 1 && tile.overflowCount > 0 && (
                     <span className="pointer-events-none absolute inset-0 grid place-items-center bg-black/55 text-xl font-semibold text-white tabular-nums backdrop-blur-[1px]">
@@ -417,7 +479,7 @@ const MediaWallRoot = forwardRef<MediaWallHandle, MediaWallProps>(function Media
           }
 
           return (
-            <article
+            <div
               key={tile.id}
               data-grid-groupkey={tile.groupKey}
               data-tile-aspect-ratio={dimensions.width / dimensions.height}
@@ -432,7 +494,7 @@ const MediaWallRoot = forwardRef<MediaWallHandle, MediaWallProps>(function Media
               <div className="size-full bg-black">
                 {renderCollageNode(layout, tile.id)}
               </div>
-            </article>
+            </div>
           )
         })}
       </JustifiedInfiniteGrid>

@@ -4,6 +4,7 @@ export interface DiscoveryRequestIdentity {
   q: string
   filters: FacetSelection[]
   sort: CommittedWallState["sort"]
+  seed?: string
   similar?: string
 }
 
@@ -18,8 +19,8 @@ function canonicalFilters(filters: FacetSelection[]): FacetSelection[] {
 }
 
 /**
- * Backend identity deliberately excludes mode, seed, and density. Those values
- * alter projection or composition, not the frozen record result set.
+ * Backend identity deliberately excludes mode and density. Seed only affects
+ * backend identity for the random sort; otherwise it remains composition-only.
  */
 export function discoveryRequestIdentity(
   state: CommittedWallState,
@@ -28,6 +29,7 @@ export function discoveryRequestIdentity(
     q: state.q.trim().replace(/\s+/g, " "),
     filters: canonicalFilters(state.filters),
     sort: state.sort,
+    ...(state.sort === "random" ? { seed: state.seed } : {}),
     ...(state.similar ? { similar: state.similar } : {}),
   }
 }
@@ -40,4 +42,3 @@ export const discoveryKeys = {
     [...discoveryKeys.all, "count", discoveryRequestIdentity(state)] as const,
   media: (mediaId: string) => ["greenfield", "media", mediaId] as const,
 }
-

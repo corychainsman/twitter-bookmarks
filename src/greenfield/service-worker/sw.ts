@@ -1,10 +1,9 @@
 /// <reference lib="webworker" />
 
 import { CacheableResponsePlugin } from "workbox-cacheable-response"
-import { clientsClaim } from "workbox-core"
 import type { CacheDidUpdateCallbackParam, WorkboxPlugin } from "workbox-core/types"
 import { ExpirationPlugin } from "workbox-expiration"
-import { cleanupOutdatedCaches, createHandlerBoundToURL, precacheAndRoute } from "workbox-precaching"
+import { cleanupOutdatedCaches, matchPrecache, precacheAndRoute } from "workbox-precaching"
 import { registerRoute } from "workbox-routing"
 import { CacheFirst, NetworkFirst } from "workbox-strategies"
 
@@ -16,7 +15,6 @@ declare let self: ServiceWorkerGlobalScope & {
 
 cleanupOutdatedCaches()
 precacheAndRoute(self.__WB_MANIFEST)
-clientsClaim()
 
 self.addEventListener("message", (event) => {
   if (event.data && typeof event.data === "object" && "type" in event.data && event.data.type === "SKIP_WAITING") {
@@ -66,15 +64,63 @@ class AdaptiveCacheLimitPlugin implements WorkboxPlugin {
 
 registerRoute(
   ({ request, url }) =>
+    request.method === "GET"
+    && (
+      (url.origin === self.location.origin && url.pathname.endsWith(".wasm"))
+      || (
+        url.origin === self.location.origin
+        && url.pathname.includes("/assets/ort-wasm-")
+        && url.pathname.endsWith(".mjs")
+      )
+      || (
+        url.hostname === "cdn.jsdelivr.net"
+        && url.pathname.includes("/onnxruntime-web@")
+        && (url.pathname.endsWith(".wasm") || url.pathname.endsWith(".mjs"))
+      )
+    ),
+  new CacheFirst({
+    cacheName: "x-inspo-semantic-runtime-v1",
+    plugins: [
+      new CacheableResponsePlugin({ statuses: [0, 200] }),
+      new ExpirationPlugin({
+        maxEntries: 8,
+        maxAgeSeconds: 60 * 60 * 24 * 365,
+        purgeOnQuotaError: true,
+      }),
+    ],
+  }),
+)
+
+const navigationStrategy = new NetworkFirst({
+  cacheName: "x-inspo-app-shell-v1",
+  networkTimeoutSeconds: 4,
+  plugins: [
+    new CacheableResponsePlugin({ statuses: [200] }),
+    new ExpirationPlugin({
+      maxEntries: 12,
+      maxAgeSeconds: 60 * 60 * 24 * 7,
+      purgeOnQuotaError: true,
+    }),
+  ],
+})
+
+registerRoute(
+  ({ request, url }) =>
     request.mode === "navigate" && url.origin === self.location.origin && !url.pathname.startsWith("/api"),
-  createHandlerBoundToURL("/index.html"),
+  async (options) => {
+    try {
+      return await navigationStrategy.handle(options)
+    } catch {
+      return await matchPrecache("/index.html") ?? Response.error()
+    }
+  },
 )
 
 registerRoute(
   ({ request, url }) =>
     request.method === "GET" && url.origin === self.location.origin && (url.pathname === "/api" || url.pathname.startsWith("/api/")),
   new NetworkFirst({
-    cacheName: "elsewhere-recent-results-v2",
+    cacheName: "elsewhere-recent-results-v3",
     networkTimeoutSeconds: 4,
     plugins: [
       new CacheableResponsePlugin({ statuses: [200] }),
@@ -128,6 +174,18 @@ registerRoute(
         purgeOnQuotaError: true,
       }),
       new AdaptiveCacheLimitPlugin("video"),
+    ],
+  }),
+)
+
+registerRoute(
+  ({ request, url }) =>
+    request.method === "GET" && url.origin === self.location.origin && url.pathname.startsWith("/models/"),
+  new CacheFirst({
+    cacheName: "x-inspo-semantic-model-v1",
+    plugins: [
+      new CacheableResponsePlugin({ statuses: [200] }),
+      new ExpirationPlugin({ maxEntries: 12, maxAgeSeconds: 60 * 60 * 24 * 365 }),
     ],
   }),
 )

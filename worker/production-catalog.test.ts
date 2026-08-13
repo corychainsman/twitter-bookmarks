@@ -3,6 +3,14 @@ import { afterEach, describe, expect, it, vi } from "vitest"
 import { getCatalogSocialMetadata, handleCatalogApi } from "./production-catalog"
 
 const ORIGIN = "https://catalog.test/data"
+function base64(values: Int8Array): string {
+  return btoa(String.fromCharCode(...new Uint8Array(values.buffer)))
+}
+
+function base64url(values: Int8Array): string {
+  return base64(values).replaceAll("+", "-").replaceAll("/", "_").replace(/=+$/, "")
+}
+
 const manifest = {
   buildId: "fixture-build",
   builtAt: "2026-07-16T00:00:00.000Z",
@@ -13,11 +21,27 @@ const manifest = {
     orderBookmarked: "order/bookmarked.json",
     orderPosted: "order/posted.json",
     searchStore: "search/store.json",
+    embeddings: "embeddings/index.json",
   },
+}
+const semanticVectors = new Int8Array(2 * 384)
+semanticVectors[0] = 127
+semanticVectors[384 + 1] = 127
+const embeddingIndex = {
+  version: 2,
+  buildId: "fixture-build",
+  model: {
+    id: "Xenova/all-MiniLM-L6-v2",
+    dimensions: 384,
+    quantization: "int8-unit-vector",
+  },
+  records: [{ tweetId: "record-1" }, { tweetId: "record-2" }],
+  vectors: base64(semanticVectors),
 }
 const documents = [
   {
     id: "record-1",
+    url: "https://x.com/ada/status/record-1",
     text: "Generative architecture",
     authorName: "Ada",
     authorHandle: "ada",
@@ -26,7 +50,8 @@ const documents = [
   },
   {
     id: "record-2",
-    text: "Moving image",
+    url: "https://x.com/grace/status/record-2",
+    text: "Moving image https://t.co/attachment",
     authorName: "Grace",
     authorHandle: "grace",
     postedAt: "Tue Jul 14 00:25:00 +0000 2026",
@@ -81,6 +106,7 @@ function installCatalogFetch() {
     ["/data/order/bookmarked.json", ["record-1", "record-2"]],
     ["/data/order/posted.json", ["record-1", "record-2"]],
     ["/data/tweets/docs-0001.json", documents],
+    ["/data/embeddings/index.json", embeddingIndex],
   ])
 
   vi.stubGlobal("fetch", vi.fn(async (input: RequestInfo | URL) => {
@@ -111,7 +137,9 @@ describe("production catalog adapter", () => {
         {
           id: "record-1",
           sourceLabel: "@ada",
-          capturedAt: "2026-07-15T00:25:00.000Z",
+          authorUrl: "https://x.com/ada",
+          sourceUrl: "https://x.com/ada/status/record-1",
+          postedAt: "2026-07-15T00:25:00.000Z",
           assets: [
             {
               id: "record-1:0",
@@ -121,6 +149,20 @@ describe("production catalog adapter", () => {
           ],
         },
       ],
+    })
+
+    const directMedia = await handleCatalogApi(
+      new Request("https://elsewhere.test/api/media/record-1%3A0"),
+      ORIGIN,
+    )
+    await expect(directMedia.json()).resolves.toMatchObject({
+      media: { id: "record-1:0" },
+      record: {
+        id: "record-1",
+        authorUrl: "https://x.com/ada",
+        sourceUrl: "https://x.com/ada/status/record-1",
+        postedAt: "2026-07-15T00:25:00.000Z",
+      },
     })
 
     const count = await handleCatalogApi(
@@ -146,9 +188,26 @@ describe("production catalog adapter", () => {
       ORIGIN,
     )
     await expect(media.json()).resolves.toMatchObject({
-      id: "record-2:0",
-      kind: "video",
-      previewVideoUrl: "https://media.test/two-preview.mp4",
+      media: {
+        id: "record-2:0",
+        kind: "video",
+        description: "Moving image",
+        lightbox: [
+          {
+            url: "https://media.test/two.jpg",
+            mimeType: "image/jpeg",
+          },
+          {
+            url: "https://media.test/two.mp4",
+            mimeType: "video/mp4",
+          },
+        ],
+        previewVideoUrl: "https://media.test/two-preview.mp4",
+      },
+      record: {
+        id: "record-2",
+        sourceUrl: "https://x.com/grace/status/record-2",
+      },
     })
 
     await expect(getCatalogSocialMetadata(ORIGIN, "record-2:0")).resolves.toEqual({
@@ -156,6 +215,48 @@ describe("production catalog adapter", () => {
       description: "Moving image",
       imageUrl: "https://media.test/two.jpg",
       videoUrl: "https://media.test/two.mp4",
+    })
+  })
+
+  it("returns deterministic random orders keyed by seed", async () => {
+    installCatalogFetch()
+
+    const gallery = await handleCatalogApi(
+      new Request("https://elsewhere.test/api/discovery?sort=random&seed=gallery"),
+      ORIGIN,
+    )
+    const one = await handleCatalogApi(
+      new Request("https://elsewhere.test/api/discovery?sort=random&seed=one"),
+      ORIGIN,
+    )
+
+    await expect(gallery.json()).resolves.toMatchObject({
+      records: [{ id: "record-2" }, { id: "record-1" }],
+    })
+    await expect(one.json()).resolves.toMatchObject({
+      records: [{ id: "record-1" }, { id: "record-2" }],
+    })
+  })
+
+  it("fuses a locally encoded semantic query with static catalog vectors", async () => {
+    installCatalogFetch()
+    const queryVector = new Int8Array(384)
+    queryVector[1] = 127
+    const semantic = base64url(queryVector)
+    const params = new URLSearchParams({
+      q: "organic structure",
+      semantic,
+      semanticModel: "Xenova/all-MiniLM-L6-v2",
+      semanticVersion: "1",
+    })
+
+    const response = await handleCatalogApi(
+      new Request(`https://elsewhere.test/api/discovery?${params}`),
+      ORIGIN,
+    )
+
+    await expect(response.json()).resolves.toMatchObject({
+      records: [{ id: "record-2" }],
     })
   })
 })

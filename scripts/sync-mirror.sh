@@ -29,7 +29,6 @@ fi
 ASSETS_DIR=".data/media/assets"
 MANIFEST=".data/media/mirror-manifest.json"
 R2_TARGET="r2:twitter-bookmarks"
-GDRIVE_TARGET="gdrive:corychainsman.com/media/twitter-bookmarks"
 
 if [[ ! -d "$ASSETS_DIR" ]]; then
   echo "No local archive at $ASSETS_DIR — run 'bun run data:mirror' first." >&2
@@ -37,27 +36,30 @@ if [[ ! -d "$ASSETS_DIR" ]]; then
 fi
 
 if rclone listremotes | grep -q '^r2:'; then
-  echo "Syncing full archive to $R2_TARGET ..."
+  bun run scripts/media-publication.ts plan
+  echo "Publishing only new immutable objects to $R2_TARGET ..."
   # Assets are immutable (content never changes under a key), so tell R2/Cloudflare
   # to cache them for a year. A zone-level Cache Rule on tbmedia.corychainsman.com
   # already overrides edge/browser TTL regardless of this header, but setting it at
   # the origin too means the right behavior doesn't depend on that dashboard config.
-  rclone copy "$ASSETS_DIR" "$R2_TARGET" --fast-list --transfers 16 --stats-one-line -P \
-    --header-upload "Cache-Control: public, max-age=31536000, immutable"
-  echo "Verifying R2 publication completeness ..."
-  rclone check "$ASSETS_DIR" "$R2_TARGET" --one-way --fast-list
-  echo "Verifying catalog objects through the public media origin ..."
-  bun run scripts/media-publication.ts
+  if [[ -s ".data/media/r2-upload-list.txt" ]]; then
+    rclone copy "$ASSETS_DIR" "$R2_TARGET" \
+      --files-from-raw ".data/media/r2-upload-list.txt" \
+      --no-traverse --no-check-dest --transfers 8 --checkers 8 --stats-one-line -P \
+      --header-upload "Cache-Control: public, max-age=31536000, immutable"
+  else
+    echo "No new R2 media objects to upload."
+  fi
+  echo "Verifying new objects through the public media origin (weekly full CDN check) ..."
+  bun run scripts/media-publication.ts verify
 else
   echo "Skipping R2 sync: no 'r2' rclone remote configured." >&2
 fi
 
-if rclone listremotes | grep -q '^gdrive:'; then
-  echo "Backing up originals + manifest to $GDRIVE_TARGET ..."
-  rclone copy "$ASSETS_DIR" "$GDRIVE_TARGET/assets" \
-    --exclude '*.avif' --exclude 'preview.mp4' --fast-list --transfers 8 --stats-one-line -P
-  rclone copyto "$MANIFEST" "$GDRIVE_TARGET/mirror-manifest.json"
-  rclone copy public/data "$GDRIVE_TARGET/data" --fast-list --stats-one-line
+if [[ "${SKIP_GDRIVE_BACKUP:-0}" == "1" ]]; then
+  echo "Deferring Google Drive cold backup to its independent timer."
+elif rclone listremotes | grep -q '^gdrive:'; then
+  bash scripts/backup-gdrive.sh
 else
   echo "Skipping Google Drive backup: no 'gdrive' rclone remote configured." >&2
 fi

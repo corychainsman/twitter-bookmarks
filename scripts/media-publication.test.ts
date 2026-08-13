@@ -87,4 +87,24 @@ describe('verified media publication', () => {
       }),
     ).rejects.toThrow('changed after')
   })
+
+  it('records the immutable object keys in a current publication attestation', async () => {
+    const directory = await mkdtemp(path.join(os.tmpdir(), 'twitter-bookmarks-publication-'))
+    const manifestPath = path.join(directory, 'manifest.json')
+    const publicationPath = path.join(directory, 'publication.json')
+    await writeFile(manifestPath, JSON.stringify(manifest))
+
+    await expect(recordVerifiedMediaPublication({
+      manifestPath,
+      publicationPath,
+      mediaBaseUrl: 'https://media.example.com',
+      objectCount: 2,
+      objectKeys: ['original.jpg', 'rendition.avif'],
+      fullVerifiedAt: '2026-08-12T00:00:00.000Z',
+    })).resolves.toMatchObject({
+      version: 2,
+      objectKeys: ['original.jpg', 'rendition.avif'],
+      fullVerifiedAt: '2026-08-12T00:00:00.000Z',
+    })
+  })
 })

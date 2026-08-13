@@ -7,8 +7,10 @@ import type {
   ViewMode,
 } from "../../contracts/domain"
 import {
+  DEFAULT_LAYOUT_GROUP_SIZE,
   DeterministicCompositionEngine,
   chooseRepresentative,
+  stabilizeWallTail,
 } from "./DeterministicCompositionEngine"
 
 function asset(recordId: string, index: number): MediaAsset {
@@ -40,7 +42,9 @@ function record(index: number, assetCount = 2): MediaRecord {
     title: `Record ${index}`,
     description: "",
     sourceLabel: "Fixture",
-    capturedAt: "2026-01-01T00:00:00.000Z",
+    authorUrl: "https://x.com/fixture",
+    sourceUrl: `https://x.com/fixture/status/${index}`,
+    postedAt: "2026-01-01T00:00:00.000Z",
     tags: [],
     assets,
     eligibleRepresentativeAssetIds: assets.map((item) => item.id),
@@ -170,5 +174,33 @@ describe("DeterministicCompositionEngine", () => {
     expect(
       shuffled.map(({ representative, scale }) => [representative.id, scale]),
     ).not.toEqual(first.map(({ representative, scale }) => [representative.id, scale]))
+  })
+
+  it("buffers an incomplete trailing group while another page is available", () => {
+    const engine = new DeterministicCompositionEngine()
+    const tiles = engine.compose(
+      Array.from({ length: DEFAULT_LAYOUT_GROUP_SIZE + 3 }, (_, index) => record(index, 1)),
+      state("record"),
+    )
+
+    const stable = stabilizeWallTail(tiles, true)
+
+    expect(stable.tiles).toHaveLength(DEFAULT_LAYOUT_GROUP_SIZE)
+    expect(stable.bufferedTileCount).toBe(3)
+    expect(new Set(stable.tiles.map((tile) => tile.groupKey))).toHaveLength(1)
+  })
+
+  it("merges a terminal remainder into the preceding group for a balanced final layout", () => {
+    const engine = new DeterministicCompositionEngine()
+    const tiles = engine.compose(
+      Array.from({ length: DEFAULT_LAYOUT_GROUP_SIZE + 1 }, (_, index) => record(index, 1)),
+      state("record"),
+    )
+
+    const stable = stabilizeWallTail(tiles, false)
+
+    expect(stable.tiles).toHaveLength(DEFAULT_LAYOUT_GROUP_SIZE + 1)
+    expect(stable.bufferedTileCount).toBe(0)
+    expect(new Set(stable.tiles.map((tile) => tile.groupKey))).toHaveLength(1)
   })
 })
