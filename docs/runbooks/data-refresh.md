@@ -222,54 +222,31 @@ rclone mkdir r2:twitter-bookmarks
 rclone lsd r2:twitter-bookmarks
 ```
 
-Persistent R2 mount:
+Do not mount this R2 bucket as a persistent filesystem. Home-directory
+indexers recursively walked the prior FUSE mount and generated millions of
+billable `ListObjects` calls. Use explicit, prefix-scoped `rclone` commands.
 
-- Service file: `~/.config/systemd/user/rclone-r2-twitter-bookmarks.service`
-- Mount point: `~/mnt/r2-twitter-bookmarks`
-- Service name: `rclone-r2-twitter-bookmarks.service`
-- User lingering should be enabled so the user service can start on boot.
+`mirror:sync` builds a manifest-derived list of unpublished immutable keys and
+uploads only those keys with `--files-from-raw --no-traverse --no-check-dest`.
+It never lists the remote bucket during the hourly path. Newly uploaded media
+is checked through the CDN before its publication attestation advances. Once
+per seven days the same CDN path verifies the full catalog; this uses cached
+HTTP `HEAD` requests rather than billable R2 Class A listings.
 
-Expected service file:
-
-```ini
-[Unit]
-Description=Mount Cloudflare R2 twitter-bookmarks bucket
-After=network-online.target
-Wants=network-online.target
-
-[Service]
-Type=simple
-ExecStartPre=/usr/bin/mkdir -p %h/mnt/r2-twitter-bookmarks
-ExecStart=/home/linuxbrew/.linuxbrew/bin/rclone mount r2:twitter-bookmarks %h/mnt/r2-twitter-bookmarks --vfs-cache-mode writes --dir-cache-time 1h --poll-interval 1m --umask 022
-ExecStop=/usr/bin/fusermount -u %h/mnt/r2-twitter-bookmarks
-Restart=on-failure
-RestartSec=10
-
-[Install]
-WantedBy=default.target
-```
-
-Enable, start, and verify the mount:
+Emergency confirmation that no legacy mount remains:
 
 ```bash
-loginctl enable-linger cory
-systemctl --user daemon-reload
-systemctl --user enable --now rclone-r2-twitter-bookmarks.service
-
-systemctl --user status rclone-r2-twitter-bookmarks.service --no-pager
-findmnt ~/mnt/r2-twitter-bookmarks
-ls ~/mnt/r2-twitter-bookmarks
-loginctl show-user cory -p Linger
+systemctl --user is-enabled rclone-r2-twitter-bookmarks.service  # not-found or disabled
+findmnt ~/mnt/r2-twitter-bookmarks                               # no FUSE mount
+pgrep -af 'rclone mount r2:twitter-bookmarks'                    # no output
 ```
 
-Useful maintenance commands:
-
-```bash
-systemctl --user restart rclone-r2-twitter-bookmarks.service
-systemctl --user stop rclone-r2-twitter-bookmarks.service
-systemctl --user disable rclone-r2-twitter-bookmarks.service
-fusermount -u ~/mnt/r2-twitter-bookmarks
-```
+Set account-level budget alerts in Cloudflare under **Billing > Billable
+Usage** at $1 (early warning) and $5 (unexpected-usage escalation). Cloudflare
+budget alerts are delayed notifications, not hard spending caps, so also check
+R2 Analytics after changing publication behavior. Healthy hourly refreshes
+should show no `ListObjects` operations; `PutObject` should track only newly
+mirrored media.
 
 After adding or repairing `r2:`, run:
 
@@ -279,10 +256,10 @@ bun run mirror:sync
 
 Expected healthy `mirror:sync` behavior:
 
-- It prints `Syncing full archive to r2:twitter-bookmarks ...`.
+- It prints the number of new immutable objects and does not enumerate the
+  remote tree.
 - It does not print `Skipping R2 sync: no 'r2' rclone remote configured.`
-- It completes the R2 upload before backing up originals and public data to
-  Google Drive.
+- It verifies new objects through `tbmedia.corychainsman.com` before export.
 
 ## Review Checklist
 
