@@ -1,0 +1,24 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "elsewhere-media-wall-dev",
+  "main": "./worker/index.ts",
+  "compatibility_date": "2026-07-16",
+  "assets": {
+    "binding": "ASSETS",
+    "not_found_handling": "single-page-application",
+    "run_worker_first": true
+  },
+  "vars": {
+    "DATA_ORIGIN": "https://bookmarks.corychainsman.com/data",
+    "USE_LOCAL_DATA": "true"
+  },
+  "routes": [
+    {
+      "pattern": "dev.bookmarks.corychainsman.com",
+      "custom_domain": true
+    }
+  ],
+  "observability": {
+    "enabled": true
+  }
+}

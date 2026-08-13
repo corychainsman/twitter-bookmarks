@@ -11,11 +11,16 @@ Use this runbook for agents making React, TypeScript, worker, query, grid, media
 
 ## Common Work Areas
 
-- Bookmark state, artifact loading, URL state, query behavior, and exported contracts live in `src/features/bookmarks`.
-- UI behavior is split by surface: toolbar in `src/components/toolbar`, grid in `src/components/grid`, media in `src/components/media`, and lightbox in `src/components/lightbox`.
-- Route and app composition live in `src/app` and `src/routes`.
-- Worker message contracts and worker implementations live in `src/workers`.
-- Data pipeline code lives in `scripts`, with shared app-facing types in `src/features/bookmarks`.
+- Browser domain and transport interfaces live in `src/greenfield/contracts`.
+- UI behavior is split by surface under `src/greenfield/modules`: controls,
+  wall, playback, composition, and lightbox.
+- Route and application composition live in `src/greenfield/router`,
+  `src/greenfield/GreenfieldApp.tsx`, and `src/main.tsx`.
+- The Cloudflare edge adapter lives in `worker`.
+- Catalog artifact contracts and export logic live in `scripts/catalog`; X
+  sync, media mirroring, publication, validation, and refresh orchestration
+  live in `scripts`. Follow `docs/runbooks/data-refresh.md` before changing or
+  executing them.
 
 ## Validation Ladder
 

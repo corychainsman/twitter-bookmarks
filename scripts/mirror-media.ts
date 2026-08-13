@@ -1,20 +1,19 @@
-import { mkdir, stat, writeFile } from 'node:fs/promises'
+import { stat } from 'node:fs/promises'
 import path from 'node:path'
 
-import sharp from 'sharp'
-import { rgbaToThumbHash } from 'thumbhash'
-
-import { buildExportArtifacts } from '../src/features/bookmarks/export-artifacts'
+import { buildExportArtifacts } from './catalog/export-artifacts'
 import { readJsonLines } from './export-lib'
+import { generateImageRenditions } from './image-renditions'
 import {
   fetchAsset,
   imageDownloadUrl,
+  mirrorContentKey,
   mirrorKeyForUrl,
-  mirrorVariantKey,
-  mirrorVariantWidths,
   PermanentFetchError,
   readMirrorManifest,
   runWithConcurrency,
+  sha256,
+  writeFileAtomically,
   writeMirrorManifest,
   type MirrorAssetKind,
   type MirrorAssetRecord,
@@ -116,51 +115,28 @@ async function fileExists(filePath: string): Promise<boolean> {
 }
 
 async function writeAssetFile(key: string, buffer: Buffer): Promise<void> {
-  const filePath = path.join(assetsRoot, key)
-  await mkdir(path.dirname(filePath), { recursive: true })
-  await writeFile(filePath, buffer)
+  await writeFileAtomically(path.join(assetsRoot, key), buffer)
 }
 
 async function mirrorImage(job: MirrorJob, key: string): Promise<MirrorAssetRecord> {
   const { buffer, contentType } = await fetchAsset(imageDownloadUrl(job.sourceUrl))
 
-  const image = sharp(buffer)
-  const metadata = await image.metadata()
-  const width = metadata.width ?? 0
-  const height = metadata.height ?? 0
-
-  await writeAssetFile(key, buffer)
-
-  const variants = []
-  for (const variantWidth of mirrorVariantWidths()) {
-    const variantKey = mirrorVariantKey(key, variantWidth)
-    const avifBuffer = await sharp(buffer)
-      .rotate()
-      .resize({ width: variantWidth, withoutEnlargement: true })
-      .avif({ quality: 60, effort: 4 })
-      .toBuffer()
-    await writeAssetFile(variantKey, avifBuffer)
-    variants.push({ key: variantKey, width: variantWidth })
-  }
-
-  const { data: rgba, info } = await sharp(buffer)
-    .rotate()
-    .resize(100, 100, { fit: 'inside' })
-    .ensureAlpha()
-    .raw()
-    .toBuffer({ resolveWithObject: true })
-  const thumbhash = Buffer.from(rgbaToThumbHash(info.width, info.height, rgba)).toString('base64')
+  const digest = sha256(buffer)
+  const contentKey = mirrorContentKey(key, digest)
+  await writeAssetFile(contentKey, buffer)
+  const generated = await generateImageRenditions({ assetsRoot, buffer, originalKey: contentKey })
 
   return {
     status: 'ok',
     kind: 'image',
-    key,
+    key: contentKey,
+    digest: generated.digest,
     bytes: buffer.byteLength,
     contentType,
-    width,
-    height,
-    variants,
-    thumbhash,
+    width: generated.width,
+    height: generated.height,
+    variants: generated.variants,
+    thumbhash: generated.thumbhash,
     fetchedAt: new Date().toISOString(),
     attempts: 1,
   }
@@ -174,6 +150,7 @@ async function mirrorVideo(job: MirrorJob, key: string): Promise<MirrorAssetReco
     status: 'ok',
     kind: 'video',
     key,
+    digest: sha256(buffer),
     bytes: buffer.byteLength,
     contentType,
     fetchedAt: new Date().toISOString(),

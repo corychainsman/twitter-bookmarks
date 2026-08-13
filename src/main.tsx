@@ -1,18 +1,38 @@
-import { StrictMode } from 'react'
-import { createRoot } from 'react-dom/client'
-import { RouterProvider } from '@tanstack/react-router'
+import ReactDOM from "react-dom/client"
+import { RouterProvider } from "@tanstack/react-router"
 
-import { router } from '@/app/router'
-import { registerMediaCacheWorker } from '@/lib/media-cache'
+import "@/index.css"
+import { TooltipProvider } from "@/components/ui/tooltip"
+import { GreenfieldApp } from "@/greenfield/GreenfieldApp"
+import {
+  ApiTransportProvider,
+  httpApiTransport,
+  mockApiTransport,
+} from "@/greenfield/data"
+import {
+  createGreenfieldQueryClient,
+  GreenfieldQueryProvider,
+} from "@/greenfield/platform"
+import { createGreenfieldRouter } from "@/greenfield/router"
+import { registerServiceWorker } from "@/greenfield/service-worker/register"
 
-import './index.css'
-import 'yet-another-react-lightbox/styles.css'
+document.documentElement.classList.add("dark", "scheme-only-dark", "antialiased")
 
-document.documentElement.classList.add('antialiased', 'dark')
-registerMediaCacheWorker()
+const queryClient = createGreenfieldQueryClient()
+const apiTransport = import.meta.env.MODE === "test" ? mockApiTransport : httpApiTransport
+const router = createGreenfieldRouter({
+  queryClient,
+  appComponent: GreenfieldApp,
+})
 
-createRoot(document.getElementById('root')!).render(
-  <StrictMode>
-    <RouterProvider router={router} />
-  </StrictMode>,
+ReactDOM.createRoot(document.getElementById("root")!).render(
+  <GreenfieldQueryProvider client={queryClient}>
+    <ApiTransportProvider transport={apiTransport}>
+      <TooltipProvider>
+        <RouterProvider router={router} />
+      </TooltipProvider>
+    </ApiTransportProvider>
+  </GreenfieldQueryProvider>,
 )
+
+registerServiceWorker()

@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 
-import type { ExportArtifacts } from '../src/features/bookmarks/export-artifacts'
-import type { GridItem, TweetDoc } from '../src/features/bookmarks/model'
+import type { ExportArtifacts } from './catalog/export-artifacts'
+import type { GridItem, TweetDoc } from './catalog/model'
 import type { MirrorManifest } from './mirror-lib'
 import { applyMirrorRewrite } from './mirror-rewrite'
 
@@ -74,6 +74,10 @@ function buildManifest(): MirrorManifest {
         status: 'ok',
         kind: 'image',
         key: 'pbs/media/abc.jpg',
+        variants: [
+          { key: 'pbs/media/abc/w320.avif', width: 320 },
+          { key: 'pbs/media/abc/w680.avif', width: 680 },
+        ],
         thumbhash: 'aGFzaA==',
         attempts: 1,
       },
@@ -81,12 +85,17 @@ function buildManifest(): MirrorManifest {
         status: 'ok',
         kind: 'video',
         key: 'vid/amplify_video/1/vid/avc1/100x100/clip.mp4',
+        previewKey: 'vid/amplify_video/1/vid/avc1/100x100/clip/preview.mp4',
+        playbackKey: 'vid/amplify_video/1/vid/avc1/100x100/clip/playback.mp4',
         attempts: 1,
       },
       [POSTER_URL]: {
         status: 'ok',
         kind: 'image',
         key: 'pbs/amplify_video_thumb/1/img/poster.jpg',
+        variants: [
+          { key: 'pbs/amplify_video_thumb/1/img/poster/w320.avif', width: 320 },
+        ],
         thumbhash: 'cG9zdGVy',
         attempts: 1,
       },
@@ -109,21 +118,49 @@ describe('applyMirrorRewrite', () => {
     const [photo, video, dead] = artifacts.docsChunks[0].docs[0].media
     expect(photo.fullUrl).toBe('https://media.example.com/pbs/media/abc.jpg')
     expect(photo.originUrl).toBe(PHOTO_URL)
+    expect(photo.imageRenditions).toEqual([
+      {
+        url: 'https://media.example.com/pbs/media/abc/w320.avif',
+        width: 320,
+        contentType: 'image/avif',
+      },
+      {
+        url: 'https://media.example.com/pbs/media/abc/w680.avif',
+        width: 680,
+        contentType: 'image/avif',
+      },
+    ])
     expect(video.fullUrl).toBe('https://media.example.com/vid/amplify_video/1/vid/avc1/100x100/clip.mp4')
     expect(video.posterUrl).toBe('https://media.example.com/pbs/amplify_video_thumb/1/img/poster.jpg')
     expect(video.originUrl).toBe(VIDEO_URL)
+    expect(video.imageRenditions).toEqual([
+      {
+        url: 'https://media.example.com/pbs/amplify_video_thumb/1/img/poster/w320.avif',
+        width: 320,
+        contentType: 'image/avif',
+      },
+    ])
     expect(dead.fullUrl).toBe(DEAD_URL)
     expect(dead.originUrl).toBeUndefined()
 
     const [photoTile, videoTile, deadTile] = artifacts.gridAll
     expect(photoTile.thumbUrl).toBe('https://media.example.com/pbs/media/abc.jpg')
     expect(photoTile.thumbhash).toBe('aGFzaA==')
+    expect(photoTile.imageRenditions).toHaveLength(2)
     expect(videoTile.thumbhash).toBe('cG9zdGVy')
+    expect(videoTile.previewUrl).toBe(
+      'https://media.example.com/vid/amplify_video/1/vid/avc1/100x100/clip/preview.mp4',
+    )
+    expect(videoTile.fullUrl).toBe(
+      'https://media.example.com/vid/amplify_video/1/vid/avc1/100x100/clip.mp4',
+    )
+    expect(photoTile.previewUrl).toBeUndefined()
     expect(deadTile.thumbUrl).toBe(DEAD_URL)
     expect(deadTile.thumbhash).toBeUndefined()
 
     expect(artifacts.manifest.mediaBaseUrl).toBe('https://media.example.com')
     expect(stats.rewrittenUrls).toBeGreaterThan(0)
     expect(stats.thumbhashedGridItems).toBe(3)
+    expect(stats.previewGridItems).toBe(1)
   })
 })

@@ -21,7 +21,13 @@ export default defineConfig([
     },
   },
   {
-    files: ['src/components/ui/**/*.{ts,tsx}', 'src/routes/**/*.{ts,tsx}'],
+    files: ['scripts/**/*.{ts,tsx}'],
+    languageOptions: {
+      globals: globals.node,
+    },
+  },
+  {
+    files: ['src/components/ui/**/*.{ts,tsx}', 'src/greenfield/**/*.{ts,tsx}'],
     rules: {
       'react-refresh/only-export-components': 'off',
     },

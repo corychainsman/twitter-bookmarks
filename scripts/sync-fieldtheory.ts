@@ -18,12 +18,18 @@ function runStep(label: string, args: string[]): void {
 function main() {
   const argv = process.argv.slice(2)
   const passthroughArgs: string[] = []
+  let full = false
 
   for (let index = 0; index < argv.length; index += 1) {
     const value = argv[index]
     const next = argv[index + 1]
 
-    if (value === '--rebuild' || value === '--continue' || value === '--gaps') {
+    if (value === '--rebuild') {
+      full = true
+      continue
+    }
+
+    if (value === '--continue' || value === '--gaps') {
       continue
     }
 
@@ -32,8 +38,8 @@ function main() {
     }
 
     if (value === '--folder-contains') {
-      if (next && next.trim().toLowerCase() !== FIELDTHEORY_FOLDER_SUBSTRING.toLowerCase()) {
-        throw new Error(`Only the "${FIELDTHEORY_FOLDER_SUBSTRING}" folder substring is supported.`)
+      if (next && next.toLowerCase() !== FIELDTHEORY_FOLDER_SUBSTRING) {
+        throw new Error(`Only folders containing "${FIELDTHEORY_FOLDER_SUBSTRING}" are supported.`)
       }
       if (next) {
         index += 1
@@ -44,7 +50,10 @@ function main() {
     passthroughArgs.push(value)
   }
 
-  runStep('Field Theory folder sync', [...buildFieldTheoryFolderArgs(), ...passthroughArgs])
+  runStep('Field Theory folder sync', [
+    ...buildFieldTheoryFolderArgs({ full }),
+    ...passthroughArgs,
+  ])
 }
 
 try {

@@ -1,6 +1,3 @@
-import { extractChromeXCookies } from 'fieldtheory/dist/chrome-cookies.js'
-import { loadChromeSessionConfig } from 'fieldtheory/dist/config.js'
-import { extractFirefoxXCookies } from 'fieldtheory/dist/firefox-cookies.js'
 import {
   applyFolderMirror,
   fetchBookmarkFolders,
@@ -23,8 +20,14 @@ import {
   assignGlobalFolderTimelineSortIndexes,
   FIELDTHEORY_DELAY_MS,
   FIELDTHEORY_FOLDER_SUBSTRING,
+  FIELDTHEORY_INCREMENTAL_INITIAL_PAGES,
   FIELDTHEORY_MAX_PAGES,
+  hasKnownIncrementalBoundary,
+  mergeIncrementalFolderTimeline,
+  resolveFieldTheoryTargetFolders,
+  retainFieldTheoryTargetFolders,
 } from './fieldtheory'
+import { resolveFieldTheoryXCredentials } from './x-credentials'
 
 type Folder = {
   id: string
@@ -40,6 +43,7 @@ type BookmarkRecord = {
 
 type SyncMeta = {
   lastFullSyncAt?: string
+  lastIncrementalSyncAt?: string
 }
 
 type SyncOptions = {
@@ -48,6 +52,7 @@ type SyncOptions = {
   chromeProfileDirectory?: string
   firefoxProfileDir?: string
   delayMs: number
+  full: boolean
   maxPages: number
   pageSize: number
 }
@@ -55,6 +60,7 @@ type SyncOptions = {
 function parseArgs(argv: string[]): SyncOptions {
   const options: SyncOptions = {
     delayMs: FIELDTHEORY_DELAY_MS,
+    full: false,
     maxPages: FIELDTHEORY_MAX_PAGES,
     pageSize: 100,
   }
@@ -64,10 +70,15 @@ function parseArgs(argv: string[]): SyncOptions {
     const next = argv[index + 1]
 
     if (value === '--folder-contains' && next) {
-      if (next.trim().toLowerCase() !== FIELDTHEORY_FOLDER_SUBSTRING.toLowerCase()) {
-        throw new Error(`Only the "${FIELDTHEORY_FOLDER_SUBSTRING}" folder substring is supported.`)
+      if (next.trim().toLowerCase() !== FIELDTHEORY_FOLDER_SUBSTRING) {
+        throw new Error(`Only folders containing "${FIELDTHEORY_FOLDER_SUBSTRING}" are supported.`)
       }
       index += 1
+      continue
+    }
+
+    if (value === '--full') {
+      options.full = true
       continue
     }
 
@@ -129,86 +140,71 @@ function parseArgs(argv: string[]): SyncOptions {
   return options
 }
 
-async function resolveFolderSyncCookies(options: SyncOptions): Promise<{
-  csrfToken: string
-  cookieHeader: string
-}> {
-  const config = loadChromeSessionConfig({ browserId: options.browser })
-
-  if (config.browser.cookieBackend === 'firefox') {
-    const cookies = extractFirefoxXCookies(options.firefoxProfileDir)
-    return { csrfToken: cookies.csrfToken, cookieHeader: cookies.cookieHeader }
-  }
-
-  const chromeDir = options.chromeUserDataDir ?? config.chromeUserDataDir
-  const chromeProfile = options.chromeProfileDirectory ?? config.chromeProfileDirectory
-  const cookies = extractChromeXCookies(chromeDir, chromeProfile, config.browser)
-
-  return { csrfToken: cookies.csrfToken, cookieHeader: cookies.cookieHeader }
-}
-
-function resolveTargetFolders(allFolders: Folder[]): Folder[] {
-  const lower = FIELDTHEORY_FOLDER_SUBSTRING.trim().toLowerCase()
-  const matches = allFolders.filter((folder) =>
-    folder.name.trim().toLowerCase().includes(lower),
-  )
-
-  if (matches.length === 0) {
-    throw new Error(
-      `No folders contain "${FIELDTHEORY_FOLDER_SUBSTRING}". Available: ${allFolders.map((folder) => folder.name).join(', ') || '(none)'}`,
-    )
-  }
-
-  return matches
-}
-
-function retainOnlyTargetFolders(
+async function persistFolderCheckpoint(
   records: BookmarkRecord[],
-  targetFolders: Folder[],
-): BookmarkRecord[] {
-  return records.filter((record) =>
-    targetFolders.some((targetFolder) => {
-      const folderIdMatch = (record.folderIds ?? []).includes(targetFolder.id)
-      const folderNameMatch = (record.folderNames ?? []).some(
-        (folderName) => folderName.trim().toLowerCase() === targetFolder.name.trim().toLowerCase(),
-      )
-
-      return folderIdMatch || folderNameMatch
-    }),
-  )
-}
-
-async function persistFolderCheckpoint(records: BookmarkRecord[]): Promise<void> {
+  full: boolean,
+): Promise<void> {
   const cachePath = twitterBookmarksCachePath()
   const metaPath = twitterBookmarksMetaPath()
   const previousMeta = (await pathExists(metaPath))
     ? await readJson<SyncMeta>(metaPath)
     : undefined
 
+  const syncedAt = new Date().toISOString()
   await writeJsonLines(cachePath, records)
   await writeJson(metaPath, {
     provider: 'twitter',
     schemaVersion: 1,
-    lastFullSyncAt: previousMeta?.lastFullSyncAt,
-    lastIncrementalSyncAt: new Date().toISOString(),
+    lastFullSyncAt: full ? syncedAt : previousMeta?.lastFullSyncAt,
+    lastIncrementalSyncAt: full ? previousMeta?.lastIncrementalSyncAt : syncedAt,
     totalBookmarks: records.length,
   })
 }
 
+async function walkIncrementalFolderTimeline(
+  csrfToken: string,
+  cookieHeader: string,
+  folderId: string,
+  knownIds: ReadonlySet<string>,
+  options: SyncOptions,
+) {
+  let maxPages = Math.min(FIELDTHEORY_INCREMENTAL_INITIAL_PAGES, options.maxPages)
+
+  while (true) {
+    const result = await walkFolderTimeline(csrfToken, folderId, {
+      cookieHeader,
+      delayMs: options.delayMs,
+      maxPages,
+      pageSize: options.pageSize,
+    })
+
+    if (result.complete || hasKnownIncrementalBoundary(result.records, knownIds)) {
+      return result
+    }
+
+    if (maxPages >= options.maxPages) {
+      throw new Error(
+        `incremental sync could not reach a known-bookmark boundary within ${options.maxPages} pages`,
+      )
+    }
+
+    maxPages = Math.min(maxPages * 2, options.maxPages)
+  }
+}
+
 async function main() {
   const options = parseArgs(process.argv.slice(2))
-  const { csrfToken, cookieHeader } = await resolveFolderSyncCookies(options)
+  const { csrfToken, cookieHeader } = resolveFieldTheoryXCredentials(options)
 
   ensureDataDir()
 
   const cachePath = twitterBookmarksCachePath()
   const existingRecords = await readJsonLines<BookmarkRecord>(cachePath)
   const allFolders = await fetchBookmarkFolders(csrfToken, cookieHeader)
-  const targetFolders = resolveTargetFolders(allFolders)
-  let mergedRecords = retainOnlyTargetFolders(existingRecords, targetFolders)
+  const targetFolders = resolveFieldTheoryTargetFolders(allFolders)
+  let mergedRecords = retainFieldTheoryTargetFolders(existingRecords, targetFolders)
   const skippedFolders: Array<{ folder: Folder; reason: string }> = []
-
-  await persistFolderCheckpoint(mergedRecords)
+  let everyWalkComplete = true
 
   for (const folder of targetFolders) {
     console.error(`  -> ${folder.name}...`)
@@ -221,11 +217,19 @@ async function main() {
         pageSize: options.pageSize,
       }
 
-      const walkResult = await walkFolderTimeline(csrfToken, folder.id, {
-        ...walkOptions,
-      })
+      const existingFolderRecords = retainFieldTheoryTargetFolders(mergedRecords, [folder])
+      const knownIds = new Set(existingFolderRecords.map((record) => record.id))
+      const walkResult = options.full || knownIds.size === 0
+        ? await walkFolderTimeline(csrfToken, folder.id, walkOptions)
+        : await walkIncrementalFolderTimeline(
+            csrfToken,
+            cookieHeader,
+            folder.id,
+            knownIds,
+            options,
+          )
 
-      if (!walkResult.complete) {
+      if (options.full && !walkResult.complete) {
         skippedFolders.push({
           folder,
           reason: `incomplete walk (hit page limit ${options.maxPages})`,
@@ -233,10 +237,14 @@ async function main() {
         continue
       }
 
-      const timelineRankedRecords = assignGlobalFolderTimelineSortIndexes(walkResult.records)
+      const targetTimeline = walkResult.complete
+        ? walkResult.records
+        : mergeIncrementalFolderTimeline(existingFolderRecords, walkResult.records)
+      everyWalkComplete &&= walkResult.complete
+      const timelineRankedRecords = assignGlobalFolderTimelineSortIndexes(targetTimeline)
       mergedRecords = applyFolderMirror(mergedRecords, folder, timelineRankedRecords).merged as BookmarkRecord[]
-      mergedRecords = retainOnlyTargetFolders(mergedRecords, targetFolders)
-      await persistFolderCheckpoint(mergedRecords)
+      mergedRecords = retainFieldTheoryTargetFolders(mergedRecords, targetFolders)
+      if (!options.full) await persistFolderCheckpoint(mergedRecords, false)
     } catch (error) {
       skippedFolders.push({
         folder,
@@ -255,9 +263,13 @@ async function main() {
     )
   }
 
+  if (options.full || everyWalkComplete) {
+    await persistFolderCheckpoint(mergedRecords, true)
+  }
+
   const folderNames = targetFolders.map((folder) => folder.name).join(', ')
   console.log(
-    `Folder sync complete: ${folderNames} mirrored with max-pages=${options.maxPages}.`,
+    `Folder sync complete: ${folderNames} ${options.full ? 'fully reconciled' : 'incrementally updated'}.`,
   )
 }
 

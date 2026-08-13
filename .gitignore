@@ -12,6 +12,13 @@ dist
 dist-ssr
 *.local
 .data/
+.wrangler/
+playwright-report/
+test-results/
+
+# Local agent artifacts
+.agents/
+skills-lock.json
 
 # Editor directories and files
 .vscode/*

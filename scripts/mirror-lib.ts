@@ -1,4 +1,5 @@
-import { mkdir, readFile, rename, writeFile } from 'node:fs/promises'
+import { createHash, randomUUID } from 'node:crypto'
+import { mkdir, readFile, rename, rm, writeFile } from 'node:fs/promises'
 import path from 'node:path'
 
 export type MirrorAssetKind = 'image' | 'video'
@@ -6,18 +7,30 @@ export type MirrorAssetKind = 'image' | 'video'
 export type MirrorVariant = {
   key: string
   width: number
+  height?: number
+  bytes?: number
+  contentType?: 'image/avif'
+  digest?: string
 }
 
 export type MirrorAssetRecord = {
   status: 'ok' | 'failed'
   kind: MirrorAssetKind
   key: string
+  /** SHA-256 of the archived original bytes. */
+  digest?: string
   bytes?: number
   contentType?: string
   width?: number
   height?: number
   variants?: MirrorVariant[]
   thumbhash?: string
+  /** Downscaled, audio-stripped MP4 for in-grid autoplay (videos only). */
+  previewKey?: string
+  previewBytes?: number
+  /** Safari-oriented MP4 for lightbox playback (videos only). */
+  playbackKey?: string
+  playbackBytes?: number
   fetchedAt?: string
   attempts: number
   error?: string
@@ -33,7 +46,8 @@ const MIRROR_HOST_PREFIXES: Record<string, string> = {
   'video.twimg.com': 'vid',
 }
 
-export const MIRROR_VARIANT_WIDTHS = [320, 680, 1280] as const
+export const MIRROR_RENDITION_VERSION = 2 as const
+export const MIRROR_VARIANT_WIDTHS = [240, 320, 480, 680, 1280, 2048] as const
 
 export function mirrorKeyForUrl(sourceUrl: string): string | null {
   let parsed: URL
@@ -51,16 +65,58 @@ export function mirrorKeyForUrl(sourceUrl: string): string | null {
   return `${prefix}${parsed.pathname}`
 }
 
-export function mirrorVariantKey(originalKey: string, width: number): string {
+export function mirrorVariantKey(originalKey: string, width: number, digest?: string): string {
   const extension = path.extname(originalKey)
   const stem = extension ? originalKey.slice(0, -extension.length) : originalKey
-  return `${stem}/w${width}.avif`
+  return digest
+    ? `${stem}/renditions/v${MIRROR_RENDITION_VERSION}/w${width}-${digest}.avif`
+    : `${stem}/w${width}.avif`
 }
 
-// Every image gets all three tiers (withoutEnlargement caps the actual pixels)
-// so the app can derive variant URLs from the original URL by convention alone.
+export function mirrorContentKey(sourceKey: string, digest: string): string {
+  const extension = path.extname(sourceKey)
+  const stem = extension ? sourceKey.slice(0, -extension.length) : sourceKey
+  return `${stem}/objects/${digest}${extension}`
+}
+
+export function isContentAddressedMirrorKey(key: string, digest: string | undefined): boolean {
+  return Boolean(digest && key.includes(`/objects/${digest}`))
+}
+
+// Grid autoplay preview clip key, derived from the original video key by
+// convention: <stem>/preview.mp4 (sibling of the AVIF poster variants).
+export function videoPreviewKey(originalKey: string): string {
+  const extension = path.extname(originalKey)
+  const stem = extension ? originalKey.slice(0, -extension.length) : originalKey
+  return `${stem}/preview.mp4`
+}
+
+export function videoPlaybackKey(originalKey: string): string {
+  const extension = path.extname(originalKey)
+  const stem = extension ? originalKey.slice(0, -extension.length) : originalKey
+  return `${stem}/playback.mp4`
+}
+
+// Rendition generation filters this ladder against the oriented source width
+// and records the actual output dimensions in the explicit catalog.
 export function mirrorVariantWidths(): number[] {
   return [...MIRROR_VARIANT_WIDTHS]
+}
+
+export function sha256(buffer: Uint8Array): string {
+  return createHash('sha256').update(buffer).digest('hex')
+}
+
+export async function writeFileAtomically(filePath: string, buffer: Uint8Array): Promise<void> {
+  await mkdir(path.dirname(filePath), { recursive: true })
+  const temporaryPath = `${filePath}.${process.pid}.${randomUUID()}.tmp`
+
+  try {
+    await writeFile(temporaryPath, buffer)
+    await rename(temporaryPath, filePath)
+  } finally {
+    await rm(temporaryPath, { force: true })
+  }
 }
 
 export function imageDownloadUrl(sourceUrl: string): string {
