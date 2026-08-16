@@ -1,5 +1,98 @@
 [
   {
+    "id": "2088841090220830935",
+    "sortIndex": "2149",
+    "postedAt": "Sun Aug 16 04:11:39 +0000 2026",
+    "url": "https://x.com/joshpuckett/status/2088841090220830935",
+    "text": "I was digging around the HyperCard 1.0.1 floppy image tonight, as one does, and found a curious private file: FONT 31756.\n\nIt's a font file containing all of the glyphs for HyperCard's tool palette, likely created by Kristee Kreitman and Marge Boots (credited in the app for Graphic Art).\n\nI can't believe they were using this technique back in 1987, although it seems Bruce Tognazzini invented it with MouseText two years prior (!).\n\nI was moved, as I often am by the work of our field's forebears, so created this little tool for everyone to explore it here:\n\nhttps://t.co/VxxoLeVMUq",
+    "authorName": "joshpuckett",
+    "authorHandle": "joshpuckett",
+    "folderNames": [
+      "🖼️ Inspo"
+    ],
+    "likes": 389,
+    "replies": 10,
+    "reposts": 24,
+    "media": [
+      {
+        "type": "video",
+        "thumbUrl": "https://tbmedia.corychainsman.com/pbs/amplify_video_thumb/2088834228956086272/img/9FWmK34HKXDdq5Ui/objects/22f801c9011b59d98de631956b7c84637e2c40851efc0932c4b5c33aba026e06.jpg?v=22f801c9011b59d98de631956b7c84637e2c40851efc0932c4b5c33aba026e06",
+        "fullUrl": "https://tbmedia.corychainsman.com/vid/amplify_video/2088834228956086272/vid/avc1/2260x1716/YihJAYkcIKFAfprI.mp4?v=0495a8ff180039328e06c8bfcf8d31afc51ab7dccda982125efb54c81cb0cfa5",
+        "posterUrl": "https://tbmedia.corychainsman.com/pbs/amplify_video_thumb/2088834228956086272/img/9FWmK34HKXDdq5Ui/objects/22f801c9011b59d98de631956b7c84637e2c40851efc0932c4b5c33aba026e06.jpg?v=22f801c9011b59d98de631956b7c84637e2c40851efc0932c4b5c33aba026e06",
+        "width": 2260,
+        "height": 1716,
+        "aspectRatio": 1.317016317016317,
+        "variants": [
+          {
+            "url": "https://video.twimg.com/amplify_video/2088834228956086272/vid/avc1/2260x1716/YihJAYkcIKFAfprI.mp4?tag=29",
+            "bitrate": 25128000
+          },
+          {
+            "url": "https://video.twimg.com/amplify_video/2088834228956086272/vid/avc1/1422x1080/-R0X98z-gURRdJXT.mp4?tag=29",
+            "bitrate": 10368000
+          },
+          {
+            "url": "https://video.twimg.com/amplify_video/2088834228956086272/vid/avc1/948x720/NS1D3F5Lyj4jMWYj.mp4?tag=29",
+            "bitrate": 2176000
+          },
+          {
+            "url": "https://video.twimg.com/amplify_video/2088834228956086272/vid/avc1/474x360/LK10ohy690XJNtWo.mp4?tag=29",
+            "bitrate": 832000
+          },
+          {
+            "url": "https://video.twimg.com/amplify_video/2088834228956086272/vid/avc1/354x270/oaeuO07HiyfDfA2P.mp4?tag=29",
+            "bitrate": 256000
+          }
+        ],
+        "imageRenditions": [
+          {
+            "url": "https://tbmedia.corychainsman.com/pbs/amplify_video_thumb/2088834228956086272/img/9FWmK34HKXDdq5Ui/objects/22f801c9011b59d98de631956b7c84637e2c40851efc0932c4b5c33aba026e06/renditions/v2/w240-6b6db3b957ad1c5ef77d1813f93aada61f46bc5cdd2e980681f4b3bfe242fe96.avif?v=6b6db3b957ad1c5ef77d1813f93aada61f46bc5cdd2e980681f4b3bfe242fe96",
+            "width": 240,
+            "height": 182,
+            "bytes": 3479,
+            "digest": "6b6db3b957ad1c5ef77d1813f93aada61f46bc5cdd2e980681f4b3bfe242fe96",
+            "contentType": "image/avif"
+          },
+          {
+            "url": "https://tbmedia.corychainsman.com/pbs/amplify_video_thumb/2088834228956086272/img/9FWmK34HKXDdq5Ui/objects/22f801c9011b59d98de631956b7c84637e2c40851efc0932c4b5c33aba026e06/renditions/v2/w320-6895bb68c78d188c73227160b51f9ea41858ac40b5b20f0088aa3604e00858f6.avif?v=6895bb68c78d188c73227160b51f9ea41858ac40b5b20f0088aa3604e00858f6",
+            "width": 320,
+            "height": 243,
+            "bytes": 4855,
+            "digest": "6895bb68c78d188c73227160b51f9ea41858ac40b5b20f0088aa3604e00858f6",
+            "contentType": "image/avif"
+          },
+          {
+            "url": "https://tbmedia.corychainsman.com/pbs/amplify_video_thumb/2088834228956086272/img/9FWmK34HKXDdq5Ui/objects/22f801c9011b59d98de631956b7c84637e2c40851efc0932c4b5c33aba026e06/renditions/v2/w480-ed589044b3ca2af2602e3093ed6234bc3a1611d251ee9bc562dc2e7565e880ed.avif?v=ed589044b3ca2af2602e3093ed6234bc3a1611d251ee9bc562dc2e7565e880ed",
+            "width": 480,
+            "height": 364,
+            "bytes": 8403,
+            "digest": "ed589044b3ca2af2602e3093ed6234bc3a1611d251ee9bc562dc2e7565e880ed",
+            "contentType": "image/avif"
+          },
+          {
+            "url": "https://tbmedia.corychainsman.com/pbs/amplify_video_thumb/2088834228956086272/img/9FWmK34HKXDdq5Ui/objects/22f801c9011b59d98de631956b7c84637e2c40851efc0932c4b5c33aba026e06/renditions/v2/w680-9211a3e6fe2f8b926e8f8bb90c077ee6e55bf23fcb50d7b188112dfe70bff9f7.avif?v=9211a3e6fe2f8b926e8f8bb90c077ee6e55bf23fcb50d7b188112dfe70bff9f7",
+            "width": 680,
+            "height": 516,
+            "bytes": 28711,
+            "digest": "9211a3e6fe2f8b926e8f8bb90c077ee6e55bf23fcb50d7b188112dfe70bff9f7",
+            "contentType": "image/avif"
+          },
+          {
+            "url": "https://tbmedia.corychainsman.com/pbs/amplify_video_thumb/2088834228956086272/img/9FWmK34HKXDdq5Ui/objects/22f801c9011b59d98de631956b7c84637e2c40851efc0932c4b5c33aba026e06/renditions/v2/w1200-31cbf903501c91223f7d09efc3dc6677619ea9bd6f5c7bac83ac21c4607b0bf1.avif?v=31cbf903501c91223f7d09efc3dc6677619ea9bd6f5c7bac83ac21c4607b0bf1",
+            "width": 1200,
+            "height": 911,
+            "bytes": 97902,
+            "digest": "31cbf903501c91223f7d09efc3dc6677619ea9bd6f5c7bac83ac21c4607b0bf1",
+            "contentType": "image/avif"
+          }
+        ],
+        "originUrl": "https://video.twimg.com/amplify_video/2088834228956086272/vid/avc1/2260x1716/YihJAYkcIKFAfprI.mp4?tag=29"
+      }
+    ],
+    "representativeMediaIndex": 0,
+    "representativeMotionMediaIndex": 0
+  },
+  {
     "id": "2088306896692216115",
     "sortIndex": "2148",
     "postedAt": "Fri Aug 14 16:48:57 +0000 2026",
@@ -10,7 +103,7 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 47,
+    "likes": 51,
     "replies": 1,
     "reposts": 2,
     "media": [
@@ -99,9 +192,9 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 1075,
-    "replies": 47,
-    "reposts": 49,
+    "likes": 1146,
+    "replies": 50,
+    "reposts": 56,
     "media": [
       {
         "type": "video",
@@ -192,9 +285,9 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 579,
-    "replies": 5,
-    "reposts": 44,
+    "likes": 1361,
+    "replies": 15,
+    "reposts": 111,
     "media": [
       {
         "type": "photo",
@@ -415,9 +508,9 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 8010,
-    "replies": 22,
-    "reposts": 262,
+    "likes": 8083,
+    "replies": 23,
+    "reposts": 266,
     "media": [
       {
         "type": "photo",
@@ -536,9 +629,9 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 683,
+    "likes": 715,
     "replies": 10,
-    "reposts": 88,
+    "reposts": 91,
     "media": [
       {
         "type": "photo",
@@ -759,7 +852,7 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 1640,
+    "likes": 1641,
     "replies": 22,
     "reposts": 104,
     "media": [
@@ -1014,9 +1107,9 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 567,
+    "likes": 568,
     "replies": 6,
-    "reposts": 47,
+    "reposts": 46,
     "media": [
       {
         "type": "photo",
@@ -1459,9 +1552,9 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 1921,
+    "likes": 1927,
     "replies": 1,
-    "reposts": 181,
+    "reposts": 183,
     "media": [
       {
         "type": "photo",
@@ -1803,7 +1896,7 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 689,
+    "likes": 690,
     "replies": 13,
     "reposts": 5,
     "media": [
@@ -2042,9 +2135,9 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 1667,
+    "likes": 1680,
     "replies": 9,
-    "reposts": 117,
+    "reposts": 119,
     "media": [
       {
         "type": "photo",
@@ -2297,9 +2390,9 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 14787,
+    "likes": 14799,
     "replies": 6,
-    "reposts": 1429,
+    "reposts": 1432,
     "media": [
       {
         "type": "photo",
@@ -2376,7 +2469,7 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 3871,
+    "likes": 3874,
     "replies": 27,
     "reposts": 350,
     "media": [
@@ -2548,7 +2641,7 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 1006,
+    "likes": 1012,
     "replies": 1,
     "reposts": 108,
     "media": [
@@ -2771,9 +2864,9 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 1031,
+    "likes": 1033,
     "replies": 28,
-    "reposts": 95,
+    "reposts": 96,
     "media": [
       {
         "type": "video",
@@ -2941,7 +3034,7 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 773,
+    "likes": 774,
     "replies": 21,
     "reposts": 23,
     "media": [
@@ -3100,9 +3193,9 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 2325,
+    "likes": 2327,
     "replies": 17,
-    "reposts": 187,
+    "reposts": 188,
     "media": [
       {
         "type": "photo",
@@ -3432,9 +3525,9 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 2038,
+    "likes": 2041,
     "replies": 9,
-    "reposts": 166,
+    "reposts": 168,
     "media": [
       {
         "type": "photo",
@@ -3673,7 +3766,7 @@
     ],
     "likes": 620,
     "replies": 4,
-    "reposts": 65,
+    "reposts": 66,
     "media": [
       {
         "type": "photo",
@@ -3743,7 +3836,7 @@
     ],
     "likes": 1195,
     "replies": 9,
-    "reposts": 83,
+    "reposts": 84,
     "media": [
       {
         "type": "photo",
@@ -4143,7 +4236,7 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 1479,
+    "likes": 1481,
     "replies": 2,
     "reposts": 116,
     "media": [
@@ -4298,7 +4391,7 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 1653,
+    "likes": 1654,
     "replies": 3,
     "reposts": 111,
     "media": [
@@ -5086,9 +5179,9 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 2942,
+    "likes": 2939,
     "replies": 0,
-    "reposts": 354,
+    "reposts": 349,
     "media": [
       {
         "type": "photo",
@@ -5760,7 +5853,7 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 1059,
+    "likes": 1060,
     "replies": 5,
     "reposts": 159,
     "media": [
@@ -5991,9 +6084,9 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 848,
+    "likes": 849,
     "replies": 10,
-    "reposts": 64,
+    "reposts": 65,
     "media": [
       {
         "type": "photo",
@@ -6223,9 +6316,9 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 4156,
+    "likes": 4158,
     "replies": 16,
-    "reposts": 337,
+    "reposts": 339,
     "media": [
       {
         "type": "photo",
@@ -6462,9 +6555,9 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 39523,
+    "likes": 39515,
     "replies": 25,
-    "reposts": 7614,
+    "reposts": 7607,
     "media": [
       {
         "type": "photo",
@@ -6763,9 +6856,9 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 3532,
+    "likes": 3531,
     "replies": 12,
-    "reposts": 269,
+    "reposts": 267,
     "media": [
       {
         "type": "photo",
@@ -7134,7 +7227,7 @@
     ],
     "likes": 375,
     "replies": 2,
-    "reposts": 26,
+    "reposts": 27,
     "media": [
       {
         "type": "photo",
@@ -7387,7 +7480,7 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 1398,
+    "likes": 1397,
     "replies": 10,
     "reposts": 99,
     "media": [
@@ -7465,9 +7558,9 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 7122,
+    "likes": 7123,
     "replies": 8,
-    "reposts": 956,
+    "reposts": 958,
     "media": [
       {
         "type": "video",
@@ -7542,9 +7635,9 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 68813,
-    "replies": 197,
-    "reposts": 8567,
+    "likes": 68800,
+    "replies": 196,
+    "reposts": 8564,
     "media": [
       {
         "type": "video",
@@ -7627,7 +7720,7 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 7099,
+    "likes": 7100,
     "replies": 76,
     "reposts": 481,
     "media": [
@@ -7807,7 +7900,7 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 253,
+    "likes": 255,
     "replies": 12,
     "reposts": 31,
     "media": [
@@ -8127,7 +8220,7 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 1115,
+    "likes": 1116,
     "replies": 11,
     "reposts": 113,
     "media": [
@@ -8197,9 +8290,9 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 4179,
+    "likes": 4176,
     "replies": 10,
-    "reposts": 435,
+    "reposts": 436,
     "media": [
       {
         "type": "photo",
@@ -8684,7 +8777,7 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 1073,
+    "likes": 1072,
     "replies": 4,
     "reposts": 86,
     "media": [
@@ -9087,7 +9180,7 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 2947,
+    "likes": 2948,
     "replies": 46,
     "reposts": 162,
     "media": [
@@ -9326,7 +9419,7 @@
     ],
     "likes": 6745,
     "replies": 86,
-    "reposts": 885,
+    "reposts": 887,
     "media": [
       {
         "type": "video",
@@ -9399,7 +9492,7 @@
     ],
     "likes": 555,
     "replies": 15,
-    "reposts": 29,
+    "reposts": 28,
     "media": [
       {
         "type": "photo",
@@ -9467,9 +9560,9 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 1949,
+    "likes": 1948,
     "replies": 2,
-    "reposts": 162,
+    "reposts": 161,
     "media": [
       {
         "type": "photo",
@@ -10115,9 +10208,9 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 90427,
+    "likes": 90419,
     "replies": 132,
-    "reposts": 6735,
+    "reposts": 6738,
     "media": [
       {
         "type": "photo",
@@ -10561,7 +10654,7 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 4985,
+    "likes": 4986,
     "replies": 57,
     "reposts": 145,
     "media": [
@@ -10822,7 +10915,7 @@
     ],
     "likes": 3661,
     "replies": 5,
-    "reposts": 194,
+    "reposts": 193,
     "media": [
       {
         "type": "photo",
@@ -10992,9 +11085,9 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 4516,
+    "likes": 4514,
     "replies": 265,
-    "reposts": 375,
+    "reposts": 376,
     "media": [
       {
         "type": "video",
@@ -11071,7 +11164,7 @@
     ],
     "likes": 911,
     "replies": 5,
-    "reposts": 104,
+    "reposts": 105,
     "media": [
       {
         "type": "photo",
@@ -11317,9 +11410,9 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 6244,
+    "likes": 6247,
     "replies": 30,
-    "reposts": 451,
+    "reposts": 452,
     "media": [
       {
         "type": "photo",
@@ -11573,9 +11666,9 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 37717,
+    "likes": 37725,
     "replies": 134,
-    "reposts": 3419,
+    "reposts": 3423,
     "media": [
       {
         "type": "photo",
@@ -12294,7 +12387,7 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 4178,
+    "likes": 4179,
     "replies": 12,
     "reposts": 290,
     "media": [
@@ -12551,7 +12644,7 @@
     ],
     "likes": 309,
     "replies": 2,
-    "reposts": 49,
+    "reposts": 50,
     "media": [
       {
         "type": "photo",
@@ -12611,9 +12704,9 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 1581,
+    "likes": 1583,
     "replies": 9,
-    "reposts": 271,
+    "reposts": 272,
     "media": [
       {
         "type": "photo",
@@ -12887,9 +12980,9 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 1707,
+    "likes": 1708,
     "replies": 2,
-    "reposts": 119,
+    "reposts": 118,
     "media": [
       {
         "type": "photo",
@@ -13282,9 +13375,9 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 19468,
+    "likes": 19477,
     "replies": 21,
-    "reposts": 2229,
+    "reposts": 2227,
     "media": [
       {
         "type": "photo",
@@ -13607,9 +13700,9 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 46778,
+    "likes": 46761,
     "replies": 200,
-    "reposts": 4583,
+    "reposts": 4582,
     "media": [
       {
         "type": "animated_gif",
@@ -13897,7 +13990,7 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 411,
+    "likes": 412,
     "replies": 0,
     "reposts": 50,
     "media": [
@@ -13962,14 +14055,14 @@
     "postedAt": "Wed Aug 05 11:42:07 +0000 2026",
     "url": "https://x.com/garments__/status/2084968187687522668",
     "text": "子どもの頃、距離感をつかめないまま、ドッジボールがこちらへ飛んでくる感覚を映像にしました https://t.co/RcbZhUXZun",
-    "authorName": "Garments",
+    "authorName": "Yuma Garments",
     "authorHandle": "garments__",
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 31210,
+    "likes": 31211,
     "replies": 39,
-    "reposts": 1171,
+    "reposts": 1174,
     "media": [
       {
         "type": "video",
@@ -14052,7 +14145,7 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 3578,
+    "likes": 3577,
     "replies": 29,
     "reposts": 393,
     "media": [
@@ -14202,7 +14295,7 @@
     ],
     "likes": 327,
     "replies": 0,
-    "reposts": 42,
+    "reposts": 43,
     "media": [
       {
         "type": "photo",
@@ -14858,7 +14951,7 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 645,
+    "likes": 647,
     "replies": 1,
     "reposts": 60,
     "media": [
@@ -14930,7 +15023,7 @@
     ],
     "likes": 4187,
     "replies": 16,
-    "reposts": 429,
+    "reposts": 432,
     "media": [
       {
         "type": "photo",
@@ -15414,7 +15507,7 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 799,
+    "likes": 800,
     "replies": 2,
     "reposts": 79,
     "media": [
@@ -15877,7 +15970,7 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 354,
+    "likes": 355,
     "replies": 11,
     "reposts": 7,
     "media": [
@@ -15956,9 +16049,9 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 3888,
+    "likes": 3887,
     "replies": 15,
-    "reposts": 420,
+    "reposts": 422,
     "media": [
       {
         "type": "photo",
@@ -16188,7 +16281,7 @@
     ],
     "likes": 262,
     "replies": 2,
-    "reposts": 16,
+    "reposts": 17,
     "media": [
       {
         "type": "photo",
@@ -16441,7 +16534,7 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 433,
+    "likes": 434,
     "replies": 2,
     "reposts": 38,
     "media": [
@@ -16534,9 +16627,9 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 27851,
+    "likes": 27847,
     "replies": 294,
-    "reposts": 3116,
+    "reposts": 3120,
     "media": [
       {
         "type": "photo",
@@ -16612,7 +16705,7 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 1912,
+    "likes": 1911,
     "replies": 30,
     "reposts": 208,
     "media": [
@@ -17025,7 +17118,7 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 2250,
+    "likes": 2249,
     "replies": 69,
     "reposts": 69,
     "media": [
@@ -17462,9 +17555,9 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 96589,
+    "likes": 96583,
     "replies": 81,
-    "reposts": 11763,
+    "reposts": 11764,
     "media": [
       {
         "type": "photo",
@@ -17809,7 +17902,7 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 1243,
+    "likes": 1244,
     "replies": 3,
     "reposts": 88,
     "media": [
@@ -18005,9 +18098,9 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 16865,
+    "likes": 16863,
     "replies": 52,
-    "reposts": 1516,
+    "reposts": 1518,
     "media": [
       {
         "type": "photo",
@@ -18068,7 +18161,7 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 3954,
+    "likes": 3953,
     "replies": 13,
     "reposts": 512,
     "media": [
@@ -18562,7 +18655,7 @@
     ],
     "likes": 1191,
     "replies": 26,
-    "reposts": 121,
+    "reposts": 120,
     "media": [
       {
         "type": "photo",
@@ -19014,7 +19107,7 @@
     ],
     "likes": 348,
     "replies": 1,
-    "reposts": 39,
+    "reposts": 38,
     "media": [
       {
         "type": "photo",
@@ -19434,7 +19527,7 @@
     ],
     "likes": 1959,
     "replies": 1,
-    "reposts": 366,
+    "reposts": 363,
     "media": [
       {
         "type": "animated_gif",
@@ -19509,7 +19602,7 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 1826,
+    "likes": 1825,
     "replies": 15,
     "reposts": 292,
     "media": [
@@ -19587,7 +19680,7 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 1048,
+    "likes": 1047,
     "replies": 5,
     "reposts": 118,
     "media": [
@@ -19919,7 +20012,7 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 1740,
+    "likes": 1741,
     "replies": 63,
     "reposts": 83,
     "media": [
@@ -20006,7 +20099,7 @@
     ],
     "likes": 1051,
     "replies": 64,
-    "reposts": 54,
+    "reposts": 55,
     "media": [
       {
         "type": "video",
@@ -20081,9 +20174,9 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 12165,
+    "likes": 12172,
     "replies": 82,
-    "reposts": 436,
+    "reposts": 438,
     "media": [
       {
         "type": "photo",
@@ -20339,7 +20432,7 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 1362,
+    "likes": 1363,
     "replies": 2,
     "reposts": 111,
     "media": [
@@ -20825,9 +20918,9 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 37243,
+    "likes": 37250,
     "replies": 124,
-    "reposts": 5860,
+    "reposts": 5861,
     "media": [
       {
         "type": "video",
@@ -20910,7 +21003,7 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 331,
+    "likes": 330,
     "replies": 9,
     "reposts": 9,
     "media": [
@@ -21047,7 +21140,7 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 2212,
+    "likes": 2209,
     "replies": 53,
     "reposts": 70,
     "media": [
@@ -21125,7 +21218,7 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 810,
+    "likes": 811,
     "replies": 3,
     "reposts": 90,
     "media": [
@@ -21257,9 +21350,9 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 2163,
+    "likes": 2162,
     "replies": 14,
-    "reposts": 144,
+    "reposts": 145,
     "media": [
       {
         "type": "photo",
@@ -21538,9 +21631,9 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 49,
+    "likes": 50,
     "replies": 0,
-    "reposts": 6,
+    "reposts": 7,
     "media": [
       {
         "type": "photo",
@@ -21965,9 +22058,9 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 4705,
+    "likes": 4703,
     "replies": 21,
-    "reposts": 617,
+    "reposts": 618,
     "media": [
       {
         "type": "photo",
@@ -22389,7 +22482,7 @@
     ],
     "likes": 13899,
     "replies": 94,
-    "reposts": 602,
+    "reposts": 605,
     "media": [
       {
         "type": "photo",
@@ -22610,7 +22703,7 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 702,
+    "likes": 703,
     "replies": 5,
     "reposts": 84,
     "media": [
@@ -66911,230 +67004,6 @@
           }
         ],
         "originUrl": "https://pbs.twimg.com/media/HMyr8GkWwAAxqGA.jpg"
-      }
-    ],
-    "representativeMediaIndex": 0,
-    "representativeMotionMediaIndex": 0
-  },
-  {
-    "id": "2074903962390806680",
-    "sortIndex": "1647",
-    "postedAt": "Wed Jul 08 17:10:29 +0000 2026",
-    "url": "https://x.com/digitlartifacts/status/2074903962390806680",
-    "text": "Beautiful design work… the first artist I saw pioneer this ascii x collage style is @enigmatriz https://t.co/UkD6vLYKYl",
-    "quotedText": "Who is behind Anthropic's latest design work?\n\nIt's an extraordinary mix of biological illustration, ASCII art, halftones… Physical materials + data scale. Call it \"Humanist collage\"?\n\nEspecially fable announcement + J space article.\n\nIt looks different than the OG Geist work. https://t.co/O29Gr6PdoT",
-    "authorName": "nicole",
-    "authorHandle": "digitlartifacts",
-    "folderNames": [
-      "🖼️ Inspo"
-    ],
-    "likes": 2202,
-    "replies": 9,
-    "reposts": 270,
-    "media": [
-      {
-        "type": "photo",
-        "thumbUrl": "https://tbmedia.corychainsman.com/pbs/media/HMuKJ0tasAAqe_H/objects/fe4f04cbe7fadfc0c852434be576d17acb1b69ad9015c0221faaad6b437d5a36.jpg?v=fe4f04cbe7fadfc0c852434be576d17acb1b69ad9015c0221faaad6b437d5a36",
-        "fullUrl": "https://tbmedia.corychainsman.com/pbs/media/HMuKJ0tasAAqe_H/objects/fe4f04cbe7fadfc0c852434be576d17acb1b69ad9015c0221faaad6b437d5a36.jpg?v=fe4f04cbe7fadfc0c852434be576d17acb1b69ad9015c0221faaad6b437d5a36",
-        "width": 488,
-        "height": 409,
-        "aspectRatio": 1.1931540342298288,
-        "imageRenditions": [
-          {
-            "url": "https://tbmedia.corychainsman.com/pbs/media/HMuKJ0tasAAqe_H/objects/fe4f04cbe7fadfc0c852434be576d17acb1b69ad9015c0221faaad6b437d5a36/renditions/v2/w240-0348d6cb65ada51f32a49795eef6b82a696da2fbadc7d2476bc02f4314cb0687.avif?v=0348d6cb65ada51f32a49795eef6b82a696da2fbadc7d2476bc02f4314cb0687",
-            "width": 240,
-            "height": 201,
-            "bytes": 9157,
-            "digest": "0348d6cb65ada51f32a49795eef6b82a696da2fbadc7d2476bc02f4314cb0687",
-            "contentType": "image/avif"
-          },
-          {
-            "url": "https://tbmedia.corychainsman.com/pbs/media/HMuKJ0tasAAqe_H/objects/fe4f04cbe7fadfc0c852434be576d17acb1b69ad9015c0221faaad6b437d5a36/renditions/v2/w320-b845d9aa4ff264322a81a7abf610b3bd354908dd5e1da064276cfd4bd6a50d1c.avif?v=b845d9aa4ff264322a81a7abf610b3bd354908dd5e1da064276cfd4bd6a50d1c",
-            "width": 320,
-            "height": 268,
-            "bytes": 14913,
-            "digest": "b845d9aa4ff264322a81a7abf610b3bd354908dd5e1da064276cfd4bd6a50d1c",
-            "contentType": "image/avif"
-          },
-          {
-            "url": "https://tbmedia.corychainsman.com/pbs/media/HMuKJ0tasAAqe_H/objects/fe4f04cbe7fadfc0c852434be576d17acb1b69ad9015c0221faaad6b437d5a36/renditions/v2/w480-c73571a3d85da1c487836b94650ff57661594841fc4ccac0ee5b731df31758b8.avif?v=c73571a3d85da1c487836b94650ff57661594841fc4ccac0ee5b731df31758b8",
-            "width": 480,
-            "height": 402,
-            "bytes": 30043,
-            "digest": "c73571a3d85da1c487836b94650ff57661594841fc4ccac0ee5b731df31758b8",
-            "contentType": "image/avif"
-          },
-          {
-            "url": "https://tbmedia.corychainsman.com/pbs/media/HMuKJ0tasAAqe_H/objects/fe4f04cbe7fadfc0c852434be576d17acb1b69ad9015c0221faaad6b437d5a36/renditions/v2/w488-7c895cd3272a9003526e7ee41936826c91fb3ff7b163a0bea21c4e97e4ff1822.avif?v=7c895cd3272a9003526e7ee41936826c91fb3ff7b163a0bea21c4e97e4ff1822",
-            "width": 488,
-            "height": 409,
-            "bytes": 32405,
-            "digest": "7c895cd3272a9003526e7ee41936826c91fb3ff7b163a0bea21c4e97e4ff1822",
-            "contentType": "image/avif"
-          }
-        ],
-        "originUrl": "https://pbs.twimg.com/media/HMuKJ0tasAAqe_H.jpg"
-      },
-      {
-        "type": "photo",
-        "thumbUrl": "https://tbmedia.corychainsman.com/pbs/media/HMuKJ0uaoAAgecP/objects/07c20a95deb8ee38cc6fd14b2b8ef6579cd7746ba0f5712cc2fbb42ec57a105d.jpg?v=07c20a95deb8ee38cc6fd14b2b8ef6579cd7746ba0f5712cc2fbb42ec57a105d",
-        "fullUrl": "https://tbmedia.corychainsman.com/pbs/media/HMuKJ0uaoAAgecP/objects/07c20a95deb8ee38cc6fd14b2b8ef6579cd7746ba0f5712cc2fbb42ec57a105d.jpg?v=07c20a95deb8ee38cc6fd14b2b8ef6579cd7746ba0f5712cc2fbb42ec57a105d",
-        "width": 554,
-        "height": 554,
-        "aspectRatio": 1,
-        "imageRenditions": [
-          {
-            "url": "https://tbmedia.corychainsman.com/pbs/media/HMuKJ0uaoAAgecP/objects/07c20a95deb8ee38cc6fd14b2b8ef6579cd7746ba0f5712cc2fbb42ec57a105d/renditions/v2/w240-09d1030188a8afa1092447c9e920c9bd2b86c103b88f576752423148e487f9cc.avif?v=09d1030188a8afa1092447c9e920c9bd2b86c103b88f576752423148e487f9cc",
-            "width": 240,
-            "height": 240,
-            "bytes": 8641,
-            "digest": "09d1030188a8afa1092447c9e920c9bd2b86c103b88f576752423148e487f9cc",
-            "contentType": "image/avif"
-          },
-          {
-            "url": "https://tbmedia.corychainsman.com/pbs/media/HMuKJ0uaoAAgecP/objects/07c20a95deb8ee38cc6fd14b2b8ef6579cd7746ba0f5712cc2fbb42ec57a105d/renditions/v2/w320-f73e90bf207620334fe3bce029d19de320905087c97ed467d763405f7b1026ab.avif?v=f73e90bf207620334fe3bce029d19de320905087c97ed467d763405f7b1026ab",
-            "width": 320,
-            "height": 320,
-            "bytes": 13527,
-            "digest": "f73e90bf207620334fe3bce029d19de320905087c97ed467d763405f7b1026ab",
-            "contentType": "image/avif"
-          },
-          {
-            "url": "https://tbmedia.corychainsman.com/pbs/media/HMuKJ0uaoAAgecP/objects/07c20a95deb8ee38cc6fd14b2b8ef6579cd7746ba0f5712cc2fbb42ec57a105d/renditions/v2/w480-428d255e926bd1d2374c8b384cc05e1eafa6f42b03f24fb617661db879fcb6c0.avif?v=428d255e926bd1d2374c8b384cc05e1eafa6f42b03f24fb617661db879fcb6c0",
-            "width": 480,
-            "height": 480,
-            "bytes": 26795,
-            "digest": "428d255e926bd1d2374c8b384cc05e1eafa6f42b03f24fb617661db879fcb6c0",
-            "contentType": "image/avif"
-          },
-          {
-            "url": "https://tbmedia.corychainsman.com/pbs/media/HMuKJ0uaoAAgecP/objects/07c20a95deb8ee38cc6fd14b2b8ef6579cd7746ba0f5712cc2fbb42ec57a105d/renditions/v2/w554-e3b42e9f60056b98440bbcd1b435fc71acab15bd53b20129d5f9b48728e51bbe.avif?v=e3b42e9f60056b98440bbcd1b435fc71acab15bd53b20129d5f9b48728e51bbe",
-            "width": 554,
-            "height": 554,
-            "bytes": 34477,
-            "digest": "e3b42e9f60056b98440bbcd1b435fc71acab15bd53b20129d5f9b48728e51bbe",
-            "contentType": "image/avif"
-          }
-        ],
-        "originUrl": "https://pbs.twimg.com/media/HMuKJ0uaoAAgecP.jpg"
-      },
-      {
-        "type": "photo",
-        "thumbUrl": "https://tbmedia.corychainsman.com/pbs/media/HMuKJ0ua0AA-lNH/objects/f5f5cb59ccc68da74c49e9a4925041c97b70a354dd00416d4aff6f19aba60177.jpg?v=f5f5cb59ccc68da74c49e9a4925041c97b70a354dd00416d4aff6f19aba60177",
-        "fullUrl": "https://tbmedia.corychainsman.com/pbs/media/HMuKJ0ua0AA-lNH/objects/f5f5cb59ccc68da74c49e9a4925041c97b70a354dd00416d4aff6f19aba60177.jpg?v=f5f5cb59ccc68da74c49e9a4925041c97b70a354dd00416d4aff6f19aba60177",
-        "width": 2048,
-        "height": 1082,
-        "aspectRatio": 1.8927911275415896,
-        "imageRenditions": [
-          {
-            "url": "https://tbmedia.corychainsman.com/pbs/media/HMuKJ0ua0AA-lNH/objects/f5f5cb59ccc68da74c49e9a4925041c97b70a354dd00416d4aff6f19aba60177/renditions/v2/w240-7dd2bd471cfaf3a39a0221884282433cb7c8cc7ce1c3d86b8a614dfd7dd39337.avif?v=7dd2bd471cfaf3a39a0221884282433cb7c8cc7ce1c3d86b8a614dfd7dd39337",
-            "width": 240,
-            "height": 127,
-            "bytes": 4536,
-            "digest": "7dd2bd471cfaf3a39a0221884282433cb7c8cc7ce1c3d86b8a614dfd7dd39337",
-            "contentType": "image/avif"
-          },
-          {
-            "url": "https://tbmedia.corychainsman.com/pbs/media/HMuKJ0ua0AA-lNH/objects/f5f5cb59ccc68da74c49e9a4925041c97b70a354dd00416d4aff6f19aba60177/renditions/v2/w320-6fb583b4de3e3e5c0965f2dc94121bdaff56bbbab98f2fe59727a58f3349ecf5.avif?v=6fb583b4de3e3e5c0965f2dc94121bdaff56bbbab98f2fe59727a58f3349ecf5",
-            "width": 320,
-            "height": 169,
-            "bytes": 7254,
-            "digest": "6fb583b4de3e3e5c0965f2dc94121bdaff56bbbab98f2fe59727a58f3349ecf5",
-            "contentType": "image/avif"
-          },
-          {
-            "url": "https://tbmedia.corychainsman.com/pbs/media/HMuKJ0ua0AA-lNH/objects/f5f5cb59ccc68da74c49e9a4925041c97b70a354dd00416d4aff6f19aba60177/renditions/v2/w480-312dc5dcb0f2c87d7b313a9497dc207c10583bb88ce7f9b8d60e6f3693be0231.avif?v=312dc5dcb0f2c87d7b313a9497dc207c10583bb88ce7f9b8d60e6f3693be0231",
-            "width": 480,
-            "height": 254,
-            "bytes": 13835,
-            "digest": "312dc5dcb0f2c87d7b313a9497dc207c10583bb88ce7f9b8d60e6f3693be0231",
-            "contentType": "image/avif"
-          },
-          {
-            "url": "https://tbmedia.corychainsman.com/pbs/media/HMuKJ0ua0AA-lNH/objects/f5f5cb59ccc68da74c49e9a4925041c97b70a354dd00416d4aff6f19aba60177/renditions/v2/w680-5a519728acaf3e16bdb44980584b1b15972af130745645394412a709e159e6c8.avif?v=5a519728acaf3e16bdb44980584b1b15972af130745645394412a709e159e6c8",
-            "width": 680,
-            "height": 359,
-            "bytes": 24665,
-            "digest": "5a519728acaf3e16bdb44980584b1b15972af130745645394412a709e159e6c8",
-            "contentType": "image/avif"
-          },
-          {
-            "url": "https://tbmedia.corychainsman.com/pbs/media/HMuKJ0ua0AA-lNH/objects/f5f5cb59ccc68da74c49e9a4925041c97b70a354dd00416d4aff6f19aba60177/renditions/v2/w1280-ec06c0ee0ac555d198d955509042f5ed00b9d206f9408254afa9ba82768b1afa.avif?v=ec06c0ee0ac555d198d955509042f5ed00b9d206f9408254afa9ba82768b1afa",
-            "width": 1280,
-            "height": 676,
-            "bytes": 77264,
-            "digest": "ec06c0ee0ac555d198d955509042f5ed00b9d206f9408254afa9ba82768b1afa",
-            "contentType": "image/avif"
-          },
-          {
-            "url": "https://tbmedia.corychainsman.com/pbs/media/HMuKJ0ua0AA-lNH/objects/f5f5cb59ccc68da74c49e9a4925041c97b70a354dd00416d4aff6f19aba60177/renditions/v2/w2048-cefb4bf5d26fe80f85352e8b35561b8451998eb41ea5181f3865091808d5f16d.avif?v=cefb4bf5d26fe80f85352e8b35561b8451998eb41ea5181f3865091808d5f16d",
-            "width": 2048,
-            "height": 1082,
-            "bytes": 157539,
-            "digest": "cefb4bf5d26fe80f85352e8b35561b8451998eb41ea5181f3865091808d5f16d",
-            "contentType": "image/avif"
-          }
-        ],
-        "originUrl": "https://pbs.twimg.com/media/HMuKJ0ua0AA-lNH.jpg"
-      },
-      {
-        "type": "photo",
-        "thumbUrl": "https://tbmedia.corychainsman.com/pbs/media/HMuKJ0xaMAAvv-Z/objects/a190168dc0fec614e55ba1a0e4ac4d96e71adc87b4a9dfda334dc38a0afa2dab.jpg?v=a190168dc0fec614e55ba1a0e4ac4d96e71adc87b4a9dfda334dc38a0afa2dab",
-        "fullUrl": "https://tbmedia.corychainsman.com/pbs/media/HMuKJ0xaMAAvv-Z/objects/a190168dc0fec614e55ba1a0e4ac4d96e71adc87b4a9dfda334dc38a0afa2dab.jpg?v=a190168dc0fec614e55ba1a0e4ac4d96e71adc87b4a9dfda334dc38a0afa2dab",
-        "width": 2048,
-        "height": 1564,
-        "aspectRatio": 1.3094629156010231,
-        "imageRenditions": [
-          {
-            "url": "https://tbmedia.corychainsman.com/pbs/media/HMuKJ0xaMAAvv-Z/objects/a190168dc0fec614e55ba1a0e4ac4d96e71adc87b4a9dfda334dc38a0afa2dab/renditions/v2/w240-51a2ce9933c605552f8160d0353529c6fe7a303f2a5a8703d79b2a84879edaa7.avif?v=51a2ce9933c605552f8160d0353529c6fe7a303f2a5a8703d79b2a84879edaa7",
-            "width": 240,
-            "height": 183,
-            "bytes": 8980,
-            "digest": "51a2ce9933c605552f8160d0353529c6fe7a303f2a5a8703d79b2a84879edaa7",
-            "contentType": "image/avif"
-          },
-          {
-            "url": "https://tbmedia.corychainsman.com/pbs/media/HMuKJ0xaMAAvv-Z/objects/a190168dc0fec614e55ba1a0e4ac4d96e71adc87b4a9dfda334dc38a0afa2dab/renditions/v2/w320-8456c39fd5154d07989cd942f444f61ba3562961175e676a22d13d572962e61e.avif?v=8456c39fd5154d07989cd942f444f61ba3562961175e676a22d13d572962e61e",
-            "width": 320,
-            "height": 244,
-            "bytes": 14776,
-            "digest": "8456c39fd5154d07989cd942f444f61ba3562961175e676a22d13d572962e61e",
-            "contentType": "image/avif"
-          },
-          {
-            "url": "https://tbmedia.corychainsman.com/pbs/media/HMuKJ0xaMAAvv-Z/objects/a190168dc0fec614e55ba1a0e4ac4d96e71adc87b4a9dfda334dc38a0afa2dab/renditions/v2/w480-df7cd2a30e1fcc7f81f0a043769ac700421726dc020a1160a529e910aee7b93f.avif?v=df7cd2a30e1fcc7f81f0a043769ac700421726dc020a1160a529e910aee7b93f",
-            "width": 480,
-            "height": 367,
-            "bytes": 30725,
-            "digest": "df7cd2a30e1fcc7f81f0a043769ac700421726dc020a1160a529e910aee7b93f",
-            "contentType": "image/avif"
-          },
-          {
-            "url": "https://tbmedia.corychainsman.com/pbs/media/HMuKJ0xaMAAvv-Z/objects/a190168dc0fec614e55ba1a0e4ac4d96e71adc87b4a9dfda334dc38a0afa2dab/renditions/v2/w680-7504d418c2469a2d58437d9570914c3f7fbd65ddffe1532aca6c2db2e3f972b4.avif?v=7504d418c2469a2d58437d9570914c3f7fbd65ddffe1532aca6c2db2e3f972b4",
-            "width": 680,
-            "height": 519,
-            "bytes": 57165,
-            "digest": "7504d418c2469a2d58437d9570914c3f7fbd65ddffe1532aca6c2db2e3f972b4",
-            "contentType": "image/avif"
-          },
-          {
-            "url": "https://tbmedia.corychainsman.com/pbs/media/HMuKJ0xaMAAvv-Z/objects/a190168dc0fec614e55ba1a0e4ac4d96e71adc87b4a9dfda334dc38a0afa2dab/renditions/v2/w1280-4e90bcf0053997a3018180f3edb5e17bd2905d69b9ea3338902fe49d13da779a.avif?v=4e90bcf0053997a3018180f3edb5e17bd2905d69b9ea3338902fe49d13da779a",
-            "width": 1280,
-            "height": 978,
-            "bytes": 174806,
-            "digest": "4e90bcf0053997a3018180f3edb5e17bd2905d69b9ea3338902fe49d13da779a",
-            "contentType": "image/avif"
-          },
-          {
-            "url": "https://tbmedia.corychainsman.com/pbs/media/HMuKJ0xaMAAvv-Z/objects/a190168dc0fec614e55ba1a0e4ac4d96e71adc87b4a9dfda334dc38a0afa2dab/renditions/v2/w2048-54a8425f958f855aaad754e91dccbe4c2ead00b6f2a675740add1e41b30239ea.avif?v=54a8425f958f855aaad754e91dccbe4c2ead00b6f2a675740add1e41b30239ea",
-            "width": 2048,
-            "height": 1564,
-            "bytes": 385759,
-            "digest": "54a8425f958f855aaad754e91dccbe4c2ead00b6f2a675740add1e41b30239ea",
-            "contentType": "image/avif"
-          }
-        ],
-        "originUrl": "https://pbs.twimg.com/media/HMuKJ0xaMAAvv-Z.jpg"
       }
     ],
     "representativeMediaIndex": 0,
