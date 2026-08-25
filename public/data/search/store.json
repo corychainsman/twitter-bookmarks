@@ -1,5 +1,25 @@
 [
   {
+    "id": "2092158857032433869",
+    "text": "Found a fun way to generate QR codes that don’t look like QR codes.\n\n- Enter a URL and it grows a 3D tree from the code itself\n- The ground grid is the actual scannable QR\n- Switch between Spring, Summer, and Autumn looks\n- Runs fully in the browser, nothing uploaded\n- Tap the tree to flatten it and scan\n\nhttps://t.co/133ukElFea",
+    "quotedText": "",
+    "articleTitle": "",
+    "articleText": "",
+    "authorName": "Manish Kumar",
+    "authorHandle": "Manixh02",
+    "folderNames": "🖼️ Inspo"
+  },
+  {
+    "id": "2092148034633363576",
+    "text": "There is also the opposite in type design, that is extreme analytical approaches. Here is our custom Nelder-Mead solver that proposes Houston Mono chamfer nodes in ~2000 iterations. The goal is to smoothly transition from one direction to another using exactly 6 nodes with a 'smooth chamfer', i.e. two rounded 45 deg chamfer corners. \n\nBasically, I care about 3 components for Houston Mono chamfers:\n\n1) How the stroke width smoothly changes from one thickness to another. Here the vertical stroke is 84. It transitions to horizontal at 80. But the midpoint of the chamfer is like ~85.63 (see the table)! It's not linear, but the solver makes this as even as possible.\n\n2) How each of the 45 deg turns curve, i.e. curve tension. Held at 91% by the solver. That means the handles span 91% to the Tunni point (where two handles intersect).\n\n3) How deep the chamfer is...O has deeper chamfers than 2 for example.\n\nThere are a few other things like I can bias/skew the stroke change as I see fit visually.",
+    "quotedText": "In type design, there are all these tools to help designers. For e.g., you can predefine specific stems (or autodetect) and set their values. So what happens is that the designer now follows these rigid rules and if they're violated, it's exactly like a linter/type checker. Errors are displayed on the screen. The designer tends to correct them, but soooo many times these rules just don't apply. It's a trap. The solution is to keep a printed sheet on your desk with ideal values and unliked from the software. Then nudge them as needed. Auto-hinting will suffer slightly but in vast majority of cases there is a higher priority of making the glyph look consistent with the rest of the typeface.",
+    "articleTitle": "",
+    "articleText": "",
+    "authorName": "USGC",
+    "authorHandle": "usgraphics",
+    "folderNames": "🖼️ Inspo"
+  },
+  {
     "id": "2091992338402877622",
     "text": "the really nice thing about additive is you can take ideas like a resonant filter sweep and turn them upside down and inside out. any other ideas to try with sweepy filtery stuff? https://t.co/fI3kKoVXCu",
     "quotedText": "",
