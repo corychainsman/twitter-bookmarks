@@ -1,5 +1,61 @@
 [
   {
+    "gridId": "2091992338402877622:0",
+    "tweetId": "2091992338402877622",
+    "mediaIndex": 0,
+    "mediaType": "video",
+    "thumbUrl": "https://tbmedia.corychainsman.com/pbs/amplify_video_thumb/2091991852438200320/img/0Z6WX91Y5ZyZ7hg6/objects/cd2ade224a20aa8df0e732f50dfd24eb4e84a54872970091d596804fd6f2d8d7.jpg?v=cd2ade224a20aa8df0e732f50dfd24eb4e84a54872970091d596804fd6f2d8d7",
+    "fullUrl": "https://tbmedia.corychainsman.com/vid/amplify_video/2091991852438200320/vid/avc1/1696x1564/Nyu5EaIe0ZhPwrzG.mp4?v=bc11bf4e7e358f21dfab7171de95c87fa05b6aac52f6d2942ed5f74e92098758",
+    "posterUrl": "https://tbmedia.corychainsman.com/pbs/amplify_video_thumb/2091991852438200320/img/0Z6WX91Y5ZyZ7hg6/objects/cd2ade224a20aa8df0e732f50dfd24eb4e84a54872970091d596804fd6f2d8d7.jpg?v=cd2ade224a20aa8df0e732f50dfd24eb4e84a54872970091d596804fd6f2d8d7",
+    "width": 1696,
+    "height": 1564,
+    "aspectRatio": 1.0843989769820972,
+    "imageRenditions": [
+      {
+        "url": "https://tbmedia.corychainsman.com/pbs/amplify_video_thumb/2091991852438200320/img/0Z6WX91Y5ZyZ7hg6/objects/cd2ade224a20aa8df0e732f50dfd24eb4e84a54872970091d596804fd6f2d8d7/renditions/v2/w240-de98483889e9fbd7bff44c6d0b2653dcdeefcd016b8b63794821309d84a834fa.avif?v=de98483889e9fbd7bff44c6d0b2653dcdeefcd016b8b63794821309d84a834fa",
+        "width": 240,
+        "height": 221,
+        "bytes": 5189,
+        "digest": "de98483889e9fbd7bff44c6d0b2653dcdeefcd016b8b63794821309d84a834fa",
+        "contentType": "image/avif"
+      },
+      {
+        "url": "https://tbmedia.corychainsman.com/pbs/amplify_video_thumb/2091991852438200320/img/0Z6WX91Y5ZyZ7hg6/objects/cd2ade224a20aa8df0e732f50dfd24eb4e84a54872970091d596804fd6f2d8d7/renditions/v2/w320-ef8061d3f021e534b9b0794c8f2a447276248b03f66d6a59d82f185500b9fbc7.avif?v=ef8061d3f021e534b9b0794c8f2a447276248b03f66d6a59d82f185500b9fbc7",
+        "width": 320,
+        "height": 295,
+        "bytes": 7234,
+        "digest": "ef8061d3f021e534b9b0794c8f2a447276248b03f66d6a59d82f185500b9fbc7",
+        "contentType": "image/avif"
+      },
+      {
+        "url": "https://tbmedia.corychainsman.com/pbs/amplify_video_thumb/2091991852438200320/img/0Z6WX91Y5ZyZ7hg6/objects/cd2ade224a20aa8df0e732f50dfd24eb4e84a54872970091d596804fd6f2d8d7/renditions/v2/w480-1e1c099872ef1bc01cb56c28aba3b5427342d867e8375e7193f11671462291ad.avif?v=1e1c099872ef1bc01cb56c28aba3b5427342d867e8375e7193f11671462291ad",
+        "width": 480,
+        "height": 443,
+        "bytes": 15694,
+        "digest": "1e1c099872ef1bc01cb56c28aba3b5427342d867e8375e7193f11671462291ad",
+        "contentType": "image/avif"
+      },
+      {
+        "url": "https://tbmedia.corychainsman.com/pbs/amplify_video_thumb/2091991852438200320/img/0Z6WX91Y5ZyZ7hg6/objects/cd2ade224a20aa8df0e732f50dfd24eb4e84a54872970091d596804fd6f2d8d7/renditions/v2/w680-0f646f90577c843021455aa74561a29de04676e45a1e5d0a8a9aea6c45544997.avif?v=0f646f90577c843021455aa74561a29de04676e45a1e5d0a8a9aea6c45544997",
+        "width": 680,
+        "height": 627,
+        "bytes": 25304,
+        "digest": "0f646f90577c843021455aa74561a29de04676e45a1e5d0a8a9aea6c45544997",
+        "contentType": "image/avif"
+      },
+      {
+        "url": "https://tbmedia.corychainsman.com/pbs/amplify_video_thumb/2091991852438200320/img/0Z6WX91Y5ZyZ7hg6/objects/cd2ade224a20aa8df0e732f50dfd24eb4e84a54872970091d596804fd6f2d8d7/renditions/v2/w1200-90d3c09aaeceb0380c29df56bf9c83b71d487d0dd558698c24119575709e075b.avif?v=90d3c09aaeceb0380c29df56bf9c83b71d487d0dd558698c24119575709e075b",
+        "width": 1200,
+        "height": 1107,
+        "bytes": 49424,
+        "digest": "90d3c09aaeceb0380c29df56bf9c83b71d487d0dd558698c24119575709e075b",
+        "contentType": "image/avif"
+      }
+    ],
+    "thumbhash": "DAgGBoB4h3d/eHiEiCd4SHeKB5WMA0g=",
+    "previewUrl": "https://tbmedia.corychainsman.com/vid/amplify_video/2091991852438200320/vid/avc1/1696x1564/Nyu5EaIe0ZhPwrzG/preview.mp4"
+  },
+  {
     "gridId": "2091716101402951809:0",
     "tweetId": "2091716101402951809",
     "mediaIndex": 0,
