@@ -1,5 +1,98 @@
 [
   {
+    "id": "2078479597008806010",
+    "sortIndex": "1709",
+    "postedAt": "Sat Jul 18 13:58:46 +0000 2026",
+    "url": "https://x.com/okazz_/status/2078479597008806010",
+    "text": "https://t.co/3aa6omaDNh",
+    "authorName": "おかず / Okazz",
+    "authorHandle": "okazz_",
+    "folderNames": [
+      "🖼️ Inspo"
+    ],
+    "likes": 379,
+    "replies": 8,
+    "reposts": 44,
+    "media": [
+      {
+        "type": "video",
+        "thumbUrl": "https://tbmedia.corychainsman.com/pbs/amplify_video_thumb/2078479356977164288/img/Dzhabnt8UxoOREIZ/objects/05537dd3c54b3bf6e820bd78319aa96978b1867d12077d1ac30a4fa97bb10d35.jpg?v=05537dd3c54b3bf6e820bd78319aa96978b1867d12077d1ac30a4fa97bb10d35",
+        "fullUrl": "https://tbmedia.corychainsman.com/vid/amplify_video/2078479356977164288/vid/avc1/1800x1800/z9lbAS0BS2c9nLhx.mp4?v=c3c47f05bc726f2215a268f6116a5114bfce4c373b0042e190cdc0cd615248a2",
+        "posterUrl": "https://tbmedia.corychainsman.com/pbs/amplify_video_thumb/2078479356977164288/img/Dzhabnt8UxoOREIZ/objects/05537dd3c54b3bf6e820bd78319aa96978b1867d12077d1ac30a4fa97bb10d35.jpg?v=05537dd3c54b3bf6e820bd78319aa96978b1867d12077d1ac30a4fa97bb10d35",
+        "width": 1800,
+        "height": 1800,
+        "aspectRatio": 1,
+        "variants": [
+          {
+            "url": "https://video.twimg.com/amplify_video/2078479356977164288/vid/avc1/1800x1800/z9lbAS0BS2c9nLhx.mp4?tag=29",
+            "bitrate": 25128000
+          },
+          {
+            "url": "https://video.twimg.com/amplify_video/2078479356977164288/vid/avc1/1080x1080/bHQHDQHAjkriAoAD.mp4?tag=29",
+            "bitrate": 8768000
+          },
+          {
+            "url": "https://video.twimg.com/amplify_video/2078479356977164288/vid/avc1/720x720/NT4KcEQhAT_YSORu.mp4?tag=29",
+            "bitrate": 1280000
+          },
+          {
+            "url": "https://video.twimg.com/amplify_video/2078479356977164288/vid/avc1/540x540/y6Kc8d4-qStjWeAB.mp4?tag=29",
+            "bitrate": 832000
+          },
+          {
+            "url": "https://video.twimg.com/amplify_video/2078479356977164288/vid/avc1/320x320/sRSXi6E2PWfCPyNP.mp4?tag=29",
+            "bitrate": 432000
+          }
+        ],
+        "imageRenditions": [
+          {
+            "url": "https://tbmedia.corychainsman.com/pbs/amplify_video_thumb/2078479356977164288/img/Dzhabnt8UxoOREIZ/objects/05537dd3c54b3bf6e820bd78319aa96978b1867d12077d1ac30a4fa97bb10d35/renditions/v2/w240-6237a0600e14fe1c201a13fc87f80551a9af707faf5b1214b7eccb46830f7268.avif?v=6237a0600e14fe1c201a13fc87f80551a9af707faf5b1214b7eccb46830f7268",
+            "width": 240,
+            "height": 240,
+            "bytes": 5593,
+            "digest": "6237a0600e14fe1c201a13fc87f80551a9af707faf5b1214b7eccb46830f7268",
+            "contentType": "image/avif"
+          },
+          {
+            "url": "https://tbmedia.corychainsman.com/pbs/amplify_video_thumb/2078479356977164288/img/Dzhabnt8UxoOREIZ/objects/05537dd3c54b3bf6e820bd78319aa96978b1867d12077d1ac30a4fa97bb10d35/renditions/v2/w320-4dcdc3c4c18d0a7f4953469815dcc8216da312f86a189bc98f7aabeb503b5be6.avif?v=4dcdc3c4c18d0a7f4953469815dcc8216da312f86a189bc98f7aabeb503b5be6",
+            "width": 320,
+            "height": 320,
+            "bytes": 9105,
+            "digest": "4dcdc3c4c18d0a7f4953469815dcc8216da312f86a189bc98f7aabeb503b5be6",
+            "contentType": "image/avif"
+          },
+          {
+            "url": "https://tbmedia.corychainsman.com/pbs/amplify_video_thumb/2078479356977164288/img/Dzhabnt8UxoOREIZ/objects/05537dd3c54b3bf6e820bd78319aa96978b1867d12077d1ac30a4fa97bb10d35/renditions/v2/w480-04b6b330601a14e2009c95f7f441ac47b9fbf23e2ea261874668b8d4fa75dc66.avif?v=04b6b330601a14e2009c95f7f441ac47b9fbf23e2ea261874668b8d4fa75dc66",
+            "width": 480,
+            "height": 480,
+            "bytes": 15603,
+            "digest": "04b6b330601a14e2009c95f7f441ac47b9fbf23e2ea261874668b8d4fa75dc66",
+            "contentType": "image/avif"
+          },
+          {
+            "url": "https://tbmedia.corychainsman.com/pbs/amplify_video_thumb/2078479356977164288/img/Dzhabnt8UxoOREIZ/objects/05537dd3c54b3bf6e820bd78319aa96978b1867d12077d1ac30a4fa97bb10d35/renditions/v2/w680-4d462cffa6d74bbade60bb62afc83d8347d1c6f965c8338959a344d5bcd89d29.avif?v=4d462cffa6d74bbade60bb62afc83d8347d1c6f965c8338959a344d5bcd89d29",
+            "width": 680,
+            "height": 680,
+            "bytes": 24971,
+            "digest": "4d462cffa6d74bbade60bb62afc83d8347d1c6f965c8338959a344d5bcd89d29",
+            "contentType": "image/avif"
+          },
+          {
+            "url": "https://tbmedia.corychainsman.com/pbs/amplify_video_thumb/2078479356977164288/img/Dzhabnt8UxoOREIZ/objects/05537dd3c54b3bf6e820bd78319aa96978b1867d12077d1ac30a4fa97bb10d35/renditions/v2/w1200-c3989b31aded34fdd1517176de84ff3b05bd6c720ec075f7e3eb02f6fa9ae0d0.avif?v=c3989b31aded34fdd1517176de84ff3b05bd6c720ec075f7e3eb02f6fa9ae0d0",
+            "width": 1200,
+            "height": 1200,
+            "bytes": 53891,
+            "digest": "c3989b31aded34fdd1517176de84ff3b05bd6c720ec075f7e3eb02f6fa9ae0d0",
+            "contentType": "image/avif"
+          }
+        ],
+        "originUrl": "https://video.twimg.com/amplify_video/2078479356977164288/vid/avc1/1800x1800/z9lbAS0BS2c9nLhx.mp4?tag=29"
+      }
+    ],
+    "representativeMediaIndex": 0,
+    "representativeMotionMediaIndex": 0
+  },
+  {
     "id": "2078531003686244360",
     "sortIndex": "1708",
     "postedAt": "Sat Jul 18 17:23:03 +0000 2026",
@@ -69896,84 +69989,6 @@
           }
         ],
         "originUrl": "https://pbs.twimg.com/media/HDKaRnJWUAEPJxB.jpg"
-      }
-    ],
-    "representativeMediaIndex": 0,
-    "representativeMotionMediaIndex": 0
-  },
-  {
-    "id": "2031472926801932598",
-    "sortIndex": "1208",
-    "postedAt": "Tue Mar 10 20:51:03 +0000 2026",
-    "url": "https://x.com/arfansthename/status/2031472926801932598",
-    "text": "@luusssso the raw scans of all the Hasselblad pictures (including Mercury and Gemini) are over at https://t.co/bPTeODsJ3w\n\noffers them in small, medium, and full-size PNGs as well as the raw TIFF file\n\nhowever they're sorted by mission and magazine so it's not as simple as keywords https://t.co/tQJzA2MbPu",
-    "authorName": "arfan /ˈɒr.fʌn/",
-    "authorHandle": "arfansthename",
-    "folderNames": [
-      "🖼️ Inspo"
-    ],
-    "likes": 476,
-    "replies": 3,
-    "reposts": 45,
-    "media": [
-      {
-        "type": "photo",
-        "thumbUrl": "https://tbmedia.corychainsman.com/pbs/media/HDE93GXaMAIaqCL/objects/15d0ab38b0294b2c05b435fe88f23b5c0d40f572019871217926c62429fad36f.jpg?v=15d0ab38b0294b2c05b435fe88f23b5c0d40f572019871217926c62429fad36f",
-        "fullUrl": "https://tbmedia.corychainsman.com/pbs/media/HDE93GXaMAIaqCL/objects/15d0ab38b0294b2c05b435fe88f23b5c0d40f572019871217926c62429fad36f.jpg?v=15d0ab38b0294b2c05b435fe88f23b5c0d40f572019871217926c62429fad36f",
-        "width": 1816,
-        "height": 2048,
-        "aspectRatio": 0.88671875,
-        "imageRenditions": [
-          {
-            "url": "https://tbmedia.corychainsman.com/pbs/media/HDE93GXaMAIaqCL/objects/15d0ab38b0294b2c05b435fe88f23b5c0d40f572019871217926c62429fad36f/renditions/v2/w240-e452aeed2aeab3a0928b21c248f000e696e1f6f71b28f6c69ce77deea45a4c57.avif?v=e452aeed2aeab3a0928b21c248f000e696e1f6f71b28f6c69ce77deea45a4c57",
-            "width": 240,
-            "height": 271,
-            "bytes": 6252,
-            "digest": "e452aeed2aeab3a0928b21c248f000e696e1f6f71b28f6c69ce77deea45a4c57",
-            "contentType": "image/avif"
-          },
-          {
-            "url": "https://tbmedia.corychainsman.com/pbs/media/HDE93GXaMAIaqCL/objects/15d0ab38b0294b2c05b435fe88f23b5c0d40f572019871217926c62429fad36f/renditions/v2/w320-adce306ffc7d264a117f4efffc51a055b65a761b5055f5a29530fd299ede5859.avif?v=adce306ffc7d264a117f4efffc51a055b65a761b5055f5a29530fd299ede5859",
-            "width": 320,
-            "height": 361,
-            "bytes": 9656,
-            "digest": "adce306ffc7d264a117f4efffc51a055b65a761b5055f5a29530fd299ede5859",
-            "contentType": "image/avif"
-          },
-          {
-            "url": "https://tbmedia.corychainsman.com/pbs/media/HDE93GXaMAIaqCL/objects/15d0ab38b0294b2c05b435fe88f23b5c0d40f572019871217926c62429fad36f/renditions/v2/w480-af2441f2a66f295d78b868b895d49a39eef108893578c5a038b507cb56414024.avif?v=af2441f2a66f295d78b868b895d49a39eef108893578c5a038b507cb56414024",
-            "width": 480,
-            "height": 541,
-            "bytes": 18946,
-            "digest": "af2441f2a66f295d78b868b895d49a39eef108893578c5a038b507cb56414024",
-            "contentType": "image/avif"
-          },
-          {
-            "url": "https://tbmedia.corychainsman.com/pbs/media/HDE93GXaMAIaqCL/objects/15d0ab38b0294b2c05b435fe88f23b5c0d40f572019871217926c62429fad36f/renditions/v2/w680-5bdef7bca1232f9459df8c04b9484f3cddebd441cd6c30a02fe10fc8c585c473.avif?v=5bdef7bca1232f9459df8c04b9484f3cddebd441cd6c30a02fe10fc8c585c473",
-            "width": 680,
-            "height": 767,
-            "bytes": 32782,
-            "digest": "5bdef7bca1232f9459df8c04b9484f3cddebd441cd6c30a02fe10fc8c585c473",
-            "contentType": "image/avif"
-          },
-          {
-            "url": "https://tbmedia.corychainsman.com/pbs/media/HDE93GXaMAIaqCL/objects/15d0ab38b0294b2c05b435fe88f23b5c0d40f572019871217926c62429fad36f/renditions/v2/w1280-38beeca86ac3e469876d419fe8dc1035705cd8704805336028b1c7a6fd7d4fc2.avif?v=38beeca86ac3e469876d419fe8dc1035705cd8704805336028b1c7a6fd7d4fc2",
-            "width": 1280,
-            "height": 1444,
-            "bytes": 87690,
-            "digest": "38beeca86ac3e469876d419fe8dc1035705cd8704805336028b1c7a6fd7d4fc2",
-            "contentType": "image/avif"
-          },
-          {
-            "url": "https://tbmedia.corychainsman.com/pbs/media/HDE93GXaMAIaqCL/objects/15d0ab38b0294b2c05b435fe88f23b5c0d40f572019871217926c62429fad36f/renditions/v2/w1816-431627804dc2967e493f7316b014dec2f3b320c0a7c4439b6d2d3543ba22bfcf.avif?v=431627804dc2967e493f7316b014dec2f3b320c0a7c4439b6d2d3543ba22bfcf",
-            "width": 1816,
-            "height": 2048,
-            "bytes": 150404,
-            "digest": "431627804dc2967e493f7316b014dec2f3b320c0a7c4439b6d2d3543ba22bfcf",
-            "contentType": "image/avif"
-          }
-        ],
-        "originUrl": "https://pbs.twimg.com/media/HDE93GXaMAIaqCL.jpg"
       }
     ],
     "representativeMediaIndex": 0,
