@@ -1,5 +1,95 @@
 [
   {
+    "id": "2078421709418287122",
+    "sortIndex": "1711",
+    "postedAt": "Sat Jul 18 10:08:45 +0000 2026",
+    "url": "https://x.com/VoxelKei/status/2078421709418287122",
+    "text": "Thank you for taking the time to write this up — and for the pointer to your thesis; that figure is beautiful. You're right that classical sphere inversion is exactly the starting point: the feature is named \"Sphere Inversion\" in the tool for that reason. \"Inversphere\" is the name of the resulting object, not a claim of new mathematics.\n\nI should say up front that I'm not a mathematician, so please correct me if I get any of this wrong. My motivation was visual rather than mathematical: with the classical map, the entire far field piles up into a dense blob at the center (10× farther ⇒ 10× closer), and I simply wanted to control that density to balance the look of the finished object.\n\n To do that, the radial profile is generalized to f(r) = R·h(v), where v = (R/r − R/D)/(1 − R/D) is a normalized inverted depth and h is a μ-law log compression, h(v) = ln(1+μv)/ln(1+μ). Classical R²/r is the special case μ = 0, D = ∞. The footage here uses μ > 0, so — as far as I can tell — the map shown is outside the conformal family: the tangential scale f/r and radial scale |f′| agree only in the classical limit. If I understand Liouville's theorem correctly, this trade-off was unavoidable: staying conformal in 3D leaves no freedom to adjust the density, so angle preservation is given up deliberately in exchange for control over it. With μ > 0, mid-field depth below the sphere surface grows like log r, so distant scenery layers logarithmically inside the sphere.\n\n The 3DGS side also needed some care: each splat's covariance is carried by the Jacobian J = s·I + (f′−s)nnᵀ, depth sorting has to be re-keyed because inversion reverses the radial order, and the on/off transition is a linear blend whose Jacobian is exactly mix(I, J, t).\n\n Thanks again for taking the time — an expert eye on this is very welcome.",
+    "quotedText": "Since nobody called it out in the comments, this “new way” to show 3D Gaussian splats is a basic 19th century construction, studied by Jakob Steiner and others, called a “sphere inversion” or “Möbius transformation”:\n\nhttps://t.co/R2t6Kho3TP\n\nIt looks good because it is an example of a so-called conformal map, which preserves angles, but distorts scales.  However, when you look at something up close, it doesn't really matter what its absolute scale is (whereas angular distortion is far more noticeable).\n\nConformal maps, namely the 16th century Mercator projection (old as it is) remains the projection of choice in Google Maps and other mapping tools, since it is the unique map that (i) preserves angles, and (ii) keeps north pointing \"up\" everywhere on the globe.\n\nThe 3DGS scheme shown here is just bumping up the usual approach up one dimension: apply a conformal projection; keep the \"up\" direction fixed.  The specific choice of conformal maps (inversions in the sphere) are in fact the only choice available in 3D, due to Liouville's theorem on conformal mappings.\n\n[Orange illustration below is from my PhD thesis on conformal geometry: https://t.co/5yANJzFfjD]",
+    "authorName": "VoxelKei",
+    "authorHandle": "VoxelKei",
+    "folderNames": [
+      "🖼️ Inspo"
+    ],
+    "likes": 392,
+    "replies": 9,
+    "reposts": 40,
+    "media": [
+      {
+        "type": "video",
+        "thumbUrl": "https://tbmedia.corychainsman.com/pbs/amplify_video_thumb/2078418089142841344/img/uuhzMA0FB8iNNIEh/objects/001e136fd212efd1e5a2429b8bf3e6a16a1ff38131828879ac00533030962be3.jpg?v=001e136fd212efd1e5a2429b8bf3e6a16a1ff38131828879ac00533030962be3",
+        "fullUrl": "https://tbmedia.corychainsman.com/vid/amplify_video/2078418089142841344/vid/avc1/1920x1080/EZV3MynRn3W3oAC1.mp4?v=f739fb32a6f8a44e78d816592231cceb76a9140d9565e8317a3e08ae4b648437",
+        "posterUrl": "https://tbmedia.corychainsman.com/pbs/amplify_video_thumb/2078418089142841344/img/uuhzMA0FB8iNNIEh/objects/001e136fd212efd1e5a2429b8bf3e6a16a1ff38131828879ac00533030962be3.jpg?v=001e136fd212efd1e5a2429b8bf3e6a16a1ff38131828879ac00533030962be3",
+        "width": 1920,
+        "height": 1080,
+        "aspectRatio": 1.7777777777777777,
+        "variants": [
+          {
+            "url": "https://video.twimg.com/amplify_video/2078418089142841344/vid/avc1/1920x1080/EZV3MynRn3W3oAC1.mp4?tag=29",
+            "bitrate": 10368000
+          },
+          {
+            "url": "https://video.twimg.com/amplify_video/2078418089142841344/vid/avc1/1280x720/qVwcYkYPdwRVtjS1.mp4?tag=29",
+            "bitrate": 2176000
+          },
+          {
+            "url": "https://video.twimg.com/amplify_video/2078418089142841344/vid/avc1/640x360/ZR0tVmAut4yuXXeP.mp4?tag=29",
+            "bitrate": 832000
+          },
+          {
+            "url": "https://video.twimg.com/amplify_video/2078418089142841344/vid/avc1/480x270/S2gIioDYynxDXgjW.mp4?tag=29",
+            "bitrate": 256000
+          }
+        ],
+        "imageRenditions": [
+          {
+            "url": "https://tbmedia.corychainsman.com/pbs/amplify_video_thumb/2078418089142841344/img/uuhzMA0FB8iNNIEh/objects/001e136fd212efd1e5a2429b8bf3e6a16a1ff38131828879ac00533030962be3/renditions/v2/w240-b5e4d1354632be5d76d9bbeb63821b5a772f691ead03cad3b15fe6a0bc9c6882.avif?v=b5e4d1354632be5d76d9bbeb63821b5a772f691ead03cad3b15fe6a0bc9c6882",
+            "width": 240,
+            "height": 134,
+            "bytes": 4155,
+            "digest": "b5e4d1354632be5d76d9bbeb63821b5a772f691ead03cad3b15fe6a0bc9c6882",
+            "contentType": "image/avif"
+          },
+          {
+            "url": "https://tbmedia.corychainsman.com/pbs/amplify_video_thumb/2078418089142841344/img/uuhzMA0FB8iNNIEh/objects/001e136fd212efd1e5a2429b8bf3e6a16a1ff38131828879ac00533030962be3/renditions/v2/w320-2caca5444c5f65e16d8a559ee7b553271a73eb0c656b972253829eb4ae5c791c.avif?v=2caca5444c5f65e16d8a559ee7b553271a73eb0c656b972253829eb4ae5c791c",
+            "width": 320,
+            "height": 180,
+            "bytes": 6518,
+            "digest": "2caca5444c5f65e16d8a559ee7b553271a73eb0c656b972253829eb4ae5c791c",
+            "contentType": "image/avif"
+          },
+          {
+            "url": "https://tbmedia.corychainsman.com/pbs/amplify_video_thumb/2078418089142841344/img/uuhzMA0FB8iNNIEh/objects/001e136fd212efd1e5a2429b8bf3e6a16a1ff38131828879ac00533030962be3/renditions/v2/w480-44c0e8113d47b396903874397da85d7812e69d552727431241489edca8a5485f.avif?v=44c0e8113d47b396903874397da85d7812e69d552727431241489edca8a5485f",
+            "width": 480,
+            "height": 270,
+            "bytes": 12969,
+            "digest": "44c0e8113d47b396903874397da85d7812e69d552727431241489edca8a5485f",
+            "contentType": "image/avif"
+          },
+          {
+            "url": "https://tbmedia.corychainsman.com/pbs/amplify_video_thumb/2078418089142841344/img/uuhzMA0FB8iNNIEh/objects/001e136fd212efd1e5a2429b8bf3e6a16a1ff38131828879ac00533030962be3/renditions/v2/w680-0d5c8fb968bc1c2e65d10598478c2dd8a483f2cf6431c71f494b2beb5dceaba7.avif?v=0d5c8fb968bc1c2e65d10598478c2dd8a483f2cf6431c71f494b2beb5dceaba7",
+            "width": 680,
+            "height": 383,
+            "bytes": 23030,
+            "digest": "0d5c8fb968bc1c2e65d10598478c2dd8a483f2cf6431c71f494b2beb5dceaba7",
+            "contentType": "image/avif"
+          },
+          {
+            "url": "https://tbmedia.corychainsman.com/pbs/amplify_video_thumb/2078418089142841344/img/uuhzMA0FB8iNNIEh/objects/001e136fd212efd1e5a2429b8bf3e6a16a1ff38131828879ac00533030962be3/renditions/v2/w1200-784dcbe0e14125498801dbaba09466c97f38c88e627fb4f2a71cfbec659ce782.avif?v=784dcbe0e14125498801dbaba09466c97f38c88e627fb4f2a71cfbec659ce782",
+            "width": 1200,
+            "height": 675,
+            "bytes": 58171,
+            "digest": "784dcbe0e14125498801dbaba09466c97f38c88e627fb4f2a71cfbec659ce782",
+            "contentType": "image/avif"
+          }
+        ],
+        "originUrl": "https://video.twimg.com/amplify_video/2078418089142841344/vid/avc1/1920x1080/EZV3MynRn3W3oAC1.mp4?tag=29"
+      }
+    ],
+    "representativeMediaIndex": 0,
+    "representativeMotionMediaIndex": 0
+  },
+  {
     "id": "2078524083575124070",
     "sortIndex": "1710",
     "postedAt": "Sat Jul 18 16:55:33 +0000 2026",
@@ -69729,95 +69819,6 @@
           }
         ],
         "originUrl": "https://pbs.twimg.com/media/HDKbm02XkAAfmqJ.jpg"
-      }
-    ],
-    "representativeMediaIndex": 0,
-    "representativeMotionMediaIndex": 0
-  },
-  {
-    "id": "2031678931007324306",
-    "sortIndex": "1210",
-    "postedAt": "Wed Mar 11 10:29:38 +0000 2026",
-    "url": "https://x.com/andreasgysin/status/2031678931007324306",
-    "text": "Throwback: “Operators” \nFour operators, four different ways to dither. \nRealtime, on-board. Cable is for power only. https://t.co/Va7kMp07qg",
-    "authorName": "ertdfgcvb 𓅰 𓅬 𓅭 𓅮 𓅯",
-    "authorHandle": "andreasgysin",
-    "folderNames": [
-      "🖼️ Inspo"
-    ],
-    "likes": 1130,
-    "replies": 9,
-    "reposts": 66,
-    "media": [
-      {
-        "type": "video",
-        "thumbUrl": "https://tbmedia.corychainsman.com/pbs/amplify_video_thumb/2031678585317003265/img/qNZ43V_uhRY53OKK/objects/562b987df2320134a049f7d98fc03030affc549bf018e0dcc4d21dc9b4022819.jpg?v=562b987df2320134a049f7d98fc03030affc549bf018e0dcc4d21dc9b4022819",
-        "fullUrl": "https://tbmedia.corychainsman.com/vid/amplify_video/2031678585317003265/vid/avc1/1080x1080/S0UO7J2xZ9WIzACo.mp4",
-        "posterUrl": "https://tbmedia.corychainsman.com/pbs/amplify_video_thumb/2031678585317003265/img/qNZ43V_uhRY53OKK/objects/562b987df2320134a049f7d98fc03030affc549bf018e0dcc4d21dc9b4022819.jpg?v=562b987df2320134a049f7d98fc03030affc549bf018e0dcc4d21dc9b4022819",
-        "width": 1280,
-        "height": 1280,
-        "aspectRatio": 1,
-        "variants": [
-          {
-            "url": "https://video.twimg.com/amplify_video/2031678585317003265/vid/avc1/1080x1080/S0UO7J2xZ9WIzACo.mp4?tag=21",
-            "bitrate": 8768000
-          },
-          {
-            "url": "https://video.twimg.com/amplify_video/2031678585317003265/vid/avc1/720x720/wDZPF26iN91Yjbkx.mp4?tag=21",
-            "bitrate": 1280000
-          },
-          {
-            "url": "https://video.twimg.com/amplify_video/2031678585317003265/vid/avc1/540x540/EKygyAxffZSXhBeU.mp4?tag=21",
-            "bitrate": 832000
-          },
-          {
-            "url": "https://video.twimg.com/amplify_video/2031678585317003265/vid/avc1/320x320/LA804NQjSBC8NvKW.mp4?tag=21",
-            "bitrate": 432000
-          }
-        ],
-        "imageRenditions": [
-          {
-            "url": "https://tbmedia.corychainsman.com/pbs/amplify_video_thumb/2031678585317003265/img/qNZ43V_uhRY53OKK/objects/562b987df2320134a049f7d98fc03030affc549bf018e0dcc4d21dc9b4022819/renditions/v2/w240-f08e58bc285f1c30dfe2d6ec6b0b5bd659dd6a6ea84d76f00900a350c2ea626e.avif?v=f08e58bc285f1c30dfe2d6ec6b0b5bd659dd6a6ea84d76f00900a350c2ea626e",
-            "width": 240,
-            "height": 240,
-            "bytes": 7811,
-            "digest": "f08e58bc285f1c30dfe2d6ec6b0b5bd659dd6a6ea84d76f00900a350c2ea626e",
-            "contentType": "image/avif"
-          },
-          {
-            "url": "https://tbmedia.corychainsman.com/pbs/amplify_video_thumb/2031678585317003265/img/qNZ43V_uhRY53OKK/objects/562b987df2320134a049f7d98fc03030affc549bf018e0dcc4d21dc9b4022819/renditions/v2/w320-deb632ec0037e90b029bc694b234c4080afe1e97c2e50050023af0a9b149e758.avif?v=deb632ec0037e90b029bc694b234c4080afe1e97c2e50050023af0a9b149e758",
-            "width": 320,
-            "height": 320,
-            "bytes": 13258,
-            "digest": "deb632ec0037e90b029bc694b234c4080afe1e97c2e50050023af0a9b149e758",
-            "contentType": "image/avif"
-          },
-          {
-            "url": "https://tbmedia.corychainsman.com/pbs/amplify_video_thumb/2031678585317003265/img/qNZ43V_uhRY53OKK/objects/562b987df2320134a049f7d98fc03030affc549bf018e0dcc4d21dc9b4022819/renditions/v2/w480-91252847221cfb8f54a12103994940e6936f53e189ba98f053f9bdfb8449ab42.avif?v=91252847221cfb8f54a12103994940e6936f53e189ba98f053f9bdfb8449ab42",
-            "width": 480,
-            "height": 480,
-            "bytes": 28420,
-            "digest": "91252847221cfb8f54a12103994940e6936f53e189ba98f053f9bdfb8449ab42",
-            "contentType": "image/avif"
-          },
-          {
-            "url": "https://tbmedia.corychainsman.com/pbs/amplify_video_thumb/2031678585317003265/img/qNZ43V_uhRY53OKK/objects/562b987df2320134a049f7d98fc03030affc549bf018e0dcc4d21dc9b4022819/renditions/v2/w680-4610e2d73189de47a0d09f5d585bd4889f4a467a3c3f9d67674bed43fc98f560.avif?v=4610e2d73189de47a0d09f5d585bd4889f4a467a3c3f9d67674bed43fc98f560",
-            "width": 680,
-            "height": 680,
-            "bytes": 49667,
-            "digest": "4610e2d73189de47a0d09f5d585bd4889f4a467a3c3f9d67674bed43fc98f560",
-            "contentType": "image/avif"
-          },
-          {
-            "url": "https://tbmedia.corychainsman.com/pbs/amplify_video_thumb/2031678585317003265/img/qNZ43V_uhRY53OKK/objects/562b987df2320134a049f7d98fc03030affc549bf018e0dcc4d21dc9b4022819/renditions/v2/w1080-af79dea39a9321ec2e90b8d34173fc43aac1f947d38232a48607f6772c5c1eb6.avif?v=af79dea39a9321ec2e90b8d34173fc43aac1f947d38232a48607f6772c5c1eb6",
-            "width": 1080,
-            "height": 1080,
-            "bytes": 97504,
-            "digest": "af79dea39a9321ec2e90b8d34173fc43aac1f947d38232a48607f6772c5c1eb6",
-            "contentType": "image/avif"
-          }
-        ],
-        "originUrl": "https://video.twimg.com/amplify_video/2031678585317003265/vid/avc1/1080x1080/S0UO7J2xZ9WIzACo.mp4?tag=21"
       }
     ],
     "representativeMediaIndex": 0,
