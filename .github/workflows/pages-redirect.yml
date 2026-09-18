@@ -1,0 +1,44 @@
+name: Pages redirect
+
+# The app is served from Cloudflare Workers at bookmarks.corychainsman.com.
+# This publishes a minimal redirect shell so the legacy GitHub Pages URL
+# forwards there instead of serving a stale build.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - ops/pages-redirect/**
+      - .github/workflows/pages-redirect.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configure Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload redirect shell
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: ops/pages-redirect
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

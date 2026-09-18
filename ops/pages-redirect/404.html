@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Moved to bookmarks.corychainsman.com</title>
+    <meta name="robots" content="noindex" />
+    <link rel="canonical" href="https://bookmarks.corychainsman.com/" />
+    <meta http-equiv="refresh" content="0; url=https://bookmarks.corychainsman.com/" />
+    <style>
+      body {
+        font-family: system-ui, sans-serif;
+        margin: 0;
+        min-height: 100vh;
+        display: grid;
+        place-items: center;
+        background: #0b0b0c;
+        color: #e7e7ea;
+        text-align: center;
+        padding: 1rem;
+      }
+      a {
+        color: inherit;
+      }
+    </style>
+    <script>
+      // Preserve any deep path/query/hash when forwarding.
+      (function () {
+        var base = '/twitter-bookmarks';
+        var path = window.location.pathname;
+        if (path.indexOf(base) === 0) path = path.slice(base.length);
+        if (path.charAt(0) !== '/') path = '/' + path;
+        window.location.replace(
+          'https://bookmarks.corychainsman.com' + path + window.location.search + window.location.hash,
+        );
+      })();
+    </script>
+  </head>
+  <body>
+    <p>
+      This site moved to
+      <a href="https://bookmarks.corychainsman.com/">bookmarks.corychainsman.com</a>.
+    </p>
+  </body>
+</html>
