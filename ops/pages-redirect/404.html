@@ -6,7 +6,33 @@
     <title>Moved to bookmarks.corychainsman.com</title>
     <meta name="robots" content="noindex" />
     <link rel="canonical" href="https://bookmarks.corychainsman.com/" />
-    <meta http-equiv="refresh" content="0; url=https://bookmarks.corychainsman.com/" />
+    <script>
+      // GitHub Pages cannot issue a real 3xx, so forward client-side.
+      // This file is also published as 404.html, which Pages serves for every
+      // path that does not exist -- and since the artifact contains only these
+      // two files, that is every path on the legacy host.
+      (function () {
+        var target = 'https://bookmarks.corychainsman.com';
+        var base = '/twitter-bookmarks';
+        var path = window.location.pathname || '/';
+
+        // Strip the project-pages base prefix ("/twitter-bookmarks[/...]").
+        if (path === base) {
+          path = '/';
+        } else if (path.indexOf(base + '/') === 0) {
+          path = path.slice(base.length);
+        }
+
+        // Directory-style index files have no meaning on the new host.
+        path = path.replace(/\/index\.html$/, '/');
+        if (path.charAt(0) !== '/') path = '/' + path;
+
+        window.location.replace(target + path + window.location.search + window.location.hash);
+      })();
+    </script>
+    <noscript>
+      <meta http-equiv="refresh" content="0; url=https://bookmarks.corychainsman.com/" />
+    </noscript>
     <style>
       body {
         font-family: system-ui, sans-serif;
@@ -23,18 +49,6 @@
         color: inherit;
       }
     </style>
-    <script>
-      // Preserve any deep path/query/hash when forwarding.
-      (function () {
-        var base = '/twitter-bookmarks';
-        var path = window.location.pathname;
-        if (path.indexOf(base) === 0) path = path.slice(base.length);
-        if (path.charAt(0) !== '/') path = '/' + path;
-        window.location.replace(
-          'https://bookmarks.corychainsman.com' + path + window.location.search + window.location.hash,
-        );
-      })();
-    </script>
   </head>
   <body>
     <p>
