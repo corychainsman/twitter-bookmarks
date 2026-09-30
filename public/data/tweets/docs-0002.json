@@ -1,5 +1,98 @@
 [
   {
+    "id": "2079901773754737109",
+    "sortIndex": "1765",
+    "postedAt": "Wed Jul 22 12:10:00 +0000 2026",
+    "url": "https://x.com/andaui/status/2079901773754737109",
+    "text": "A minimap that shows where you are within the canvas. https://t.co/ZNpflLYRA3",
+    "authorName": "Nao",
+    "authorHandle": "andaui",
+    "folderNames": [
+      "🖼️ Inspo"
+    ],
+    "likes": 1122,
+    "replies": 27,
+    "reposts": 32,
+    "media": [
+      {
+        "type": "video",
+        "thumbUrl": "https://tbmedia.corychainsman.com/pbs/amplify_video_thumb/2079893320604499968/img/xEf5vkn4ITedJohJ/objects/4baa475917e4e5407896e14d504c871fe8c03af283c43aa3cd342e1866e63aea.jpg?v=4baa475917e4e5407896e14d504c871fe8c03af283c43aa3cd342e1866e63aea",
+        "fullUrl": "https://tbmedia.corychainsman.com/vid/amplify_video/2079893320604499968/vid/avc1/2160x2160/kNzm18woWKJsvzGy.mp4?v=79e4383ce42bc4a6a3a958a08b2f132ebaa77622939866d8e1a3a42ec35439d0",
+        "posterUrl": "https://tbmedia.corychainsman.com/pbs/amplify_video_thumb/2079893320604499968/img/xEf5vkn4ITedJohJ/objects/4baa475917e4e5407896e14d504c871fe8c03af283c43aa3cd342e1866e63aea.jpg?v=4baa475917e4e5407896e14d504c871fe8c03af283c43aa3cd342e1866e63aea",
+        "width": 2160,
+        "height": 2160,
+        "aspectRatio": 1,
+        "variants": [
+          {
+            "url": "https://video.twimg.com/amplify_video/2079893320604499968/vid/avc1/2160x2160/kNzm18woWKJsvzGy.mp4?tag=29",
+            "bitrate": 25128000
+          },
+          {
+            "url": "https://video.twimg.com/amplify_video/2079893320604499968/vid/avc1/1080x1080/kgE6CcoBSCRcJjQs.mp4?tag=29",
+            "bitrate": 8768000
+          },
+          {
+            "url": "https://video.twimg.com/amplify_video/2079893320604499968/vid/avc1/720x720/1GyOeG08FjIPITcz.mp4?tag=29",
+            "bitrate": 1280000
+          },
+          {
+            "url": "https://video.twimg.com/amplify_video/2079893320604499968/vid/avc1/540x540/b90blCW4QKr_RhhC.mp4?tag=29",
+            "bitrate": 832000
+          },
+          {
+            "url": "https://video.twimg.com/amplify_video/2079893320604499968/vid/avc1/320x320/S6wBOkQW057TaghD.mp4?tag=29",
+            "bitrate": 432000
+          }
+        ],
+        "imageRenditions": [
+          {
+            "url": "https://tbmedia.corychainsman.com/pbs/amplify_video_thumb/2079893320604499968/img/xEf5vkn4ITedJohJ/objects/4baa475917e4e5407896e14d504c871fe8c03af283c43aa3cd342e1866e63aea/renditions/v2/w240-c0d4ea9878f82b1234500b0e7e592d720f8a8df5109da56b3db4c53d035f1869.avif?v=c0d4ea9878f82b1234500b0e7e592d720f8a8df5109da56b3db4c53d035f1869",
+            "width": 240,
+            "height": 240,
+            "bytes": 3123,
+            "digest": "c0d4ea9878f82b1234500b0e7e592d720f8a8df5109da56b3db4c53d035f1869",
+            "contentType": "image/avif"
+          },
+          {
+            "url": "https://tbmedia.corychainsman.com/pbs/amplify_video_thumb/2079893320604499968/img/xEf5vkn4ITedJohJ/objects/4baa475917e4e5407896e14d504c871fe8c03af283c43aa3cd342e1866e63aea/renditions/v2/w320-8132e12d7205ccbce797955eb41c805ea72a3eaee047ab7a6a3a18277463a516.avif?v=8132e12d7205ccbce797955eb41c805ea72a3eaee047ab7a6a3a18277463a516",
+            "width": 320,
+            "height": 320,
+            "bytes": 4589,
+            "digest": "8132e12d7205ccbce797955eb41c805ea72a3eaee047ab7a6a3a18277463a516",
+            "contentType": "image/avif"
+          },
+          {
+            "url": "https://tbmedia.corychainsman.com/pbs/amplify_video_thumb/2079893320604499968/img/xEf5vkn4ITedJohJ/objects/4baa475917e4e5407896e14d504c871fe8c03af283c43aa3cd342e1866e63aea/renditions/v2/w480-f0de7e8c1d1cf5b2c9bb1e34b05d1360ca31dd6c90473f03cd551e951f8324bd.avif?v=f0de7e8c1d1cf5b2c9bb1e34b05d1360ca31dd6c90473f03cd551e951f8324bd",
+            "width": 480,
+            "height": 480,
+            "bytes": 8122,
+            "digest": "f0de7e8c1d1cf5b2c9bb1e34b05d1360ca31dd6c90473f03cd551e951f8324bd",
+            "contentType": "image/avif"
+          },
+          {
+            "url": "https://tbmedia.corychainsman.com/pbs/amplify_video_thumb/2079893320604499968/img/xEf5vkn4ITedJohJ/objects/4baa475917e4e5407896e14d504c871fe8c03af283c43aa3cd342e1866e63aea/renditions/v2/w680-5f06bdcb0b7d353249aa79ca90f76f9963ba5521d01ff2cdeb27bc3a264c7150.avif?v=5f06bdcb0b7d353249aa79ca90f76f9963ba5521d01ff2cdeb27bc3a264c7150",
+            "width": 680,
+            "height": 680,
+            "bytes": 13743,
+            "digest": "5f06bdcb0b7d353249aa79ca90f76f9963ba5521d01ff2cdeb27bc3a264c7150",
+            "contentType": "image/avif"
+          },
+          {
+            "url": "https://tbmedia.corychainsman.com/pbs/amplify_video_thumb/2079893320604499968/img/xEf5vkn4ITedJohJ/objects/4baa475917e4e5407896e14d504c871fe8c03af283c43aa3cd342e1866e63aea/renditions/v2/w1200-905f7be220e201664fda25e1f82457b865af1a2fbd9ab4473a15efb90088d748.avif?v=905f7be220e201664fda25e1f82457b865af1a2fbd9ab4473a15efb90088d748",
+            "width": 1200,
+            "height": 1200,
+            "bytes": 33725,
+            "digest": "905f7be220e201664fda25e1f82457b865af1a2fbd9ab4473a15efb90088d748",
+            "contentType": "image/avif"
+          }
+        ],
+        "originUrl": "https://video.twimg.com/amplify_video/2079893320604499968/vid/avc1/2160x2160/kNzm18woWKJsvzGy.mp4?tag=29"
+      }
+    ],
+    "representativeMediaIndex": 0,
+    "representativeMotionMediaIndex": 0
+  },
+  {
     "id": "2079929221858947506",
     "sortIndex": "1764",
     "postedAt": "Wed Jul 22 13:59:04 +0000 2026",
@@ -66975,84 +67068,6 @@
           }
         ],
         "originUrl": "https://pbs.twimg.com/media/HEhRL-JXUAAFXta.jpg"
-      }
-    ],
-    "representativeMediaIndex": 0,
-    "representativeMotionMediaIndex": 0
-  },
-  {
-    "id": "2037946247844069676",
-    "sortIndex": "1264",
-    "postedAt": "Sat Mar 28 17:33:43 +0000 2026",
-    "url": "https://x.com/oliverhamrin/status/2037946247844069676",
-    "text": "Just learned about Ken Isaacs' \"Superchair\" (1967).\n\nBuilt-in book rest, shelves, lamp, drink tray, and a seat back that folds into a bed.\n\nA place for \"inventive work and the individual search for peace of mind\", as he put it.\n\nIt was meant for people to build it themselves, hence the almost unfinished look. Blueprints were published in Popular Science in 1968.",
-    "authorName": "Oliver ೫",
-    "authorHandle": "oliverhamrin",
-    "folderNames": [
-      "🖼️ Inspo"
-    ],
-    "likes": 16414,
-    "replies": 158,
-    "reposts": 1419,
-    "media": [
-      {
-        "type": "photo",
-        "thumbUrl": "https://tbmedia.corychainsman.com/pbs/media/HEg3lMEbgAAm2yh/objects/5a9fda750f4e2d15ab53622c4d449f5a30533a13114c9a9ac84e2346b92cefda.jpg?v=5a9fda750f4e2d15ab53622c4d449f5a30533a13114c9a9ac84e2346b92cefda",
-        "fullUrl": "https://tbmedia.corychainsman.com/pbs/media/HEg3lMEbgAAm2yh/objects/5a9fda750f4e2d15ab53622c4d449f5a30533a13114c9a9ac84e2346b92cefda.jpg?v=5a9fda750f4e2d15ab53622c4d449f5a30533a13114c9a9ac84e2346b92cefda",
-        "width": 2500,
-        "height": 2500,
-        "aspectRatio": 1,
-        "imageRenditions": [
-          {
-            "url": "https://tbmedia.corychainsman.com/pbs/media/HEg3lMEbgAAm2yh/objects/5a9fda750f4e2d15ab53622c4d449f5a30533a13114c9a9ac84e2346b92cefda/renditions/v2/w240-b18340dc6219fff43ba4ca5d349e25ad1ec6aa158057dfb2ee3d0d55e0a0929b.avif?v=b18340dc6219fff43ba4ca5d349e25ad1ec6aa158057dfb2ee3d0d55e0a0929b",
-            "width": 240,
-            "height": 240,
-            "bytes": 5093,
-            "digest": "b18340dc6219fff43ba4ca5d349e25ad1ec6aa158057dfb2ee3d0d55e0a0929b",
-            "contentType": "image/avif"
-          },
-          {
-            "url": "https://tbmedia.corychainsman.com/pbs/media/HEg3lMEbgAAm2yh/objects/5a9fda750f4e2d15ab53622c4d449f5a30533a13114c9a9ac84e2346b92cefda/renditions/v2/w320-f7fa229aec2724790eb94267034b65978dabbd115d20797a5766056165394435.avif?v=f7fa229aec2724790eb94267034b65978dabbd115d20797a5766056165394435",
-            "width": 320,
-            "height": 320,
-            "bytes": 7475,
-            "digest": "f7fa229aec2724790eb94267034b65978dabbd115d20797a5766056165394435",
-            "contentType": "image/avif"
-          },
-          {
-            "url": "https://tbmedia.corychainsman.com/pbs/media/HEg3lMEbgAAm2yh/objects/5a9fda750f4e2d15ab53622c4d449f5a30533a13114c9a9ac84e2346b92cefda/renditions/v2/w480-5d7808e6ab9879617268c0abe40967ad05692064592c5691863dacdbee1c2729.avif?v=5d7808e6ab9879617268c0abe40967ad05692064592c5691863dacdbee1c2729",
-            "width": 480,
-            "height": 480,
-            "bytes": 14007,
-            "digest": "5d7808e6ab9879617268c0abe40967ad05692064592c5691863dacdbee1c2729",
-            "contentType": "image/avif"
-          },
-          {
-            "url": "https://tbmedia.corychainsman.com/pbs/media/HEg3lMEbgAAm2yh/objects/5a9fda750f4e2d15ab53622c4d449f5a30533a13114c9a9ac84e2346b92cefda/renditions/v2/w680-3a4166317dc8f878524e997d1685727cd562e753b1c84dd100fd0f543b4e609a.avif?v=3a4166317dc8f878524e997d1685727cd562e753b1c84dd100fd0f543b4e609a",
-            "width": 680,
-            "height": 680,
-            "bytes": 28971,
-            "digest": "3a4166317dc8f878524e997d1685727cd562e753b1c84dd100fd0f543b4e609a",
-            "contentType": "image/avif"
-          },
-          {
-            "url": "https://tbmedia.corychainsman.com/pbs/media/HEg3lMEbgAAm2yh/objects/5a9fda750f4e2d15ab53622c4d449f5a30533a13114c9a9ac84e2346b92cefda/renditions/v2/w1280-da455a8647ad696b0d5a740102fcc921ccc755e417333fb7d1c327e5d4f4397c.avif?v=da455a8647ad696b0d5a740102fcc921ccc755e417333fb7d1c327e5d4f4397c",
-            "width": 1280,
-            "height": 1280,
-            "bytes": 156737,
-            "digest": "da455a8647ad696b0d5a740102fcc921ccc755e417333fb7d1c327e5d4f4397c",
-            "contentType": "image/avif"
-          },
-          {
-            "url": "https://tbmedia.corychainsman.com/pbs/media/HEg3lMEbgAAm2yh/objects/5a9fda750f4e2d15ab53622c4d449f5a30533a13114c9a9ac84e2346b92cefda/renditions/v2/w2048-856a11d25efe1434ef1a47e6d421ce38d76faa362998ea31146330d862e425f1.avif?v=856a11d25efe1434ef1a47e6d421ce38d76faa362998ea31146330d862e425f1",
-            "width": 2048,
-            "height": 2048,
-            "bytes": 482150,
-            "digest": "856a11d25efe1434ef1a47e6d421ce38d76faa362998ea31146330d862e425f1",
-            "contentType": "image/avif"
-          }
-        ],
-        "originUrl": "https://pbs.twimg.com/media/HEg3lMEbgAAm2yh.jpg"
       }
     ],
     "representativeMediaIndex": 0,
