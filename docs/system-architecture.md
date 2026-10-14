@@ -272,9 +272,10 @@ explicit repack remains the response to a genuine geometry change.
 
 Before the first stable JustifiedInfiniteGrid render completes, the grid is
 transparent, `visibility:hidden`, and non-interactive beneath the same shadcn
-skeleton used during discovery. It is revealed only after positioned content
-covers the viewport plus the active render threshold, so both the library's
-static-to-positioned pass and its initial lookahead appends stay out of CLS.
+skeleton used during discovery. It is revealed after positioned content covers
+the viewport, so the library's static-to-positioned pass stays out of CLS.
+The grid's active render threshold continues to mount and load the offscreen
+lookahead once the first visible layout is ready.
 Grid completion is the primary readiness signal; a resize-observed extent check
 provides the same reveal when reduced-motion rendering suppresses that callback.
 The mobile filter drawer, closed desktop filter rail, compact density popover,

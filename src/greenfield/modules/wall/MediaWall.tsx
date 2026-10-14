@@ -184,8 +184,8 @@ const MediaWallRoot = forwardRef<MediaWallHandle, MediaWallProps>(function Media
   const hasStableInitialExtent = useCallback(() => {
     const gridElement = wallElementRef.current?.querySelector<HTMLElement>("[role='list']")
     return !hasNextPage ||
-      (gridElement?.getBoundingClientRect().height ?? 0) >= window.innerHeight + renderThreshold
-  }, [hasNextPage, renderThreshold])
+      (gridElement?.getBoundingClientRect().height ?? 0) >= window.innerHeight
+  }, [hasNextPage])
 
   const revealInitialLayout = useCallback(() => {
     if (initialLayoutReady || !hasStableInitialExtent()) return false

@@ -202,6 +202,27 @@ describe("MediaWall", () => {
     expect(screen.getByTestId("justified-grid")).not.toHaveAttribute("aria-busy")
   })
 
+  it("reveals a positioned first page that covers the viewport before lookahead fills", () => {
+    render(
+      <MediaWall
+        hasNextPage
+        tiles={[tile()]}
+        initialLayoutFallback={<div>Stable wall skeleton</div>}
+        onOpenMedia={() => undefined}
+      />,
+    )
+
+    vi.spyOn(screen.getByTestId("justified-grid"), "getBoundingClientRect")
+      .mockReturnValue(domRect(0, 0, 1_280, window.innerHeight + 1))
+    fireEvent.click(screen.getByTestId("complete-layout"))
+
+    expect(screen.queryByText("Stable wall skeleton")).not.toBeInTheDocument()
+    expect(screen.getByTestId("justified-grid")).toHaveStyle({
+      opacity: "1",
+      visibility: "visible",
+    })
+  })
+
   it("recomputes the grid options after a committed density change", async () => {
     const { rerender } = render(
       <MediaWall density={0.6} tiles={[tile()]} onOpenMedia={() => undefined} />,
