@@ -1,5 +1,61 @@
 [
   {
+    "gridId": "2111545791819194865:0",
+    "tweetId": "2111545791819194865",
+    "mediaIndex": 0,
+    "mediaType": "video",
+    "thumbUrl": "https://tbmedia.corychainsman.com/pbs/amplify_video_thumb/2111545672143159296/img/tY8uLyaRjPoawlWK/objects/9172b5b3b7181cec942f95ab5fce452f2407eb723b196b930034ce5d2e352cbc.jpg?v=9172b5b3b7181cec942f95ab5fce452f2407eb723b196b930034ce5d2e352cbc",
+    "fullUrl": "https://tbmedia.corychainsman.com/vid/amplify_video/2111545672143159296/vid/avc1/1450x1346/9XykDQYf3zFzyxJX.mp4?v=e344efbf1014eca57bb7df81ad8f2a084534b923a2d8ce9e345405f1cfade06f",
+    "posterUrl": "https://tbmedia.corychainsman.com/pbs/amplify_video_thumb/2111545672143159296/img/tY8uLyaRjPoawlWK/objects/9172b5b3b7181cec942f95ab5fce452f2407eb723b196b930034ce5d2e352cbc.jpg?v=9172b5b3b7181cec942f95ab5fce452f2407eb723b196b930034ce5d2e352cbc",
+    "width": 1450,
+    "height": 1346,
+    "aspectRatio": 1.0772659732540861,
+    "imageRenditions": [
+      {
+        "url": "https://tbmedia.corychainsman.com/pbs/amplify_video_thumb/2111545672143159296/img/tY8uLyaRjPoawlWK/objects/9172b5b3b7181cec942f95ab5fce452f2407eb723b196b930034ce5d2e352cbc/renditions/v2/w240-90b4ce9e5877c481ac8062065a44498878f81626d70ef7a490d44eddbc36f56a.avif?v=90b4ce9e5877c481ac8062065a44498878f81626d70ef7a490d44eddbc36f56a",
+        "width": 240,
+        "height": 222,
+        "bytes": 2807,
+        "digest": "90b4ce9e5877c481ac8062065a44498878f81626d70ef7a490d44eddbc36f56a",
+        "contentType": "image/avif"
+      },
+      {
+        "url": "https://tbmedia.corychainsman.com/pbs/amplify_video_thumb/2111545672143159296/img/tY8uLyaRjPoawlWK/objects/9172b5b3b7181cec942f95ab5fce452f2407eb723b196b930034ce5d2e352cbc/renditions/v2/w320-a4d077e6c900bf795e1566d986a4b2d88692cf812ab785ab079f95ad5ce3b418.avif?v=a4d077e6c900bf795e1566d986a4b2d88692cf812ab785ab079f95ad5ce3b418",
+        "width": 320,
+        "height": 297,
+        "bytes": 4743,
+        "digest": "a4d077e6c900bf795e1566d986a4b2d88692cf812ab785ab079f95ad5ce3b418",
+        "contentType": "image/avif"
+      },
+      {
+        "url": "https://tbmedia.corychainsman.com/pbs/amplify_video_thumb/2111545672143159296/img/tY8uLyaRjPoawlWK/objects/9172b5b3b7181cec942f95ab5fce452f2407eb723b196b930034ce5d2e352cbc/renditions/v2/w480-bf1d7b30d501f9258e6393f98c1a0fdb8245fa1fd85dea7d86c2427f10f1791e.avif?v=bf1d7b30d501f9258e6393f98c1a0fdb8245fa1fd85dea7d86c2427f10f1791e",
+        "width": 480,
+        "height": 446,
+        "bytes": 9117,
+        "digest": "bf1d7b30d501f9258e6393f98c1a0fdb8245fa1fd85dea7d86c2427f10f1791e",
+        "contentType": "image/avif"
+      },
+      {
+        "url": "https://tbmedia.corychainsman.com/pbs/amplify_video_thumb/2111545672143159296/img/tY8uLyaRjPoawlWK/objects/9172b5b3b7181cec942f95ab5fce452f2407eb723b196b930034ce5d2e352cbc/renditions/v2/w680-bd972a8d440ef4a5fe971e755b05256e68e76d4bd1fe4bc78b100bf91e5ef706.avif?v=bd972a8d440ef4a5fe971e755b05256e68e76d4bd1fe4bc78b100bf91e5ef706",
+        "width": 680,
+        "height": 631,
+        "bytes": 14246,
+        "digest": "bd972a8d440ef4a5fe971e755b05256e68e76d4bd1fe4bc78b100bf91e5ef706",
+        "contentType": "image/avif"
+      },
+      {
+        "url": "https://tbmedia.corychainsman.com/pbs/amplify_video_thumb/2111545672143159296/img/tY8uLyaRjPoawlWK/objects/9172b5b3b7181cec942f95ab5fce452f2407eb723b196b930034ce5d2e352cbc/renditions/v2/w1200-bfb8fec78036fd90e66ce257d221ad4db1d046ea3dc9252100351efdf26daa60.avif?v=bfb8fec78036fd90e66ce257d221ad4db1d046ea3dc9252100351efdf26daa60",
+        "width": 1200,
+        "height": 1114,
+        "bytes": 33126,
+        "digest": "bfb8fec78036fd90e66ce257d221ad4db1d046ea3dc9252100351efdf26daa60",
+        "contentType": "image/avif"
+      }
+    ],
+    "thumbhash": "PAgGD4D3WIiLdXiOgwnHiIiLlSAXBocC",
+    "previewUrl": "https://tbmedia.corychainsman.com/vid/amplify_video/2111545672143159296/vid/avc1/1450x1346/9XykDQYf3zFzyxJX/preview.mp4"
+  },
+  {
     "gridId": "2111546123546661289:0",
     "tweetId": "2111546123546661289",
     "mediaIndex": 0,
