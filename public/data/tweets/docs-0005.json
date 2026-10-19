@@ -1,5 +1,95 @@
 [
   {
+    "id": "1875326868377006221",
+    "sortIndex": "288",
+    "postedAt": "Fri Jan 03 23:42:21 +0000 2025",
+    "url": "https://x.com/poetengineer__/status/1875326868377006221",
+    "text": "all the parameters (weights and biases) of the same multilayer perception over 200 epochs\n\nred/blue/yellow-three layers\nThe top right knob in each layer being the weight https://t.co/exY7b8TfwA",
+    "quotedText": "learning\n\nvisualizing a simple multilayer perceptron learns in 500 epochs to target (red) https://t.co/vSl0jXEaNx",
+    "authorName": "Kat ⊷ the Poet Engineer",
+    "authorHandle": "poetengineer__",
+    "folderNames": [
+      "🖼️ Inspo"
+    ],
+    "likes": 275,
+    "replies": 8,
+    "reposts": 17,
+    "media": [
+      {
+        "type": "video",
+        "thumbUrl": "https://tbmedia.corychainsman.com/pbs/amplify_video_thumb/1875326809073491968/img/6FOpOEvyL_Kf-YLw/objects/7c0b000801080013afb796473041e6454b2c21be82dec1a7cd339920f258f575.jpg?v=7c0b000801080013afb796473041e6454b2c21be82dec1a7cd339920f258f575",
+        "fullUrl": "https://tbmedia.corychainsman.com/vid/amplify_video/1875326809073491968/vid/avc1/1080x1080/4y47CAy9ViWQ8lxG.mp4",
+        "posterUrl": "https://tbmedia.corychainsman.com/pbs/amplify_video_thumb/1875326809073491968/img/6FOpOEvyL_Kf-YLw/objects/7c0b000801080013afb796473041e6454b2c21be82dec1a7cd339920f258f575.jpg?v=7c0b000801080013afb796473041e6454b2c21be82dec1a7cd339920f258f575",
+        "width": 1080,
+        "height": 1080,
+        "aspectRatio": 1,
+        "variants": [
+          {
+            "url": "https://video.twimg.com/amplify_video/1875326809073491968/vid/avc1/1080x1080/4y47CAy9ViWQ8lxG.mp4?tag=16",
+            "bitrate": 8768000
+          },
+          {
+            "url": "https://video.twimg.com/amplify_video/1875326809073491968/vid/avc1/720x720/du56F4Jzm3ho1NRJ.mp4?tag=16",
+            "bitrate": 1280000
+          },
+          {
+            "url": "https://video.twimg.com/amplify_video/1875326809073491968/vid/avc1/540x540/a_HznCB33tuLhyQi.mp4?tag=16",
+            "bitrate": 832000
+          },
+          {
+            "url": "https://video.twimg.com/amplify_video/1875326809073491968/vid/avc1/320x320/rDCuu3hXkVhHmo1-.mp4?tag=16",
+            "bitrate": 432000
+          }
+        ],
+        "imageRenditions": [
+          {
+            "url": "https://tbmedia.corychainsman.com/pbs/amplify_video_thumb/1875326809073491968/img/6FOpOEvyL_Kf-YLw/objects/7c0b000801080013afb796473041e6454b2c21be82dec1a7cd339920f258f575/renditions/v2/w240-617743895af14926dfe35596e64727490dc77f705addec64ff9255fdb4b111fa.avif?v=617743895af14926dfe35596e64727490dc77f705addec64ff9255fdb4b111fa",
+            "width": 240,
+            "height": 240,
+            "bytes": 3727,
+            "digest": "617743895af14926dfe35596e64727490dc77f705addec64ff9255fdb4b111fa",
+            "contentType": "image/avif"
+          },
+          {
+            "url": "https://tbmedia.corychainsman.com/pbs/amplify_video_thumb/1875326809073491968/img/6FOpOEvyL_Kf-YLw/objects/7c0b000801080013afb796473041e6454b2c21be82dec1a7cd339920f258f575/renditions/v2/w320-6af20d441e5da4584816e9f8eb1e29e5dbaf11d74dd9d4e48f9fb8bcdfe08d16.avif?v=6af20d441e5da4584816e9f8eb1e29e5dbaf11d74dd9d4e48f9fb8bcdfe08d16",
+            "width": 320,
+            "height": 320,
+            "bytes": 5240,
+            "digest": "6af20d441e5da4584816e9f8eb1e29e5dbaf11d74dd9d4e48f9fb8bcdfe08d16",
+            "contentType": "image/avif"
+          },
+          {
+            "url": "https://tbmedia.corychainsman.com/pbs/amplify_video_thumb/1875326809073491968/img/6FOpOEvyL_Kf-YLw/objects/7c0b000801080013afb796473041e6454b2c21be82dec1a7cd339920f258f575/renditions/v2/w480-8c41154da2c5ea8cbe853f294ff171a1a110c97625dad4c65b46f4f6ca0d2652.avif?v=8c41154da2c5ea8cbe853f294ff171a1a110c97625dad4c65b46f4f6ca0d2652",
+            "width": 480,
+            "height": 480,
+            "bytes": 8776,
+            "digest": "8c41154da2c5ea8cbe853f294ff171a1a110c97625dad4c65b46f4f6ca0d2652",
+            "contentType": "image/avif"
+          },
+          {
+            "url": "https://tbmedia.corychainsman.com/pbs/amplify_video_thumb/1875326809073491968/img/6FOpOEvyL_Kf-YLw/objects/7c0b000801080013afb796473041e6454b2c21be82dec1a7cd339920f258f575/renditions/v2/w680-65342e128f88dfcd1adde9b337587a6d309f96a4a62bc36789224cf93bdcf106.avif?v=65342e128f88dfcd1adde9b337587a6d309f96a4a62bc36789224cf93bdcf106",
+            "width": 680,
+            "height": 680,
+            "bytes": 13789,
+            "digest": "65342e128f88dfcd1adde9b337587a6d309f96a4a62bc36789224cf93bdcf106",
+            "contentType": "image/avif"
+          },
+          {
+            "url": "https://tbmedia.corychainsman.com/pbs/amplify_video_thumb/1875326809073491968/img/6FOpOEvyL_Kf-YLw/objects/7c0b000801080013afb796473041e6454b2c21be82dec1a7cd339920f258f575/renditions/v2/w1080-8e642aed4230448a487d80c22a58cc74b8a5e5a6d5666a02b5a391c7101ca5f6.avif?v=8e642aed4230448a487d80c22a58cc74b8a5e5a6d5666a02b5a391c7101ca5f6",
+            "width": 1080,
+            "height": 1080,
+            "bytes": 24689,
+            "digest": "8e642aed4230448a487d80c22a58cc74b8a5e5a6d5666a02b5a391c7101ca5f6",
+            "contentType": "image/avif"
+          }
+        ],
+        "originUrl": "https://video.twimg.com/amplify_video/1875326809073491968/vid/avc1/1080x1080/4y47CAy9ViWQ8lxG.mp4?tag=16"
+      }
+    ],
+    "representativeMediaIndex": 0,
+    "representativeMotionMediaIndex": 0
+  },
+  {
     "id": "1874821767786889572",
     "sortIndex": "287",
     "postedAt": "Thu Jan 02 14:15:16 +0000 2025",
