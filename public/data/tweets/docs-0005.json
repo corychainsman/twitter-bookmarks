@@ -1,5 +1,161 @@
 [
   {
+    "id": "1877276136347967767",
+    "sortIndex": "301",
+    "postedAt": "Thu Jan 09 08:48:03 +0000 2025",
+    "url": "https://x.com/poetengineer__/status/1877276136347967767",
+    "text": "https://t.co/d89pTGWjmI",
+    "quotedText": "experiments with training GAN to generate new glyphs https://t.co/KyQtfz2E0x",
+    "authorName": "Kat ⊷ the Poet Engineer",
+    "authorHandle": "poetengineer__",
+    "folderNames": [
+      "🖼️ Inspo"
+    ],
+    "likes": 419,
+    "replies": 7,
+    "reposts": 17,
+    "media": [
+      {
+        "type": "video",
+        "thumbUrl": "https://tbmedia.corychainsman.com/pbs/amplify_video_thumb/1877276083931717632/img/7Sye6SchQjTvafy4/objects/e1773532d5aa2ef017cd52559cd1c7a7dad6e66a6481fdd982ad91a6fd50effd.jpg?v=e1773532d5aa2ef017cd52559cd1c7a7dad6e66a6481fdd982ad91a6fd50effd",
+        "fullUrl": "https://tbmedia.corychainsman.com/vid/amplify_video/1877276083931717632/vid/avc1/720x884/lGkarrJjTpGHMySe.mp4",
+        "posterUrl": "https://tbmedia.corychainsman.com/pbs/amplify_video_thumb/1877276083931717632/img/7Sye6SchQjTvafy4/objects/e1773532d5aa2ef017cd52559cd1c7a7dad6e66a6481fdd982ad91a6fd50effd.jpg?v=e1773532d5aa2ef017cd52559cd1c7a7dad6e66a6481fdd982ad91a6fd50effd",
+        "width": 720,
+        "height": 884,
+        "aspectRatio": 0.8144796380090498,
+        "variants": [
+          {
+            "url": "https://video.twimg.com/amplify_video/1877276083931717632/vid/avc1/720x884/lGkarrJjTpGHMySe.mp4?tag=16",
+            "bitrate": 2176000
+          },
+          {
+            "url": "https://video.twimg.com/amplify_video/1877276083931717632/vid/avc1/480x588/N0m04e1wmQ87ap4m.mp4?tag=16",
+            "bitrate": 950000
+          },
+          {
+            "url": "https://video.twimg.com/amplify_video/1877276083931717632/vid/avc1/320x392/m7HVL4Wy_mJVgstb.mp4?tag=16",
+            "bitrate": 632000
+          }
+        ],
+        "imageRenditions": [
+          {
+            "url": "https://tbmedia.corychainsman.com/pbs/amplify_video_thumb/1877276083931717632/img/7Sye6SchQjTvafy4/objects/e1773532d5aa2ef017cd52559cd1c7a7dad6e66a6481fdd982ad91a6fd50effd/renditions/v2/w240-16cd93707fea741955733c245c76ca5f93493b2ab55815bcda0d78255e83b785.avif?v=16cd93707fea741955733c245c76ca5f93493b2ab55815bcda0d78255e83b785",
+            "width": 240,
+            "height": 295,
+            "bytes": 9375,
+            "digest": "16cd93707fea741955733c245c76ca5f93493b2ab55815bcda0d78255e83b785",
+            "contentType": "image/avif"
+          },
+          {
+            "url": "https://tbmedia.corychainsman.com/pbs/amplify_video_thumb/1877276083931717632/img/7Sye6SchQjTvafy4/objects/e1773532d5aa2ef017cd52559cd1c7a7dad6e66a6481fdd982ad91a6fd50effd/renditions/v2/w320-500dbd78b7f2b50ad7a4ab13033edfeb55e66e73cf991fe395bd17216e7645f2.avif?v=500dbd78b7f2b50ad7a4ab13033edfeb55e66e73cf991fe395bd17216e7645f2",
+            "width": 320,
+            "height": 393,
+            "bytes": 13192,
+            "digest": "500dbd78b7f2b50ad7a4ab13033edfeb55e66e73cf991fe395bd17216e7645f2",
+            "contentType": "image/avif"
+          },
+          {
+            "url": "https://tbmedia.corychainsman.com/pbs/amplify_video_thumb/1877276083931717632/img/7Sye6SchQjTvafy4/objects/e1773532d5aa2ef017cd52559cd1c7a7dad6e66a6481fdd982ad91a6fd50effd/renditions/v2/w480-459a396c0e9891f31e1461e01d397b98d7d3484b2dd6bcf9d269cb4b986ee2b1.avif?v=459a396c0e9891f31e1461e01d397b98d7d3484b2dd6bcf9d269cb4b986ee2b1",
+            "width": 480,
+            "height": 589,
+            "bytes": 24524,
+            "digest": "459a396c0e9891f31e1461e01d397b98d7d3484b2dd6bcf9d269cb4b986ee2b1",
+            "contentType": "image/avif"
+          },
+          {
+            "url": "https://tbmedia.corychainsman.com/pbs/amplify_video_thumb/1877276083931717632/img/7Sye6SchQjTvafy4/objects/e1773532d5aa2ef017cd52559cd1c7a7dad6e66a6481fdd982ad91a6fd50effd/renditions/v2/w680-d1d3dbfc4452bb88807b4d88d32cd9e0434651f77c2b223851cd5c92f5983653.avif?v=d1d3dbfc4452bb88807b4d88d32cd9e0434651f77c2b223851cd5c92f5983653",
+            "width": 680,
+            "height": 835,
+            "bytes": 40824,
+            "digest": "d1d3dbfc4452bb88807b4d88d32cd9e0434651f77c2b223851cd5c92f5983653",
+            "contentType": "image/avif"
+          },
+          {
+            "url": "https://tbmedia.corychainsman.com/pbs/amplify_video_thumb/1877276083931717632/img/7Sye6SchQjTvafy4/objects/e1773532d5aa2ef017cd52559cd1c7a7dad6e66a6481fdd982ad91a6fd50effd/renditions/v2/w720-6db41b041e0b3387f7978e427d72e91f5dcea19ed6b5dc1da5ef6ad4d398824e.avif?v=6db41b041e0b3387f7978e427d72e91f5dcea19ed6b5dc1da5ef6ad4d398824e",
+            "width": 720,
+            "height": 884,
+            "bytes": 43354,
+            "digest": "6db41b041e0b3387f7978e427d72e91f5dcea19ed6b5dc1da5ef6ad4d398824e",
+            "contentType": "image/avif"
+          }
+        ],
+        "originUrl": "https://video.twimg.com/amplify_video/1877276083931717632/vid/avc1/720x884/lGkarrJjTpGHMySe.mp4?tag=16"
+      }
+    ],
+    "representativeMediaIndex": 0,
+    "representativeMotionMediaIndex": 0
+  },
+  {
+    "id": "1877145511439851943",
+    "sortIndex": "300",
+    "postedAt": "Thu Jan 09 00:09:00 +0000 2025",
+    "url": "https://x.com/AkiyoshiKitaoka/status/1877145511439851943",
+    "text": "illusory green can https://t.co/0ea4wEKylS",
+    "authorName": "Akiyoshi Kitaoka",
+    "authorHandle": "AkiyoshiKitaoka",
+    "folderNames": [
+      "🖼️ Inspo"
+    ],
+    "likes": 245,
+    "replies": 8,
+    "reposts": 30,
+    "media": [
+      {
+        "type": "photo",
+        "thumbUrl": "https://tbmedia.corychainsman.com/pbs/media/Ggz15H1aMAIEQ3j/objects/5c82e85775a3837d70dbd0685cb920c03ed1fe8584da6b46ce71faac58efabb0.jpg?v=5c82e85775a3837d70dbd0685cb920c03ed1fe8584da6b46ce71faac58efabb0",
+        "fullUrl": "https://tbmedia.corychainsman.com/pbs/media/Ggz15H1aMAIEQ3j/objects/5c82e85775a3837d70dbd0685cb920c03ed1fe8584da6b46ce71faac58efabb0.jpg?v=5c82e85775a3837d70dbd0685cb920c03ed1fe8584da6b46ce71faac58efabb0",
+        "width": 729,
+        "height": 970,
+        "aspectRatio": 0.7515463917525773,
+        "imageRenditions": [
+          {
+            "url": "https://tbmedia.corychainsman.com/pbs/media/Ggz15H1aMAIEQ3j/objects/5c82e85775a3837d70dbd0685cb920c03ed1fe8584da6b46ce71faac58efabb0/renditions/v2/w240-32e41b318e1c668bdc86b99b0c9f2158972015cd61b8ba5d82a6dc606d683359.avif?v=32e41b318e1c668bdc86b99b0c9f2158972015cd61b8ba5d82a6dc606d683359",
+            "width": 240,
+            "height": 320,
+            "bytes": 15948,
+            "digest": "32e41b318e1c668bdc86b99b0c9f2158972015cd61b8ba5d82a6dc606d683359",
+            "contentType": "image/avif"
+          },
+          {
+            "url": "https://tbmedia.corychainsman.com/pbs/media/Ggz15H1aMAIEQ3j/objects/5c82e85775a3837d70dbd0685cb920c03ed1fe8584da6b46ce71faac58efabb0/renditions/v2/w320-cb7032877545297e1c65c664d9829f10a52ae5ad7e3e7a6c435af44b19fdb800.avif?v=cb7032877545297e1c65c664d9829f10a52ae5ad7e3e7a6c435af44b19fdb800",
+            "width": 320,
+            "height": 426,
+            "bytes": 26875,
+            "digest": "cb7032877545297e1c65c664d9829f10a52ae5ad7e3e7a6c435af44b19fdb800",
+            "contentType": "image/avif"
+          },
+          {
+            "url": "https://tbmedia.corychainsman.com/pbs/media/Ggz15H1aMAIEQ3j/objects/5c82e85775a3837d70dbd0685cb920c03ed1fe8584da6b46ce71faac58efabb0/renditions/v2/w480-565813dcfcc55f017a7a74f1ef3f6929de13b0f272ca05bd05507137063efda4.avif?v=565813dcfcc55f017a7a74f1ef3f6929de13b0f272ca05bd05507137063efda4",
+            "width": 480,
+            "height": 639,
+            "bytes": 53037,
+            "digest": "565813dcfcc55f017a7a74f1ef3f6929de13b0f272ca05bd05507137063efda4",
+            "contentType": "image/avif"
+          },
+          {
+            "url": "https://tbmedia.corychainsman.com/pbs/media/Ggz15H1aMAIEQ3j/objects/5c82e85775a3837d70dbd0685cb920c03ed1fe8584da6b46ce71faac58efabb0/renditions/v2/w680-66d200f3caaac11424b0827f3e5c13ba936c3bd3a1d9ce20ce4889b1becb78a0.avif?v=66d200f3caaac11424b0827f3e5c13ba936c3bd3a1d9ce20ce4889b1becb78a0",
+            "width": 680,
+            "height": 905,
+            "bytes": 91783,
+            "digest": "66d200f3caaac11424b0827f3e5c13ba936c3bd3a1d9ce20ce4889b1becb78a0",
+            "contentType": "image/avif"
+          },
+          {
+            "url": "https://tbmedia.corychainsman.com/pbs/media/Ggz15H1aMAIEQ3j/objects/5c82e85775a3837d70dbd0685cb920c03ed1fe8584da6b46ce71faac58efabb0/renditions/v2/w729-3a3742b94401a05bf6ab316cef45a02749aed0dcf6886f550b5474ff1488328e.avif?v=3a3742b94401a05bf6ab316cef45a02749aed0dcf6886f550b5474ff1488328e",
+            "width": 729,
+            "height": 970,
+            "bytes": 103519,
+            "digest": "3a3742b94401a05bf6ab316cef45a02749aed0dcf6886f550b5474ff1488328e",
+            "contentType": "image/avif"
+          }
+        ],
+        "originUrl": "https://pbs.twimg.com/media/Ggz15H1aMAIEQ3j.jpg"
+      }
+    ],
+    "representativeMediaIndex": 0,
+    "representativeMotionMediaIndex": 0
+  },
+  {
     "id": "1877030987005124898",
     "sortIndex": "299",
     "postedAt": "Wed Jan 08 16:33:55 +0000 2025",
