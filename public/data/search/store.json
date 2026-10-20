@@ -1,5 +1,15 @@
 [
   {
+    "id": "2111779366787026962",
+    "text": "It is becoming f*cking dangerous\n\nA 23-year-old dev from China just ran 300 Claude Code agents in parallel and hooked them to a verification layer so none of them could bullshit him\n\nHe opens the live dashboard:\n- 300 agents writing and checking at the same time\n- Every output verified against the source in ~100 ms\n- Three passes over 100 company profiles → zero errors left\n- Everything dumped straight into an Obsidian vault\n\nThe trick is the split: one model does the work, a cheaper one decides if the claim is actually true. The loop doesn’t stop until everything checks out\n\nAn analyst team would bill weeks for this. He got it in one run\n\nSame kind of Second Brain + swarm setup that keeps circulating. Bookmark the full breakdown",
+    "quotedText": "https://t.co/WRvaPXgqIa",
+    "articleTitle": "",
+    "articleText": "",
+    "authorName": "Lyren_o",
+    "authorHandle": "0xAIlabs",
+    "folderNames": "🖼️ Inspo"
+  },
+  {
     "id": "2111615067359699115",
     "text": "Dipole Antenna Linear Arrays:\nA sinusoidally-excited dipole antenna radiates equally in all directions perpendicular to its axis.  The xz view is the \"side view\" which shows the length of the antenna, and the xy view is the \"top view\" which looks down along the antenna axis. https://t.co/15kjvuXSW9",
     "quotedText": "",
