@@ -1,5 +1,94 @@
 [
   {
+    "id": "2114559456763883871",
+    "sortIndex": "2328",
+    "postedAt": "Mon Oct 26 03:27:15 +0000 2026",
+    "url": "https://x.com/azlenelza/status/2114559456763883871",
+    "text": "Dropping some caps- making a procedural system that creates and animates ornamental lettering https://t.co/1yvnINAXS8",
+    "authorName": "Azlen",
+    "authorHandle": "azlenelza",
+    "folderNames": [
+      "🖼️ Inspo"
+    ],
+    "likes": 1249,
+    "replies": 50,
+    "reposts": 56,
+    "media": [
+      {
+        "type": "video",
+        "thumbUrl": "https://tbmedia.corychainsman.com/pbs/amplify_video_thumb/2114534355435704320/img/FQzxffA2x7H4i6qK/objects/4a08fa037fe1859c5da169287b76c8963011168e565e5e7a7dc327e8683a6318.jpg?v=4a08fa037fe1859c5da169287b76c8963011168e565e5e7a7dc327e8683a6318",
+        "fullUrl": "https://tbmedia.corychainsman.com/vid/amplify_video/2114534355435704320/vid/avc1/1920x1080/yN8Lrq_EaKfDyZJZ.mp4?v=e50753900859f1c6afd903e2eb94e828d2045484586e0add7fc38e6fc276a6e5",
+        "posterUrl": "https://tbmedia.corychainsman.com/pbs/amplify_video_thumb/2114534355435704320/img/FQzxffA2x7H4i6qK/objects/4a08fa037fe1859c5da169287b76c8963011168e565e5e7a7dc327e8683a6318.jpg?v=4a08fa037fe1859c5da169287b76c8963011168e565e5e7a7dc327e8683a6318",
+        "width": 1920,
+        "height": 1080,
+        "aspectRatio": 1.7777777777777777,
+        "variants": [
+          {
+            "url": "https://video.twimg.com/amplify_video/2114534355435704320/vid/avc1/1920x1080/yN8Lrq_EaKfDyZJZ.mp4?tag=29",
+            "bitrate": 10368000
+          },
+          {
+            "url": "https://video.twimg.com/amplify_video/2114534355435704320/vid/avc1/1280x720/HsCbBtxwn70K3JoV.mp4?tag=29",
+            "bitrate": 2176000
+          },
+          {
+            "url": "https://video.twimg.com/amplify_video/2114534355435704320/vid/avc1/640x360/We9i7E_ae09W-xLP.mp4?tag=29",
+            "bitrate": 832000
+          },
+          {
+            "url": "https://video.twimg.com/amplify_video/2114534355435704320/vid/avc1/480x270/MJjO-FXykTdHqk38.mp4?tag=29",
+            "bitrate": 256000
+          }
+        ],
+        "imageRenditions": [
+          {
+            "url": "https://tbmedia.corychainsman.com/pbs/amplify_video_thumb/2114534355435704320/img/FQzxffA2x7H4i6qK/objects/4a08fa037fe1859c5da169287b76c8963011168e565e5e7a7dc327e8683a6318/renditions/v2/w240-bb6b6e9efa75f4d1faee557c6a73ad9cdbbec1afea1bfe6fee179ef571676ec7.avif?v=bb6b6e9efa75f4d1faee557c6a73ad9cdbbec1afea1bfe6fee179ef571676ec7",
+            "width": 240,
+            "height": 134,
+            "bytes": 2354,
+            "digest": "bb6b6e9efa75f4d1faee557c6a73ad9cdbbec1afea1bfe6fee179ef571676ec7",
+            "contentType": "image/avif"
+          },
+          {
+            "url": "https://tbmedia.corychainsman.com/pbs/amplify_video_thumb/2114534355435704320/img/FQzxffA2x7H4i6qK/objects/4a08fa037fe1859c5da169287b76c8963011168e565e5e7a7dc327e8683a6318/renditions/v2/w320-a3c45b81037a7d9534ce709a45edc3909bf4e9024812d9a83975484407535658.avif?v=a3c45b81037a7d9534ce709a45edc3909bf4e9024812d9a83975484407535658",
+            "width": 320,
+            "height": 180,
+            "bytes": 3522,
+            "digest": "a3c45b81037a7d9534ce709a45edc3909bf4e9024812d9a83975484407535658",
+            "contentType": "image/avif"
+          },
+          {
+            "url": "https://tbmedia.corychainsman.com/pbs/amplify_video_thumb/2114534355435704320/img/FQzxffA2x7H4i6qK/objects/4a08fa037fe1859c5da169287b76c8963011168e565e5e7a7dc327e8683a6318/renditions/v2/w480-dda1d0a81be0ab4ee8ee475b6b39441e639500bab3d71d08fe532bd72206f7cc.avif?v=dda1d0a81be0ab4ee8ee475b6b39441e639500bab3d71d08fe532bd72206f7cc",
+            "width": 480,
+            "height": 270,
+            "bytes": 6590,
+            "digest": "dda1d0a81be0ab4ee8ee475b6b39441e639500bab3d71d08fe532bd72206f7cc",
+            "contentType": "image/avif"
+          },
+          {
+            "url": "https://tbmedia.corychainsman.com/pbs/amplify_video_thumb/2114534355435704320/img/FQzxffA2x7H4i6qK/objects/4a08fa037fe1859c5da169287b76c8963011168e565e5e7a7dc327e8683a6318/renditions/v2/w680-d9577adb2cde93ee947ccbf282db570241f2711e135fba42c403afd2f7e52048.avif?v=d9577adb2cde93ee947ccbf282db570241f2711e135fba42c403afd2f7e52048",
+            "width": 680,
+            "height": 383,
+            "bytes": 11074,
+            "digest": "d9577adb2cde93ee947ccbf282db570241f2711e135fba42c403afd2f7e52048",
+            "contentType": "image/avif"
+          },
+          {
+            "url": "https://tbmedia.corychainsman.com/pbs/amplify_video_thumb/2114534355435704320/img/FQzxffA2x7H4i6qK/objects/4a08fa037fe1859c5da169287b76c8963011168e565e5e7a7dc327e8683a6318/renditions/v2/w1200-0a70a1d81ee409df21513103681e330de730e8d5c40407c3d87b5b4c17865823.avif?v=0a70a1d81ee409df21513103681e330de730e8d5c40407c3d87b5b4c17865823",
+            "width": 1200,
+            "height": 675,
+            "bytes": 27205,
+            "digest": "0a70a1d81ee409df21513103681e330de730e8d5c40407c3d87b5b4c17865823",
+            "contentType": "image/avif"
+          }
+        ],
+        "originUrl": "https://video.twimg.com/amplify_video/2114534355435704320/vid/avc1/1920x1080/yN8Lrq_EaKfDyZJZ.mp4?tag=29"
+      }
+    ],
+    "representativeMediaIndex": 0,
+    "representativeMotionMediaIndex": 0
+  },
+  {
     "id": "2114163990318456864",
     "sortIndex": "2327",
     "postedAt": "Sun Oct 25 01:15:49 +0000 2026",
@@ -10,9 +99,9 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 250,
-    "replies": 16,
-    "reposts": 2,
+    "likes": 550,
+    "replies": 33,
+    "reposts": 7,
     "media": [
       {
         "type": "video",
@@ -99,9 +188,9 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 843,
-    "replies": 29,
-    "reposts": 58,
+    "likes": 1234,
+    "replies": 38,
+    "reposts": 76,
     "media": [
       {
         "type": "video",
@@ -192,7 +281,7 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 2984,
+    "likes": 3006,
     "replies": 27,
     "reposts": 226,
     "media": [
@@ -447,7 +536,7 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 381,
+    "likes": 383,
     "replies": 4,
     "reposts": 15,
     "media": [
@@ -536,9 +625,9 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 2210,
+    "likes": 2213,
     "replies": 57,
-    "reposts": 146,
+    "reposts": 147,
     "media": [
       {
         "type": "photo",
@@ -912,7 +1001,7 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 711,
+    "likes": 713,
     "replies": 8,
     "reposts": 38,
     "media": [
@@ -1001,7 +1090,7 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 81455,
+    "likes": 81476,
     "replies": 209,
     "reposts": 10480,
     "media": [
@@ -1086,7 +1175,7 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 5308,
+    "likes": 5315,
     "replies": 85,
     "reposts": 349,
     "media": [
@@ -1341,8 +1430,8 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 11530,
-    "replies": 191,
+    "likes": 11534,
+    "replies": 190,
     "reposts": 850,
     "media": [
       {
@@ -1435,9 +1524,9 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 13573,
-    "replies": 713,
-    "reposts": 1015,
+    "likes": 13589,
+    "replies": 715,
+    "reposts": 1017,
     "media": [
       {
         "type": "video",
@@ -1524,7 +1613,7 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 293,
+    "likes": 292,
     "replies": 8,
     "reposts": 32,
     "media": [
@@ -1585,9 +1674,9 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 868,
-    "replies": 8,
-    "reposts": 112,
+    "likes": 915,
+    "replies": 9,
+    "reposts": 117,
     "media": [
       {
         "type": "video",
@@ -1674,7 +1763,7 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 118,
+    "likes": 119,
     "replies": 2,
     "reposts": 8,
     "media": [
@@ -1759,9 +1848,9 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 12981,
-    "replies": 219,
-    "reposts": 1007,
+    "likes": 12975,
+    "replies": 220,
+    "reposts": 1006,
     "media": [
       {
         "type": "photo",
@@ -1922,7 +2011,7 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 1143,
+    "likes": 1141,
     "replies": 14,
     "reposts": 86,
     "media": [
@@ -2722,7 +2811,7 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 1326,
+    "likes": 1329,
     "replies": 17,
     "reposts": 148,
     "media": [
@@ -2815,9 +2904,9 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 1256,
+    "likes": 1255,
     "replies": 15,
-    "reposts": 111,
+    "reposts": 112,
     "media": [
       {
         "type": "photo",
@@ -3015,9 +3104,9 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 6831,
+    "likes": 6826,
     "replies": 27,
-    "reposts": 642,
+    "reposts": 641,
     "media": [
       {
         "type": "photo",
@@ -3069,8 +3158,8 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 571,
-    "replies": 9,
+    "likes": 570,
+    "replies": 8,
     "reposts": 55,
     "media": [
       {
@@ -3147,7 +3236,7 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 1783,
+    "likes": 1784,
     "replies": 19,
     "reposts": 137,
     "media": [
@@ -3386,9 +3475,9 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 2318,
+    "likes": 2319,
     "replies": 17,
-    "reposts": 291,
+    "reposts": 293,
     "media": [
       {
         "type": "photo",
@@ -3456,9 +3545,9 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 11906,
+    "likes": 11907,
     "replies": 299,
-    "reposts": 1122,
+    "reposts": 1118,
     "media": [
       {
         "type": "photo",
@@ -3679,9 +3768,9 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 1928,
+    "likes": 1932,
     "replies": 17,
-    "reposts": 175,
+    "reposts": 176,
     "media": [
       {
         "type": "video",
@@ -3768,7 +3857,7 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 239,
+    "likes": 242,
     "replies": 6,
     "reposts": 8,
     "media": [
@@ -3858,9 +3947,9 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 2286,
-    "replies": 50,
-    "reposts": 111,
+    "likes": 2312,
+    "replies": 51,
+    "reposts": 115,
     "media": [
       {
         "type": "video",
@@ -3947,9 +4036,9 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 18394,
-    "replies": 335,
-    "reposts": 2083,
+    "likes": 18390,
+    "replies": 336,
+    "reposts": 2082,
     "media": [
       {
         "type": "video",
@@ -4225,7 +4314,7 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 4421,
+    "likes": 4420,
     "replies": 27,
     "reposts": 390,
     "media": [
@@ -4663,9 +4752,9 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 5539,
+    "likes": 5536,
     "replies": 39,
-    "reposts": 260,
+    "reposts": 261,
     "media": [
       {
         "type": "photo",
@@ -4800,7 +4889,7 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 189,
+    "likes": 187,
     "replies": 13,
     "reposts": 4,
     "media": [
@@ -5055,9 +5144,9 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 9179,
+    "likes": 9175,
     "replies": 58,
-    "reposts": 1034,
+    "reposts": 1033,
     "media": [
       {
         "type": "video",
@@ -5379,9 +5468,9 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 3564,
+    "likes": 3563,
     "replies": 100,
-    "reposts": 500,
+    "reposts": 501,
     "media": [
       {
         "type": "video",
@@ -5468,7 +5557,7 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 1647,
+    "likes": 1646,
     "replies": 7,
     "reposts": 176,
     "media": [
@@ -5553,9 +5642,9 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 37399,
+    "likes": 37391,
     "replies": 79,
-    "reposts": 3227,
+    "reposts": 3229,
     "media": [
       {
         "type": "video",
@@ -5724,7 +5813,7 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 991,
+    "likes": 992,
     "replies": 14,
     "reposts": 86,
     "media": [
@@ -5811,7 +5900,7 @@
     ],
     "likes": 980,
     "replies": 1,
-    "reposts": 57,
+    "reposts": 56,
     "media": [
       {
         "type": "photo",
@@ -6153,7 +6242,7 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 23610,
+    "likes": 23603,
     "replies": 24,
     "reposts": 1801,
     "media": [
@@ -6583,9 +6672,9 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 74511,
+    "likes": 74486,
     "replies": 231,
-    "reposts": 9345,
+    "reposts": 9337,
     "media": [
       {
         "type": "photo",
@@ -6779,9 +6868,9 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 1515,
+    "likes": 1514,
     "replies": 65,
-    "reposts": 131,
+    "reposts": 130,
     "media": [
       {
         "type": "video",
@@ -7027,7 +7116,7 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 1644,
+    "likes": 1641,
     "replies": 13,
     "reposts": 51,
     "media": [
@@ -7149,7 +7238,7 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 4928,
+    "likes": 4925,
     "replies": 77,
     "reposts": 623,
     "media": [
@@ -7340,7 +7429,7 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 169,
+    "likes": 170,
     "replies": 4,
     "reposts": 13,
     "media": [
@@ -7603,9 +7692,9 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 23794,
+    "likes": 23785,
     "replies": 46,
-    "reposts": 2449,
+    "reposts": 2447,
     "media": [
       {
         "type": "video",
@@ -7680,7 +7769,7 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 6015,
+    "likes": 6012,
     "replies": 3,
     "reposts": 391,
     "media": [
@@ -8115,9 +8204,9 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 17041,
+    "likes": 17048,
     "replies": 763,
-    "reposts": 1743,
+    "reposts": 1746,
     "media": [
       {
         "type": "video",
@@ -8279,9 +8368,9 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 69530,
+    "likes": 69525,
     "replies": 1065,
-    "reposts": 8589,
+    "reposts": 8591,
     "media": [
       {
         "type": "video",
@@ -8368,9 +8457,9 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 6142,
+    "likes": 6169,
     "replies": 23,
-    "reposts": 585,
+    "reposts": 588,
     "media": [
       {
         "type": "video",
@@ -8454,8 +8543,8 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 2594,
-    "replies": 25,
+    "likes": 2611,
+    "replies": 26,
     "reposts": 91,
     "media": [
       {
@@ -8637,7 +8726,7 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 196,
+    "likes": 195,
     "replies": 4,
     "reposts": 6,
     "media": [
@@ -8892,9 +8981,9 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 3166,
+    "likes": 3163,
     "replies": 17,
-    "reposts": 318,
+    "reposts": 317,
     "media": [
       {
         "type": "photo",
@@ -9123,9 +9212,9 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 55535,
+    "likes": 55525,
     "replies": 1327,
-    "reposts": 7639,
+    "reposts": 7627,
     "media": [
       {
         "type": "photo",
@@ -9500,7 +9589,7 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 531,
+    "likes": 534,
     "replies": 2,
     "reposts": 26,
     "media": [
@@ -9590,7 +9679,7 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 693,
+    "likes": 692,
     "replies": 14,
     "reposts": 55,
     "media": [
@@ -9847,7 +9936,7 @@
     ],
     "likes": 15958,
     "replies": 39,
-    "reposts": 1007,
+    "reposts": 1006,
     "media": [
       {
         "type": "photo",
@@ -9983,9 +10072,9 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 8129,
+    "likes": 8128,
     "replies": 19,
-    "reposts": 523,
+    "reposts": 522,
     "media": [
       {
         "type": "video",
@@ -10072,9 +10161,9 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 46732,
+    "likes": 46734,
     "replies": 32,
-    "reposts": 3446,
+    "reposts": 3445,
     "media": [
       {
         "type": "photo",
@@ -10201,7 +10290,7 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 13112,
+    "likes": 13110,
     "replies": 119,
     "reposts": 1427,
     "media": [
@@ -10290,7 +10379,7 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 10282,
+    "likes": 10279,
     "replies": 218,
     "reposts": 519,
     "media": [
@@ -10383,7 +10472,7 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 7843,
+    "likes": 7837,
     "replies": 56,
     "reposts": 612,
     "media": [
@@ -10469,7 +10558,7 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 12119,
+    "likes": 12115,
     "replies": 59,
     "reposts": 1086,
     "media": [
@@ -10724,9 +10813,9 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 54536,
+    "likes": 54531,
     "replies": 75,
-    "reposts": 4196,
+    "reposts": 4195,
     "media": [
       {
         "type": "photo",
@@ -10845,9 +10934,9 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 50968,
+    "likes": 50927,
     "replies": 386,
-    "reposts": 2862,
+    "reposts": 2859,
     "media": [
       {
         "type": "photo",
@@ -11062,7 +11151,7 @@
     ],
     "likes": 9332,
     "replies": 25,
-    "reposts": 1868,
+    "reposts": 1869,
     "media": [
       {
         "type": "photo",
@@ -11299,9 +11388,9 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 3967,
+    "likes": 3968,
     "replies": 66,
-    "reposts": 106,
+    "reposts": 105,
     "media": [
       {
         "type": "photo",
@@ -11554,7 +11643,7 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 4839,
+    "likes": 4842,
     "replies": 166,
     "reposts": 272,
     "media": [
@@ -11728,7 +11817,7 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 2564,
+    "likes": 2562,
     "replies": 13,
     "reposts": 280,
     "media": [
@@ -11805,7 +11894,7 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 12781,
+    "likes": 12776,
     "replies": 263,
     "reposts": 819,
     "media": [
@@ -11894,9 +11983,9 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 17782,
+    "likes": 17785,
     "replies": 410,
-    "reposts": 2143,
+    "reposts": 2142,
     "media": [
       {
         "type": "photo",
@@ -11972,7 +12061,7 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 1912,
+    "likes": 1911,
     "replies": 21,
     "reposts": 179,
     "media": [
@@ -12135,7 +12224,7 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 5860,
+    "likes": 5856,
     "replies": 29,
     "reposts": 326,
     "media": [
@@ -12214,7 +12303,7 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 2664,
+    "likes": 2672,
     "replies": 19,
     "reposts": 179,
     "media": [
@@ -12479,7 +12568,7 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 2500,
+    "likes": 2498,
     "replies": 16,
     "reposts": 176,
     "media": [
@@ -12616,7 +12705,7 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 51172,
+    "likes": 51179,
     "replies": 90,
     "reposts": 2349,
     "media": [
@@ -12754,7 +12843,7 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 11779,
+    "likes": 11774,
     "replies": 122,
     "reposts": 1470,
     "media": [
@@ -12835,9 +12924,9 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 12331,
+    "likes": 12332,
     "replies": 115,
-    "reposts": 1111,
+    "reposts": 1110,
     "media": [
       {
         "type": "animated_gif",
@@ -12912,9 +13001,9 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 16550,
+    "likes": 16548,
     "replies": 17,
-    "reposts": 2172,
+    "reposts": 2173,
     "media": [
       {
         "type": "photo",
@@ -13136,7 +13225,7 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 5940,
+    "likes": 5942,
     "replies": 79,
     "reposts": 452,
     "media": [
@@ -13450,9 +13539,9 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 92274,
+    "likes": 92268,
     "replies": 409,
-    "reposts": 7888,
+    "reposts": 7889,
     "media": [
       {
         "type": "photo",
@@ -13974,8 +14063,8 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 3641,
-    "replies": 26,
+    "likes": 3640,
+    "replies": 25,
     "reposts": 238,
     "media": [
       {
@@ -14181,7 +14270,7 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 3277,
+    "likes": 3275,
     "replies": 9,
     "reposts": 301,
     "media": [
@@ -14493,9 +14582,9 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 8172,
+    "likes": 8174,
     "replies": 148,
-    "reposts": 597,
+    "reposts": 598,
     "media": [
       {
         "type": "video",
@@ -14801,7 +14890,7 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 1583,
+    "likes": 1580,
     "replies": 58,
     "reposts": 57,
     "media": [
@@ -14923,9 +15012,9 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 33608,
+    "likes": 33607,
     "replies": 90,
-    "reposts": 3998,
+    "reposts": 3997,
     "media": [
       {
         "type": "video",
@@ -15016,7 +15105,7 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 3189,
+    "likes": 3188,
     "replies": 17,
     "reposts": 187,
     "media": [
@@ -15284,7 +15373,7 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 357,
+    "likes": 356,
     "replies": 7,
     "reposts": 16,
     "media": [
@@ -15442,7 +15531,7 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 7000,
+    "likes": 6997,
     "replies": 13,
     "reposts": 825,
     "media": [
@@ -15697,9 +15786,9 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 2506,
+    "likes": 2505,
     "replies": 6,
-    "reposts": 238,
+    "reposts": 237,
     "media": [
       {
         "type": "photo",
@@ -15833,7 +15922,7 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 932,
+    "likes": 933,
     "replies": 50,
     "reposts": 76,
     "media": [
@@ -15918,7 +16007,7 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 1741,
+    "likes": 1740,
     "replies": 56,
     "reposts": 56,
     "media": [
@@ -16055,7 +16144,7 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 3741,
+    "likes": 3743,
     "replies": 17,
     "reposts": 379,
     "media": [
@@ -16310,7 +16399,7 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 2016,
+    "likes": 2017,
     "replies": 23,
     "reposts": 132,
     "media": [
@@ -16395,7 +16484,7 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 5395,
+    "likes": 5400,
     "replies": 11,
     "reposts": 522,
     "media": [
@@ -16642,7 +16731,7 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 7050,
+    "likes": 7048,
     "replies": 32,
     "reposts": 499,
     "media": [
@@ -16983,7 +17072,7 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 18066,
+    "likes": 18060,
     "replies": 19,
     "reposts": 1877,
     "media": [
@@ -17246,9 +17335,9 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 5075,
+    "likes": 5078,
     "replies": 12,
-    "reposts": 226,
+    "reposts": 225,
     "media": [
       {
         "type": "photo",
@@ -17324,7 +17413,7 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 1007,
+    "likes": 1009,
     "replies": 1,
     "reposts": 41,
     "media": [
@@ -18175,7 +18264,7 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 384,
+    "likes": 383,
     "replies": 10,
     "reposts": 2,
     "media": [
@@ -18385,7 +18474,7 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 12793,
+    "likes": 12785,
     "replies": 161,
     "reposts": 1797,
     "media": [
@@ -18455,9 +18544,9 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 52085,
+    "likes": 52078,
     "replies": 20,
-    "reposts": 3845,
+    "reposts": 3844,
     "media": [
       {
         "type": "photo",
@@ -18710,7 +18799,7 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 16180,
+    "likes": 16181,
     "replies": 65,
     "reposts": 1308,
     "media": [
@@ -18965,7 +19054,7 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 12544,
+    "likes": 12543,
     "replies": 68,
     "reposts": 644,
     "media": [
@@ -19220,7 +19309,7 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 10066,
+    "likes": 10064,
     "replies": 151,
     "reposts": 1089,
     "media": [
@@ -19728,7 +19817,7 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 1269,
+    "likes": 1268,
     "replies": 108,
     "reposts": 103,
     "media": [
@@ -19967,7 +20056,7 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 17380,
+    "likes": 17379,
     "replies": 223,
     "reposts": 1824,
     "media": [
@@ -20479,7 +20568,7 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 2134,
+    "likes": 2133,
     "replies": 2,
     "reposts": 296,
     "media": [
@@ -20702,7 +20791,7 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 945,
+    "likes": 944,
     "replies": 4,
     "reposts": 145,
     "media": [
@@ -20933,7 +21022,7 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 19921,
+    "likes": 19919,
     "replies": 109,
     "reposts": 1051,
     "media": [
@@ -21273,7 +21362,7 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 3198,
+    "likes": 3196,
     "replies": 27,
     "reposts": 405,
     "media": [
@@ -21342,8 +21431,8 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 8499,
-    "replies": 248,
+    "likes": 8503,
+    "replies": 249,
     "reposts": 781,
     "media": [
       {
@@ -21431,7 +21520,7 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 4169,
+    "likes": 4164,
     "replies": 4,
     "reposts": 201,
     "media": [
@@ -21654,7 +21743,7 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 4858,
+    "likes": 4855,
     "replies": 39,
     "reposts": 358,
     "media": [
@@ -21909,7 +21998,7 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 3494,
+    "likes": 3495,
     "replies": 24,
     "reposts": 431,
     "media": [
@@ -22209,7 +22298,7 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 1849,
+    "likes": 1848,
     "replies": 19,
     "reposts": 90,
     "media": [
@@ -68183,77 +68272,6 @@
           }
         ],
         "originUrl": "https://pbs.twimg.com/media/HN18zWrbIAARGc9.jpg"
-      }
-    ],
-    "representativeMediaIndex": 0,
-    "representativeMotionMediaIndex": 0
-  },
-  {
-    "id": "2080708180254888392",
-    "sortIndex": "1825",
-    "postedAt": "Fri Jul 24 17:34:22 +0000 2026",
-    "url": "https://x.com/cachoio/status/2080708180254888392",
-    "text": "Collecting a stable of great cars is one of the finest rewards of uploading .php files to my vps via ftp success https://t.co/NYyNvLDRUZ",
-    "quotedText": "The Model Y is the superior transportation appliance, but when the mission is about more than getting from A to B, there's still no beating the internal combustion engine. Collecting a stable of great cars is one of the finest rewards of entrepreneurial success. https://t.co/4lWWdaM9Gj",
-    "authorName": "cacho",
-    "authorHandle": "cachoio",
-    "folderNames": [
-      "🖼️ Inspo"
-    ],
-    "likes": 66,
-    "replies": 2,
-    "reposts": 0,
-    "media": [
-      {
-        "type": "photo",
-        "thumbUrl": "https://tbmedia.corychainsman.com/pbs/media/HOApD68XcAAs7jO/objects/bf13831a5eadbb1f0292b5db6fbb874e16a9a7c18947e540726bcef1cd616a21.jpg?v=bf13831a5eadbb1f0292b5db6fbb874e16a9a7c18947e540726bcef1cd616a21",
-        "fullUrl": "https://tbmedia.corychainsman.com/pbs/media/HOApD68XcAAs7jO/objects/bf13831a5eadbb1f0292b5db6fbb874e16a9a7c18947e540726bcef1cd616a21.jpg?v=bf13831a5eadbb1f0292b5db6fbb874e16a9a7c18947e540726bcef1cd616a21",
-        "width": 1195,
-        "height": 896,
-        "aspectRatio": 1.3337053571428572,
-        "imageRenditions": [
-          {
-            "url": "https://tbmedia.corychainsman.com/pbs/media/HOApD68XcAAs7jO/objects/bf13831a5eadbb1f0292b5db6fbb874e16a9a7c18947e540726bcef1cd616a21/renditions/v2/w240-63d8b74137fdf2699254ab10901de0bfb3d0db8c71b33595c3db5ac06a100ea1.avif?v=63d8b74137fdf2699254ab10901de0bfb3d0db8c71b33595c3db5ac06a100ea1",
-            "width": 240,
-            "height": 180,
-            "bytes": 7986,
-            "digest": "63d8b74137fdf2699254ab10901de0bfb3d0db8c71b33595c3db5ac06a100ea1",
-            "contentType": "image/avif"
-          },
-          {
-            "url": "https://tbmedia.corychainsman.com/pbs/media/HOApD68XcAAs7jO/objects/bf13831a5eadbb1f0292b5db6fbb874e16a9a7c18947e540726bcef1cd616a21/renditions/v2/w320-0e31fcfc4d489efce500bab7499071710b9ea52b651e9d5d023b658f246961ef.avif?v=0e31fcfc4d489efce500bab7499071710b9ea52b651e9d5d023b658f246961ef",
-            "width": 320,
-            "height": 240,
-            "bytes": 12829,
-            "digest": "0e31fcfc4d489efce500bab7499071710b9ea52b651e9d5d023b658f246961ef",
-            "contentType": "image/avif"
-          },
-          {
-            "url": "https://tbmedia.corychainsman.com/pbs/media/HOApD68XcAAs7jO/objects/bf13831a5eadbb1f0292b5db6fbb874e16a9a7c18947e540726bcef1cd616a21/renditions/v2/w480-7264d31a403f628eef509de909b8d037dfba7192eaaa99578e33ef5cd1d7ccf7.avif?v=7264d31a403f628eef509de909b8d037dfba7192eaaa99578e33ef5cd1d7ccf7",
-            "width": 480,
-            "height": 360,
-            "bytes": 24641,
-            "digest": "7264d31a403f628eef509de909b8d037dfba7192eaaa99578e33ef5cd1d7ccf7",
-            "contentType": "image/avif"
-          },
-          {
-            "url": "https://tbmedia.corychainsman.com/pbs/media/HOApD68XcAAs7jO/objects/bf13831a5eadbb1f0292b5db6fbb874e16a9a7c18947e540726bcef1cd616a21/renditions/v2/w680-8161a675f7e775d11fa5664a9bac23f66c86e85722e035b3a87a085a119c9368.avif?v=8161a675f7e775d11fa5664a9bac23f66c86e85722e035b3a87a085a119c9368",
-            "width": 680,
-            "height": 510,
-            "bytes": 41000,
-            "digest": "8161a675f7e775d11fa5664a9bac23f66c86e85722e035b3a87a085a119c9368",
-            "contentType": "image/avif"
-          },
-          {
-            "url": "https://tbmedia.corychainsman.com/pbs/media/HOApD68XcAAs7jO/objects/bf13831a5eadbb1f0292b5db6fbb874e16a9a7c18947e540726bcef1cd616a21/renditions/v2/w1195-ed2680659d1bc3ddea6ecb1b2f2ff57c677ae4bd99c3bb1b1a59b4adce8aadcf.avif?v=ed2680659d1bc3ddea6ecb1b2f2ff57c677ae4bd99c3bb1b1a59b4adce8aadcf",
-            "width": 1195,
-            "height": 896,
-            "bytes": 94599,
-            "digest": "ed2680659d1bc3ddea6ecb1b2f2ff57c677ae4bd99c3bb1b1a59b4adce8aadcf",
-            "contentType": "image/avif"
-          }
-        ],
-        "originUrl": "https://pbs.twimg.com/media/HOApD68XcAAs7jO.jpg"
       }
     ],
     "representativeMediaIndex": 0,
