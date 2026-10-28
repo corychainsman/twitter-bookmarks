@@ -1,5 +1,94 @@
 [
   {
+    "id": "2115141484957909187",
+    "sortIndex": "2333",
+    "postedAt": "Tue Oct 27 18:00:02 +0000 2026",
+    "url": "https://x.com/egorvert/status/2115141484957909187",
+    "text": "This is a loader animation I made for an internal tool of which I am the sole user.\n\nIt took millions of tokens and multiple minutes of iteration (it was two prompts). https://t.co/FZ7oRUFaHs",
+    "authorName": "Egor",
+    "authorHandle": "egorvert",
+    "folderNames": [
+      "🖼️ Inspo"
+    ],
+    "likes": 2614,
+    "replies": 89,
+    "reposts": 77,
+    "media": [
+      {
+        "type": "video",
+        "thumbUrl": "https://tbmedia.corychainsman.com/pbs/amplify_video_thumb/2115135607827546113/img/U9MPBpoP7mieZA2x/objects/305ea239eb3d8179e3b4d1c023b0d8155341bb40fb3fdb7fe8714ffd8ece6e46.jpg?v=305ea239eb3d8179e3b4d1c023b0d8155341bb40fb3fdb7fe8714ffd8ece6e46",
+        "fullUrl": "https://tbmedia.corychainsman.com/vid/amplify_video/2115135607827546113/vid/avc1/1920x1080/K-ZdFIU94mu8-pyY.mp4?v=cb8b8455baa5505bd544f7909426b67a5434cdebbc45fe5afff6544917e229aa",
+        "posterUrl": "https://tbmedia.corychainsman.com/pbs/amplify_video_thumb/2115135607827546113/img/U9MPBpoP7mieZA2x/objects/305ea239eb3d8179e3b4d1c023b0d8155341bb40fb3fdb7fe8714ffd8ece6e46.jpg?v=305ea239eb3d8179e3b4d1c023b0d8155341bb40fb3fdb7fe8714ffd8ece6e46",
+        "width": 1920,
+        "height": 1080,
+        "aspectRatio": 1.7777777777777777,
+        "variants": [
+          {
+            "url": "https://video.twimg.com/amplify_video/2115135607827546113/vid/avc1/1920x1080/K-ZdFIU94mu8-pyY.mp4?tag=29",
+            "bitrate": 10368000
+          },
+          {
+            "url": "https://video.twimg.com/amplify_video/2115135607827546113/vid/avc1/1280x720/wcHPen8Yhc1e7pvn.mp4?tag=29",
+            "bitrate": 2176000
+          },
+          {
+            "url": "https://video.twimg.com/amplify_video/2115135607827546113/vid/avc1/640x360/3D0OoqrwDer3yHSv.mp4?tag=29",
+            "bitrate": 832000
+          },
+          {
+            "url": "https://video.twimg.com/amplify_video/2115135607827546113/vid/avc1/480x270/6P_Mjwvqy52L4sWE.mp4?tag=29",
+            "bitrate": 256000
+          }
+        ],
+        "imageRenditions": [
+          {
+            "url": "https://tbmedia.corychainsman.com/pbs/amplify_video_thumb/2115135607827546113/img/U9MPBpoP7mieZA2x/objects/305ea239eb3d8179e3b4d1c023b0d8155341bb40fb3fdb7fe8714ffd8ece6e46/renditions/v2/w240-b70bfb22d93ecbf62adf15bcd89b890997e44331ba29e955706f688d8cc602ea.avif?v=b70bfb22d93ecbf62adf15bcd89b890997e44331ba29e955706f688d8cc602ea",
+            "width": 240,
+            "height": 134,
+            "bytes": 1474,
+            "digest": "b70bfb22d93ecbf62adf15bcd89b890997e44331ba29e955706f688d8cc602ea",
+            "contentType": "image/avif"
+          },
+          {
+            "url": "https://tbmedia.corychainsman.com/pbs/amplify_video_thumb/2115135607827546113/img/U9MPBpoP7mieZA2x/objects/305ea239eb3d8179e3b4d1c023b0d8155341bb40fb3fdb7fe8714ffd8ece6e46/renditions/v2/w320-a3878468ba4c446b5be9eba9ee45fb8e110d8516dfb52804a43571fddf0f4071.avif?v=a3878468ba4c446b5be9eba9ee45fb8e110d8516dfb52804a43571fddf0f4071",
+            "width": 320,
+            "height": 180,
+            "bytes": 2525,
+            "digest": "a3878468ba4c446b5be9eba9ee45fb8e110d8516dfb52804a43571fddf0f4071",
+            "contentType": "image/avif"
+          },
+          {
+            "url": "https://tbmedia.corychainsman.com/pbs/amplify_video_thumb/2115135607827546113/img/U9MPBpoP7mieZA2x/objects/305ea239eb3d8179e3b4d1c023b0d8155341bb40fb3fdb7fe8714ffd8ece6e46/renditions/v2/w480-d89afbeb96c1a3d30a5cd13b0762d5f66f660117b40b436e32307448ae246bc8.avif?v=d89afbeb96c1a3d30a5cd13b0762d5f66f660117b40b436e32307448ae246bc8",
+            "width": 480,
+            "height": 270,
+            "bytes": 5770,
+            "digest": "d89afbeb96c1a3d30a5cd13b0762d5f66f660117b40b436e32307448ae246bc8",
+            "contentType": "image/avif"
+          },
+          {
+            "url": "https://tbmedia.corychainsman.com/pbs/amplify_video_thumb/2115135607827546113/img/U9MPBpoP7mieZA2x/objects/305ea239eb3d8179e3b4d1c023b0d8155341bb40fb3fdb7fe8714ffd8ece6e46/renditions/v2/w680-700d6c1fff8b3b992c59d777b882501cca4b3a5487a4f63e330ad7c70d9b2bab.avif?v=700d6c1fff8b3b992c59d777b882501cca4b3a5487a4f63e330ad7c70d9b2bab",
+            "width": 680,
+            "height": 383,
+            "bytes": 12388,
+            "digest": "700d6c1fff8b3b992c59d777b882501cca4b3a5487a4f63e330ad7c70d9b2bab",
+            "contentType": "image/avif"
+          },
+          {
+            "url": "https://tbmedia.corychainsman.com/pbs/amplify_video_thumb/2115135607827546113/img/U9MPBpoP7mieZA2x/objects/305ea239eb3d8179e3b4d1c023b0d8155341bb40fb3fdb7fe8714ffd8ece6e46/renditions/v2/w1200-a333eb97d880ceed979c8ec1295315143a88cc6e30ef2bd6e081f6a6d76f3474.avif?v=a333eb97d880ceed979c8ec1295315143a88cc6e30ef2bd6e081f6a6d76f3474",
+            "width": 1200,
+            "height": 675,
+            "bytes": 50237,
+            "digest": "a333eb97d880ceed979c8ec1295315143a88cc6e30ef2bd6e081f6a6d76f3474",
+            "contentType": "image/avif"
+          }
+        ],
+        "originUrl": "https://video.twimg.com/amplify_video/2115135607827546113/vid/avc1/1920x1080/K-ZdFIU94mu8-pyY.mp4?tag=29"
+      }
+    ],
+    "representativeMediaIndex": 0,
+    "representativeMotionMediaIndex": 0
+  },
+  {
     "id": "2114471198327263354",
     "sortIndex": "2332",
     "postedAt": "Sun Oct 25 21:36:33 +0000 2026",
@@ -10,9 +99,9 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 1625,
-    "replies": 6,
-    "reposts": 74,
+    "likes": 2190,
+    "replies": 8,
+    "reposts": 109,
     "media": [
       {
         "type": "video",
@@ -99,9 +188,9 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 442,
-    "replies": 86,
-    "reposts": 13,
+    "likes": 968,
+    "replies": 98,
+    "reposts": 35,
     "media": [
       {
         "type": "video",
@@ -192,9 +281,9 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 5564,
-    "replies": 23,
-    "reposts": 749,
+    "likes": 23519,
+    "replies": 65,
+    "reposts": 3009,
     "media": [
       {
         "type": "video",
@@ -282,9 +371,9 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 642,
-    "replies": 21,
-    "reposts": 39,
+    "likes": 957,
+    "replies": 26,
+    "reposts": 58,
     "media": [
       {
         "type": "video",
@@ -375,9 +464,9 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 1347,
-    "replies": 51,
-    "reposts": 65,
+    "likes": 1799,
+    "replies": 64,
+    "reposts": 84,
     "media": [
       {
         "type": "video",
@@ -553,8 +642,8 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 1235,
-    "replies": 38,
+    "likes": 1239,
+    "replies": 39,
     "reposts": 76,
     "media": [
       {
@@ -646,9 +735,9 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 3006,
-    "replies": 27,
-    "reposts": 226,
+    "likes": 3018,
+    "replies": 28,
+    "reposts": 228,
     "media": [
       {
         "type": "photo",
@@ -990,9 +1079,9 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 2213,
+    "likes": 2217,
     "replies": 57,
-    "reposts": 147,
+    "reposts": 148,
     "media": [
       {
         "type": "photo",
@@ -1366,9 +1455,9 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 713,
+    "likes": 714,
     "replies": 8,
-    "reposts": 38,
+    "reposts": 37,
     "media": [
       {
         "type": "video",
@@ -1455,9 +1544,9 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 81463,
+    "likes": 81450,
     "replies": 209,
-    "reposts": 10483,
+    "reposts": 10480,
     "media": [
       {
         "type": "video",
@@ -1540,9 +1629,9 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 5314,
+    "likes": 5310,
     "replies": 85,
-    "reposts": 349,
+    "reposts": 350,
     "media": [
       {
         "type": "photo",
@@ -1795,8 +1884,8 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 11534,
-    "replies": 190,
+    "likes": 11532,
+    "replies": 191,
     "reposts": 850,
     "media": [
       {
@@ -1889,9 +1978,9 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 13587,
-    "replies": 715,
-    "reposts": 1017,
+    "likes": 13588,
+    "replies": 713,
+    "reposts": 1018,
     "media": [
       {
         "type": "video",
@@ -1978,9 +2067,9 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 292,
+    "likes": 291,
     "replies": 8,
-    "reposts": 32,
+    "reposts": 31,
     "media": [
       {
         "type": "video",
@@ -2039,9 +2128,9 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 919,
+    "likes": 942,
     "replies": 9,
-    "reposts": 117,
+    "reposts": 118,
     "media": [
       {
         "type": "video",
@@ -2213,7 +2302,7 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 12971,
+    "likes": 12959,
     "replies": 220,
     "reposts": 1006,
     "media": [
@@ -2376,7 +2465,7 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 1141,
+    "likes": 1140,
     "replies": 14,
     "reposts": 86,
     "media": [
@@ -3004,9 +3093,9 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 873,
+    "likes": 874,
     "replies": 2,
-    "reposts": 92,
+    "reposts": 93,
     "media": [
       {
         "type": "photo",
@@ -3176,9 +3265,9 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 1329,
+    "likes": 1331,
     "replies": 17,
-    "reposts": 148,
+    "reposts": 149,
     "media": [
       {
         "type": "video",
@@ -3469,7 +3558,7 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 6826,
+    "likes": 6822,
     "replies": 27,
     "reposts": 641,
     "media": [
@@ -3523,7 +3612,7 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 570,
+    "likes": 571,
     "replies": 8,
     "reposts": 55,
     "media": [
@@ -3591,247 +3680,8 @@
     "representativeMotionMediaIndex": 0
   },
   {
-    "id": "2111514069618614579",
-    "sortIndex": "2302",
-    "postedAt": "Sat Oct 17 17:45:58 +0000 2026",
-    "url": "https://x.com/fiii___online/status/2111514069618614579",
-    "text": "current hyperfixation is the letraset typeface competition of 1970 in dublin, ireland that birthed tuam unical. \n\nwhich, to me, is one of the best irish language display fonts out there, nothing has come close to it since. \n\nsin é... slán xx https://t.co/nLwE8MuPsA",
-    "authorName": "fiii",
-    "authorHandle": "fiii___online",
-    "folderNames": [
-      "🖼️ Inspo"
-    ],
-    "likes": 1784,
-    "replies": 19,
-    "reposts": 137,
-    "media": [
-      {
-        "type": "photo",
-        "thumbUrl": "https://tbmedia.corychainsman.com/pbs/media/HU2ZYByasAAr-i6/objects/8b2b5e846616d81fb9ffbcbe0659206ed1d9e011b9eead84c94e63bf92342e76.jpg?v=8b2b5e846616d81fb9ffbcbe0659206ed1d9e011b9eead84c94e63bf92342e76",
-        "fullUrl": "https://tbmedia.corychainsman.com/pbs/media/HU2ZYByasAAr-i6/objects/8b2b5e846616d81fb9ffbcbe0659206ed1d9e011b9eead84c94e63bf92342e76.jpg?v=8b2b5e846616d81fb9ffbcbe0659206ed1d9e011b9eead84c94e63bf92342e76",
-        "width": 1024,
-        "height": 682,
-        "aspectRatio": 1.501466275659824,
-        "imageRenditions": [
-          {
-            "url": "https://tbmedia.corychainsman.com/pbs/media/HU2ZYByasAAr-i6/objects/8b2b5e846616d81fb9ffbcbe0659206ed1d9e011b9eead84c94e63bf92342e76/renditions/v2/w240-42feed62cd6ff695c5628f008f6c4b6654ee7329fa58ef62166295181580e18a.avif?v=42feed62cd6ff695c5628f008f6c4b6654ee7329fa58ef62166295181580e18a",
-            "width": 240,
-            "height": 160,
-            "bytes": 3198,
-            "digest": "42feed62cd6ff695c5628f008f6c4b6654ee7329fa58ef62166295181580e18a",
-            "contentType": "image/avif"
-          },
-          {
-            "url": "https://tbmedia.corychainsman.com/pbs/media/HU2ZYByasAAr-i6/objects/8b2b5e846616d81fb9ffbcbe0659206ed1d9e011b9eead84c94e63bf92342e76/renditions/v2/w320-98028d007890e70a738601060c6b76a36ccdbabe8cae5207b3eef482a1d42fe7.avif?v=98028d007890e70a738601060c6b76a36ccdbabe8cae5207b3eef482a1d42fe7",
-            "width": 320,
-            "height": 213,
-            "bytes": 4384,
-            "digest": "98028d007890e70a738601060c6b76a36ccdbabe8cae5207b3eef482a1d42fe7",
-            "contentType": "image/avif"
-          },
-          {
-            "url": "https://tbmedia.corychainsman.com/pbs/media/HU2ZYByasAAr-i6/objects/8b2b5e846616d81fb9ffbcbe0659206ed1d9e011b9eead84c94e63bf92342e76/renditions/v2/w480-5753a337e9ac91c4c83c4038a5b7f7333838c7c8e4205472420602eb2d0d5f89.avif?v=5753a337e9ac91c4c83c4038a5b7f7333838c7c8e4205472420602eb2d0d5f89",
-            "width": 480,
-            "height": 320,
-            "bytes": 6726,
-            "digest": "5753a337e9ac91c4c83c4038a5b7f7333838c7c8e4205472420602eb2d0d5f89",
-            "contentType": "image/avif"
-          },
-          {
-            "url": "https://tbmedia.corychainsman.com/pbs/media/HU2ZYByasAAr-i6/objects/8b2b5e846616d81fb9ffbcbe0659206ed1d9e011b9eead84c94e63bf92342e76/renditions/v2/w680-226848003e196c989580b2d2e6a3ec9d7a4db82d3b6b4c09e56b3944b7248d5c.avif?v=226848003e196c989580b2d2e6a3ec9d7a4db82d3b6b4c09e56b3944b7248d5c",
-            "width": 680,
-            "height": 453,
-            "bytes": 10209,
-            "digest": "226848003e196c989580b2d2e6a3ec9d7a4db82d3b6b4c09e56b3944b7248d5c",
-            "contentType": "image/avif"
-          },
-          {
-            "url": "https://tbmedia.corychainsman.com/pbs/media/HU2ZYByasAAr-i6/objects/8b2b5e846616d81fb9ffbcbe0659206ed1d9e011b9eead84c94e63bf92342e76/renditions/v2/w1024-b691ffe783e699caa8cf68a85c239299bb9d6f7d38e10992043c5b285db8ae4f.avif?v=b691ffe783e699caa8cf68a85c239299bb9d6f7d38e10992043c5b285db8ae4f",
-            "width": 1024,
-            "height": 682,
-            "bytes": 16911,
-            "digest": "b691ffe783e699caa8cf68a85c239299bb9d6f7d38e10992043c5b285db8ae4f",
-            "contentType": "image/avif"
-          }
-        ],
-        "originUrl": "https://pbs.twimg.com/media/HU2ZYByasAAr-i6.jpg"
-      },
-      {
-        "type": "photo",
-        "thumbUrl": "https://tbmedia.corychainsman.com/pbs/media/HU2Ziu5bEAA7YNk/objects/84ef750ef598bdc483e0881751981a41820b9351eecaeee51381009da1ad4e45.jpg?v=84ef750ef598bdc483e0881751981a41820b9351eecaeee51381009da1ad4e45",
-        "fullUrl": "https://tbmedia.corychainsman.com/pbs/media/HU2Ziu5bEAA7YNk/objects/84ef750ef598bdc483e0881751981a41820b9351eecaeee51381009da1ad4e45.jpg?v=84ef750ef598bdc483e0881751981a41820b9351eecaeee51381009da1ad4e45",
-        "width": 803,
-        "height": 1125,
-        "aspectRatio": 0.7137777777777777,
-        "imageRenditions": [
-          {
-            "url": "https://tbmedia.corychainsman.com/pbs/media/HU2Ziu5bEAA7YNk/objects/84ef750ef598bdc483e0881751981a41820b9351eecaeee51381009da1ad4e45/renditions/v2/w240-3b0ba1c9de859ab01425b88c572769ec57b87472748ddb004ab689ee5f237c2e.avif?v=3b0ba1c9de859ab01425b88c572769ec57b87472748ddb004ab689ee5f237c2e",
-            "width": 240,
-            "height": 336,
-            "bytes": 13499,
-            "digest": "3b0ba1c9de859ab01425b88c572769ec57b87472748ddb004ab689ee5f237c2e",
-            "contentType": "image/avif"
-          },
-          {
-            "url": "https://tbmedia.corychainsman.com/pbs/media/HU2Ziu5bEAA7YNk/objects/84ef750ef598bdc483e0881751981a41820b9351eecaeee51381009da1ad4e45/renditions/v2/w320-4a96d878fcf97f1b7ee591684c13ef42aa3959c631d51cf7aa6b7c996a50525b.avif?v=4a96d878fcf97f1b7ee591684c13ef42aa3959c631d51cf7aa6b7c996a50525b",
-            "width": 320,
-            "height": 448,
-            "bytes": 21721,
-            "digest": "4a96d878fcf97f1b7ee591684c13ef42aa3959c631d51cf7aa6b7c996a50525b",
-            "contentType": "image/avif"
-          },
-          {
-            "url": "https://tbmedia.corychainsman.com/pbs/media/HU2Ziu5bEAA7YNk/objects/84ef750ef598bdc483e0881751981a41820b9351eecaeee51381009da1ad4e45/renditions/v2/w480-ece398f28e772ce098654fcfd8a02e857737ee97ea14a4b9a01506593ceb3399.avif?v=ece398f28e772ce098654fcfd8a02e857737ee97ea14a4b9a01506593ceb3399",
-            "width": 480,
-            "height": 672,
-            "bytes": 39809,
-            "digest": "ece398f28e772ce098654fcfd8a02e857737ee97ea14a4b9a01506593ceb3399",
-            "contentType": "image/avif"
-          },
-          {
-            "url": "https://tbmedia.corychainsman.com/pbs/media/HU2Ziu5bEAA7YNk/objects/84ef750ef598bdc483e0881751981a41820b9351eecaeee51381009da1ad4e45/renditions/v2/w680-f3a0f121289d41bf492855256bd0c6a27bb8b97675d844de14707725fbd556b3.avif?v=f3a0f121289d41bf492855256bd0c6a27bb8b97675d844de14707725fbd556b3",
-            "width": 680,
-            "height": 953,
-            "bytes": 64217,
-            "digest": "f3a0f121289d41bf492855256bd0c6a27bb8b97675d844de14707725fbd556b3",
-            "contentType": "image/avif"
-          },
-          {
-            "url": "https://tbmedia.corychainsman.com/pbs/media/HU2Ziu5bEAA7YNk/objects/84ef750ef598bdc483e0881751981a41820b9351eecaeee51381009da1ad4e45/renditions/v2/w803-d09cd53a886d4937af62935203de671ef6d2a2d778d7140fe6e04763d0a91b92.avif?v=d09cd53a886d4937af62935203de671ef6d2a2d778d7140fe6e04763d0a91b92",
-            "width": 803,
-            "height": 1125,
-            "bytes": 87448,
-            "digest": "d09cd53a886d4937af62935203de671ef6d2a2d778d7140fe6e04763d0a91b92",
-            "contentType": "image/avif"
-          }
-        ],
-        "originUrl": "https://pbs.twimg.com/media/HU2Ziu5bEAA7YNk.jpg"
-      },
-      {
-        "type": "photo",
-        "thumbUrl": "https://tbmedia.corychainsman.com/pbs/media/HU2Zy0jasAA7lmq/objects/f8c01ac0f0de469f773086cd26cb112a6e86cc00765732932afa18a99db58e2c.png?v=f8c01ac0f0de469f773086cd26cb112a6e86cc00765732932afa18a99db58e2c",
-        "fullUrl": "https://tbmedia.corychainsman.com/pbs/media/HU2Zy0jasAA7lmq/objects/f8c01ac0f0de469f773086cd26cb112a6e86cc00765732932afa18a99db58e2c.png?v=f8c01ac0f0de469f773086cd26cb112a6e86cc00765732932afa18a99db58e2c",
-        "width": 2074,
-        "height": 1294,
-        "aspectRatio": 1.6027820710973726,
-        "imageRenditions": [
-          {
-            "url": "https://tbmedia.corychainsman.com/pbs/media/HU2Zy0jasAA7lmq/objects/f8c01ac0f0de469f773086cd26cb112a6e86cc00765732932afa18a99db58e2c/renditions/v2/w240-114e5c35e0afa050b176737f62eaa805c9863fdfc1250df336c5076c65b5a764.avif?v=114e5c35e0afa050b176737f62eaa805c9863fdfc1250df336c5076c65b5a764",
-            "width": 240,
-            "height": 150,
-            "bytes": 7293,
-            "digest": "114e5c35e0afa050b176737f62eaa805c9863fdfc1250df336c5076c65b5a764",
-            "contentType": "image/avif"
-          },
-          {
-            "url": "https://tbmedia.corychainsman.com/pbs/media/HU2Zy0jasAA7lmq/objects/f8c01ac0f0de469f773086cd26cb112a6e86cc00765732932afa18a99db58e2c/renditions/v2/w320-21e019a035bd609e634b1e2c3cacf3073f9a8651d14fe9ef4d0767b761ed77fd.avif?v=21e019a035bd609e634b1e2c3cacf3073f9a8651d14fe9ef4d0767b761ed77fd",
-            "width": 320,
-            "height": 200,
-            "bytes": 9772,
-            "digest": "21e019a035bd609e634b1e2c3cacf3073f9a8651d14fe9ef4d0767b761ed77fd",
-            "contentType": "image/avif"
-          },
-          {
-            "url": "https://tbmedia.corychainsman.com/pbs/media/HU2Zy0jasAA7lmq/objects/f8c01ac0f0de469f773086cd26cb112a6e86cc00765732932afa18a99db58e2c/renditions/v2/w480-4da657eae81094158e6c0cddf8219c55e7ad8bd557aa2a738682205aa0e3599e.avif?v=4da657eae81094158e6c0cddf8219c55e7ad8bd557aa2a738682205aa0e3599e",
-            "width": 480,
-            "height": 299,
-            "bytes": 13648,
-            "digest": "4da657eae81094158e6c0cddf8219c55e7ad8bd557aa2a738682205aa0e3599e",
-            "contentType": "image/avif"
-          },
-          {
-            "url": "https://tbmedia.corychainsman.com/pbs/media/HU2Zy0jasAA7lmq/objects/f8c01ac0f0de469f773086cd26cb112a6e86cc00765732932afa18a99db58e2c/renditions/v2/w680-41224fb31f8dd8680c9d8cfd0eafd92385366687cb355f8885368c6d3246eafd.avif?v=41224fb31f8dd8680c9d8cfd0eafd92385366687cb355f8885368c6d3246eafd",
-            "width": 680,
-            "height": 424,
-            "bytes": 19126,
-            "digest": "41224fb31f8dd8680c9d8cfd0eafd92385366687cb355f8885368c6d3246eafd",
-            "contentType": "image/avif"
-          },
-          {
-            "url": "https://tbmedia.corychainsman.com/pbs/media/HU2Zy0jasAA7lmq/objects/f8c01ac0f0de469f773086cd26cb112a6e86cc00765732932afa18a99db58e2c/renditions/v2/w1280-89a6cd91d915901113c6b1633f032d4a3b3c19d2036f5be64b5b171e22a4874f.avif?v=89a6cd91d915901113c6b1633f032d4a3b3c19d2036f5be64b5b171e22a4874f",
-            "width": 1280,
-            "height": 799,
-            "bytes": 32051,
-            "digest": "89a6cd91d915901113c6b1633f032d4a3b3c19d2036f5be64b5b171e22a4874f",
-            "contentType": "image/avif"
-          },
-          {
-            "url": "https://tbmedia.corychainsman.com/pbs/media/HU2Zy0jasAA7lmq/objects/f8c01ac0f0de469f773086cd26cb112a6e86cc00765732932afa18a99db58e2c/renditions/v2/w2048-a878ad9d9e27454d384c4aac05dc23b5a8ed7dc449c5a9df72eb8d77a8a13949.avif?v=a878ad9d9e27454d384c4aac05dc23b5a8ed7dc449c5a9df72eb8d77a8a13949",
-            "width": 2048,
-            "height": 1278,
-            "bytes": 45383,
-            "digest": "a878ad9d9e27454d384c4aac05dc23b5a8ed7dc449c5a9df72eb8d77a8a13949",
-            "contentType": "image/avif"
-          }
-        ],
-        "originUrl": "https://pbs.twimg.com/media/HU2Zy0jasAA7lmq.png"
-      },
-      {
-        "type": "photo",
-        "thumbUrl": "https://tbmedia.corychainsman.com/pbs/media/HU2aA4YbkAAGy4S/objects/7c33d68b29f8b5abc418a92e8715da818a789302748ed4bbb97dbcb1ed836a43.jpg?v=7c33d68b29f8b5abc418a92e8715da818a789302748ed4bbb97dbcb1ed836a43",
-        "fullUrl": "https://tbmedia.corychainsman.com/pbs/media/HU2aA4YbkAAGy4S/objects/7c33d68b29f8b5abc418a92e8715da818a789302748ed4bbb97dbcb1ed836a43.jpg?v=7c33d68b29f8b5abc418a92e8715da818a789302748ed4bbb97dbcb1ed836a43",
-        "width": 1618,
-        "height": 1514,
-        "aspectRatio": 1.0686922060766182,
-        "imageRenditions": [
-          {
-            "url": "https://tbmedia.corychainsman.com/pbs/media/HU2aA4YbkAAGy4S/objects/7c33d68b29f8b5abc418a92e8715da818a789302748ed4bbb97dbcb1ed836a43/renditions/v2/w240-7c50a76de11dc1ab71c21f1781d8f481d919c2a8ee9797c51e6f174b7a615c9c.avif?v=7c50a76de11dc1ab71c21f1781d8f481d919c2a8ee9797c51e6f174b7a615c9c",
-            "width": 240,
-            "height": 225,
-            "bytes": 8979,
-            "digest": "7c50a76de11dc1ab71c21f1781d8f481d919c2a8ee9797c51e6f174b7a615c9c",
-            "contentType": "image/avif"
-          },
-          {
-            "url": "https://tbmedia.corychainsman.com/pbs/media/HU2aA4YbkAAGy4S/objects/7c33d68b29f8b5abc418a92e8715da818a789302748ed4bbb97dbcb1ed836a43/renditions/v2/w320-7026edf6d625ddc6d72dae83dd2457d29475dc3c463afd1d4636fd1ff61f832a.avif?v=7026edf6d625ddc6d72dae83dd2457d29475dc3c463afd1d4636fd1ff61f832a",
-            "width": 320,
-            "height": 299,
-            "bytes": 16841,
-            "digest": "7026edf6d625ddc6d72dae83dd2457d29475dc3c463afd1d4636fd1ff61f832a",
-            "contentType": "image/avif"
-          },
-          {
-            "url": "https://tbmedia.corychainsman.com/pbs/media/HU2aA4YbkAAGy4S/objects/7c33d68b29f8b5abc418a92e8715da818a789302748ed4bbb97dbcb1ed836a43/renditions/v2/w480-bc3f7919aebbe7a1ffe85698c897deb7dc5c5725148d1321ba9e4db86c7491a0.avif?v=bc3f7919aebbe7a1ffe85698c897deb7dc5c5725148d1321ba9e4db86c7491a0",
-            "width": 480,
-            "height": 449,
-            "bytes": 31408,
-            "digest": "bc3f7919aebbe7a1ffe85698c897deb7dc5c5725148d1321ba9e4db86c7491a0",
-            "contentType": "image/avif"
-          },
-          {
-            "url": "https://tbmedia.corychainsman.com/pbs/media/HU2aA4YbkAAGy4S/objects/7c33d68b29f8b5abc418a92e8715da818a789302748ed4bbb97dbcb1ed836a43/renditions/v2/w680-1a62d841a148e960e97af01185ae44b2ac75e76823a3309ca0698997c9959db5.avif?v=1a62d841a148e960e97af01185ae44b2ac75e76823a3309ca0698997c9959db5",
-            "width": 680,
-            "height": 636,
-            "bytes": 53371,
-            "digest": "1a62d841a148e960e97af01185ae44b2ac75e76823a3309ca0698997c9959db5",
-            "contentType": "image/avif"
-          },
-          {
-            "url": "https://tbmedia.corychainsman.com/pbs/media/HU2aA4YbkAAGy4S/objects/7c33d68b29f8b5abc418a92e8715da818a789302748ed4bbb97dbcb1ed836a43/renditions/v2/w1280-8a5028dde291f83c5fec72f7cf7e453491e78ac69473a936a91f8c31f43f2c6e.avif?v=8a5028dde291f83c5fec72f7cf7e453491e78ac69473a936a91f8c31f43f2c6e",
-            "width": 1280,
-            "height": 1198,
-            "bytes": 121332,
-            "digest": "8a5028dde291f83c5fec72f7cf7e453491e78ac69473a936a91f8c31f43f2c6e",
-            "contentType": "image/avif"
-          },
-          {
-            "url": "https://tbmedia.corychainsman.com/pbs/media/HU2aA4YbkAAGy4S/objects/7c33d68b29f8b5abc418a92e8715da818a789302748ed4bbb97dbcb1ed836a43/renditions/v2/w1618-0637963c8a22917bf0dbf18e1c4c71fe4081bddd73922bce0d074b609a572e6e.avif?v=0637963c8a22917bf0dbf18e1c4c71fe4081bddd73922bce0d074b609a572e6e",
-            "width": 1618,
-            "height": 1514,
-            "bytes": 163446,
-            "digest": "0637963c8a22917bf0dbf18e1c4c71fe4081bddd73922bce0d074b609a572e6e",
-            "contentType": "image/avif"
-          }
-        ],
-        "originUrl": "https://pbs.twimg.com/media/HU2aA4YbkAAGy4S.jpg"
-      }
-    ],
-    "representativeMediaIndex": 0,
-    "representativeMotionMediaIndex": 0
-  },
-  {
     "id": "2111516833803317680",
-    "sortIndex": "2301",
+    "sortIndex": "2302",
     "postedAt": "Sat Oct 17 17:56:57 +0000 2026",
     "url": "https://x.com/NouveauDeco/status/2111516833803317680",
     "text": "The grand staircase aboard the French ocean liner SS Paris from 1921 showing a fusion of Art Nouveau and Art Deco. https://t.co/kNkWJXRjyr",
@@ -3840,7 +3690,7 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 2318,
+    "likes": 2316,
     "replies": 17,
     "reposts": 293,
     "media": [
@@ -3901,7 +3751,7 @@
   },
   {
     "id": "2111129509659648449",
-    "sortIndex": "2300",
+    "sortIndex": "2301",
     "postedAt": "Fri Oct 16 16:17:52 +0000 2026",
     "url": "https://x.com/reminiscinbby/status/2111129509659648449",
     "text": "Guilin, China https://t.co/Kh76BOo2UY",
@@ -3910,9 +3760,9 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 11905,
+    "likes": 11891,
     "replies": 299,
-    "reposts": 1118,
+    "reposts": 1112,
     "media": [
       {
         "type": "photo",
@@ -4124,7 +3974,7 @@
   },
   {
     "id": "2111325518335262791",
-    "sortIndex": "2299",
+    "sortIndex": "2300",
     "postedAt": "Sat Oct 17 05:16:44 +0000 2026",
     "url": "https://x.com/zachlieberman/status/2111325518335262791",
     "text": "https://t.co/jGWHTurELf",
@@ -4133,9 +3983,9 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 1933,
+    "likes": 1935,
     "replies": 17,
-    "reposts": 176,
+    "reposts": 175,
     "media": [
       {
         "type": "video",
@@ -4213,7 +4063,7 @@
   },
   {
     "id": "2111545791819194865",
-    "sortIndex": "2298",
+    "sortIndex": "2299",
     "postedAt": "Sat Oct 17 19:52:02 +0000 2026",
     "url": "https://x.com/zzzzshawn/status/2111545791819194865",
     "text": "Small plays - Juggler https://t.co/ah0NNHbq3L",
@@ -4222,7 +4072,7 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 242,
+    "likes": 244,
     "replies": 6,
     "reposts": 8,
     "media": [
@@ -4302,7 +4152,7 @@
   },
   {
     "id": "2111546123546661289",
-    "sortIndex": "2297",
+    "sortIndex": "2298",
     "postedAt": "Sat Oct 17 19:53:21 +0000 2026",
     "url": "https://x.com/zzzzshawn/status/2111546123546661289",
     "text": "Small plays - Basketball https://t.co/vBKWe6xRyC",
@@ -4312,7 +4162,7 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 2312,
+    "likes": 2316,
     "replies": 52,
     "reposts": 115,
     "media": [
@@ -4392,7 +4242,7 @@
   },
   {
     "id": "2111347724071088497",
-    "sortIndex": "2296",
+    "sortIndex": "2297",
     "postedAt": "Sat Oct 17 06:44:59 +0000 2026",
     "url": "https://x.com/Ekimko/status/2111347724071088497",
     "text": "Лучшее, что я видел за последнее время — чел пилит ASCII MMORPG, в которой вся графика состоит из букв и символов.\n\nДа, буквально весь мир, персонажи, окружение и спецэффекты нарисованы разноцветным текстом.\n\nАвтор сейчас экспериментирует с магией, визуалом и боссами. Я прям залип на то, как из нескольких десятков символов получается такая красота.\n\nБуквально сны при температуре 37,2.\n\nVia: https://t.co/vtYXAaEioi",
@@ -4401,7 +4251,7 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 18388,
+    "likes": 18400,
     "replies": 336,
     "reposts": 2082,
     "media": [
@@ -4585,7 +4435,7 @@
   },
   {
     "id": "2111485752299475240",
-    "sortIndex": "2295",
+    "sortIndex": "2296",
     "postedAt": "Sat Oct 17 15:53:27 +0000 2026",
     "url": "https://x.com/searchsignal/status/2111485752299475240",
     "text": "https://t.co/WWOVDtmjAN",
@@ -4594,7 +4444,7 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 1997,
+    "likes": 1999,
     "replies": 11,
     "reposts": 95,
     "media": [
@@ -4670,7 +4520,7 @@
   },
   {
     "id": "2111458924549570877",
-    "sortIndex": "2294",
+    "sortIndex": "2295",
     "postedAt": "Sat Oct 17 14:06:51 +0000 2026",
     "url": "https://x.com/luusssso/status/2111458924549570877",
     "text": "Satin black 1980s Japanese electronics &gt;&gt; https://t.co/4V4TZnJaJF",
@@ -4679,7 +4529,7 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 4419,
+    "likes": 4416,
     "replies": 27,
     "reposts": 390,
     "media": [
@@ -4885,7 +4735,7 @@
   },
   {
     "id": "2110822531452010883",
-    "sortIndex": "2293",
+    "sortIndex": "2294",
     "postedAt": "Thu Oct 15 19:58:03 +0000 2026",
     "url": "https://x.com/linear_magazine/status/2110822531452010883",
     "text": "Forest House\nBohlin Cywinski Jackson\n\nCornwall, Connecticut\nPhotos by Michael Thomas https://t.co/VK6ERQdfcM",
@@ -5108,7 +4958,7 @@
   },
   {
     "id": "2111331936786579726",
-    "sortIndex": "2292",
+    "sortIndex": "2293",
     "postedAt": "Sat Oct 17 05:42:15 +0000 2026",
     "url": "https://x.com/dieworkwear/status/2111331936786579726",
     "text": "Beautiful oilskin raincoat designed by Donna Zakowska and made by Eric Winterling for an upcoming film. Coat is beautiful bc it has a lot of shape — A-line silhouette with neat folds at back. This is a women's garment, but same principle applies to menswear.\n\nIG ericwinterlinginc https://t.co/MMLHjzfMOO",
@@ -5245,7 +5095,7 @@
   },
   {
     "id": "2111103796596428876",
-    "sortIndex": "2291",
+    "sortIndex": "2292",
     "postedAt": "Fri Oct 16 14:35:42 +0000 2026",
     "url": "https://x.com/GrantSlatton/status/2111103796596428876",
     "text": "ok so i know colonizing is bad\n\nbut British Raj was the peak of interior design\n\nhow to reconcile this https://t.co/GudyipGqfV",
@@ -5255,7 +5105,7 @@
       "🖼️ Inspo"
     ],
     "likes": 187,
-    "replies": 13,
+    "replies": 12,
     "reposts": 4,
     "media": [
       {
@@ -5500,7 +5350,7 @@
   },
   {
     "id": "2110911649171505374",
-    "sortIndex": "2290",
+    "sortIndex": "2291",
     "postedAt": "Fri Oct 16 01:52:10 +0000 2026",
     "url": "https://x.com/poetengineer__/status/2110911649171505374",
     "text": "言雨\nsemantic rain https://t.co/F06PhQ6vd5",
@@ -5509,9 +5359,9 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 9174,
-    "replies": 58,
-    "reposts": 1033,
+    "likes": 9169,
+    "replies": 59,
+    "reposts": 1032,
     "media": [
       {
         "type": "video",
@@ -5589,7 +5439,7 @@
   },
   {
     "id": "2110068138775830914",
-    "sortIndex": "2288",
+    "sortIndex": "2289",
     "postedAt": "Tue Oct 13 18:00:22 +0000 2026",
     "url": "https://x.com/BockJakob/status/2110068138775830914",
     "text": "https://t.co/6HSVf0EdIN",
@@ -5598,7 +5448,7 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 987,
+    "likes": 986,
     "replies": 6,
     "reposts": 96,
     "media": [
@@ -5824,7 +5674,7 @@
   },
   {
     "id": "2110301420234969232",
-    "sortIndex": "2287",
+    "sortIndex": "2288",
     "postedAt": "Wed Oct 14 09:27:20 +0000 2026",
     "url": "https://x.com/kitasenjudesign/status/2110301420234969232",
     "text": "clock https://t.co/DqI2MU1AvH",
@@ -5833,7 +5683,7 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 3564,
+    "likes": 3561,
     "replies": 100,
     "reposts": 501,
     "media": [
@@ -5913,7 +5763,7 @@
   },
   {
     "id": "2110184802339188889",
-    "sortIndex": "2286",
+    "sortIndex": "2287",
     "postedAt": "Wed Oct 14 01:43:56 +0000 2026",
     "url": "https://x.com/onipro/status/2110184802339188889",
     "text": "複数の板をつけた二つの装置が回転すると中央に人間の頭部が浮かび上がる。スイスのアーティスト、マルクス・ラエッツの作品『De Gauche à Droite（左から右へ）』。 https://t.co/LWcQjeU7qu",
@@ -5922,7 +5772,7 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 1646,
+    "likes": 1645,
     "replies": 7,
     "reposts": 176,
     "media": [
@@ -5998,7 +5848,7 @@
   },
   {
     "id": "2110341300772069576",
-    "sortIndex": "2285",
+    "sortIndex": "2286",
     "postedAt": "Wed Oct 14 12:05:49 +0000 2026",
     "url": "https://x.com/garments__/status/2110341300772069576",
     "text": "駅のホームが伸び縮みするように、遠近感を動かしてみました https://t.co/Xog7r0ZOKY",
@@ -6007,7 +5857,7 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 37388,
+    "likes": 37393,
     "replies": 79,
     "reposts": 3228,
     "media": [
@@ -6083,7 +5933,7 @@
   },
   {
     "id": "2109719295836176691",
-    "sortIndex": "2284",
+    "sortIndex": "2285",
     "postedAt": "Mon Oct 12 18:54:11 +0000 2026",
     "url": "https://x.com/GregMadison/status/2109719295836176691",
     "text": "New follower? I’m Greg Madison. I’ve been pioneering tangible interfaces in XR for decades: making digital illusions part of the physical world, keeping us grounded in it.\nA thread on the ideas behind my work. 🧵\nHere’s an early exploration from 2009.\nhttps://t.co/6tNPYwHQsH https://t.co/omqnFSSh4c",
@@ -6092,7 +5942,7 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 1021,
+    "likes": 1022,
     "replies": 42,
     "reposts": 101,
     "media": [
@@ -6168,7 +6018,7 @@
   },
   {
     "id": "2109739817000976457",
-    "sortIndex": "2283",
+    "sortIndex": "2284",
     "postedAt": "Mon Oct 12 20:15:44 +0000 2026",
     "url": "https://x.com/covacut/status/2109739817000976457",
     "text": "i curated 100 free clips of glowing lines, dating back to 1933!\n\nhttps://t.co/OwdaMz0twi https://t.co/c6SMSMyfqb",
@@ -6178,7 +6028,7 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 992,
+    "likes": 991,
     "replies": 14,
     "reposts": 86,
     "media": [
@@ -6254,7 +6104,7 @@
   },
   {
     "id": "2109548919579439202",
-    "sortIndex": "2282",
+    "sortIndex": "2283",
     "postedAt": "Mon Oct 12 07:37:10 +0000 2026",
     "url": "https://x.com/kotecinho/status/2109548919579439202",
     "text": "N200 Bluetooth Speaker\norgdot Design",
@@ -6509,7 +6359,7 @@
   },
   {
     "id": "2109463248357695729",
-    "sortIndex": "2281",
+    "sortIndex": "2282",
     "postedAt": "Mon Oct 12 01:56:44 +0000 2026",
     "url": "https://x.com/walaber/status/2109463248357695729",
     "text": "Would you believe our game is built from basically just 1 texture? https://t.co/ki3mhn4tcq",
@@ -6598,7 +6448,7 @@
   },
   {
     "id": "2108973457950019646",
-    "sortIndex": "2280",
+    "sortIndex": "2281",
     "postedAt": "Sat Oct 10 17:30:29 +0000 2026",
     "url": "https://x.com/90sPiictures/status/2108973457950019646",
     "text": "Art of Hitoshi Yoneda https://t.co/pozk9odaFq",
@@ -6607,7 +6457,7 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 23603,
+    "likes": 23590,
     "replies": 24,
     "reposts": 1801,
     "media": [
@@ -6805,7 +6655,7 @@
   },
   {
     "id": "2109392229383180678",
-    "sortIndex": "2279",
+    "sortIndex": "2280",
     "postedAt": "Sun Oct 11 21:14:32 +0000 2026",
     "url": "https://x.com/deanwball/status/2109392229383180678",
     "text": "I haven’t done a good old-fashioned antique rug drop in a while. here are some awesome rugs, presented in roughly descending order of how lit I think they are. https://t.co/J2PpPA2YAW",
@@ -7028,7 +6878,7 @@
   },
   {
     "id": "2109343245599707248",
-    "sortIndex": "2278",
+    "sortIndex": "2279",
     "postedAt": "Sun Oct 11 17:59:54 +0000 2026",
     "url": "https://x.com/Golforo/status/2109343245599707248",
     "text": "One of my favorite things about this Cartoon Network leak is that I get to see the backgrounds in HD now.\n\nThe Ed's had so much personality hidden in their rooms. Double D owning legos, Ed owning model kits, cool stuff. https://t.co/2ZO2htMZZv",
@@ -7037,9 +6887,9 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 74486,
-    "replies": 231,
-    "reposts": 9336,
+    "likes": 74455,
+    "replies": 230,
+    "reposts": 9330,
     "media": [
       {
         "type": "photo",
@@ -7224,7 +7074,7 @@
   },
   {
     "id": "2109317285966180665",
-    "sortIndex": "2277",
+    "sortIndex": "2278",
     "postedAt": "Sun Oct 11 16:16:44 +0000 2026",
     "url": "https://x.com/round/status/2109317285966180665",
     "text": "about sums it up https://t.co/xo1iASIgQs",
@@ -7233,7 +7083,7 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 1514,
+    "likes": 1513,
     "replies": 65,
     "reposts": 130,
     "media": [
@@ -7313,7 +7163,7 @@
   },
   {
     "id": "2108585844147974447",
-    "sortIndex": "2276",
+    "sortIndex": "2277",
     "postedAt": "Fri Oct 09 15:50:15 +0000 2026",
     "url": "https://x.com/apostraphi/status/2108585844147974447",
     "text": "animating with code is crazy https://t.co/pUhf3xSctn",
@@ -7472,7 +7322,7 @@
   },
   {
     "id": "2108591432835469337",
-    "sortIndex": "2275",
+    "sortIndex": "2276",
     "postedAt": "Fri Oct 09 16:12:27 +0000 2026",
     "url": "https://x.com/Nico__Chuan/status/2108591432835469337",
     "text": "fresh coat every 4 months https://t.co/kFw0F0fvwF",
@@ -7481,7 +7331,7 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 1639,
+    "likes": 1641,
     "replies": 13,
     "reposts": 51,
     "media": [
@@ -7593,7 +7443,7 @@
   },
   {
     "id": "2108519329398653260",
-    "sortIndex": "2274",
+    "sortIndex": "2275",
     "postedAt": "Fri Oct 09 11:25:57 +0000 2026",
     "url": "https://x.com/DamianChavezArt/status/2108519329398653260",
     "text": "Art Deco didn't die from being exhausted, it got blacklisted.\n\nIts three main phases - Zigzag, PWA / Stripped Classical, & Streamline - weren't exactly sequential, they overlapped all throughout the 30s. But what happened after 1929 wasn't just that zig zag Deco became too expensive, it was evolving from the 'Return to Order' (WW1) beginnings towards a more robust machine age adapted classicism. \n\nEarlier funding collapsed from private elites to the state, and a more civic form emerged - Stripped Classical/Classical Moderne. It was transatlantic, global. The American WPA, PWA, democracies and authoritarian regimes across the West all embraced it because the goal was the same: instill optimism, civic-mindedness, and resilience. Put your skilled artists & artisans to work.\n\nIt was seen as worthy recieving state funding for its public face - blending both classical & modern, a forward facing embrace between design, industry & craft.\n\nThat more colorful zig zag form was made logistically difficult to revive after 29, then that difficulty was made permanent. Deco needed a 50-year Beaux-Arts ecosystem - terracotta kilns like Gladding McBean and Atlantic Terra Cotta, plasterers, metal foundries, carvers, mosaicists - & that ecosystem took two hits. \n\nThe 29 crash bankrupted the firms & dissolved the apprenticeship pipeline, then the war shifted what was left to war industries. By 1948 a fully crafted lobby was hard to build like 1926 even if you wanted to. \n\nHard isnt impossible. With a regular cycle craft revives with demand, but revival was blocked. \n\nTax codes, FAR, federal budgets, and curtain-wall specs all rewarded flat, uncrafted surfaces, so there wasnt much incentive to maintain the ateliers.\n\nThe firmest lockout was ideological. To make High Modernism the post-war approved standard, its promoters had to discredit what came before.\n\nPolitically, Stripped Classicism was rebranded as \"fascistic\" because Hitler, Mussolini and Stalin had used identical forms. Culturally Deco, especially Streamline, was the 1930s World's Fair spirit: mass-produced household objects made beautiful, futuristic, optimistic, commercial & everyday. \n\nHigh Modernism was austere, 'European' & highbrow, it treated that populist optimism as kitsch. That created a self-fulfilling loop: disincentivize the decorative, let craft firms die, then accuse dead craft as proof decorative design is infeasible. \n\nHence the narrative that Deco simply \"fell from public taste\" is fake. \n\nIt was slowed by the war, logistically hollowed out by '48, then ideologically blacklisted afterwards - making way for [indirect] tacit state support through modernist capture this time with the opposite design ethos: (mid century)\"modernism\".\n\nThe people never chose the glass modernist box over Deco. The people were simply never asked.",
@@ -7603,9 +7453,9 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 4926,
-    "replies": 77,
-    "reposts": 623,
+    "likes": 4927,
+    "replies": 78,
+    "reposts": 624,
     "media": [
       {
         "type": "photo",
@@ -7785,7 +7635,7 @@
   },
   {
     "id": "2108137146699682030",
-    "sortIndex": "2273",
+    "sortIndex": "2274",
     "postedAt": "Thu Oct 08 10:07:17 +0000 2026",
     "url": "https://x.com/dwhilldesign/status/2108137146699682030",
     "text": "#designoftheday Eduardo Blanco’s Ciclo pencil holder turns a mundane desktop necessity into a functional sculpture. Three cylindrical volumes are repeated around a common axis, creating multiple compartments for organizing tools while producing an almost Escher-like geometric form. It’s a clever example of organization becoming the dominant visual element of the object itself. https://t.co/K1PJD3W1fy",
@@ -7794,7 +7644,7 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 170,
+    "likes": 169,
     "replies": 4,
     "reposts": 13,
     "media": [
@@ -7957,7 +7807,7 @@
   },
   {
     "id": "2107155568909779031",
-    "sortIndex": "2272",
+    "sortIndex": "2273",
     "postedAt": "Mon Oct 05 17:06:51 +0000 2026",
     "url": "https://x.com/poetengineer__/status/2107155568909779031",
     "text": "i feel a personal website should be a vessel for the multitudes we contain, so i made a gemstone to hold mine. \n\nthe original 3 planes now grew to 20 facets/themes. every particle is a work. like a prism, hover a facet and a different side of me comes out. https://t.co/euLbOYVB4K",
@@ -8047,7 +7897,7 @@
   },
   {
     "id": "2106627552882376957",
-    "sortIndex": "2271",
+    "sortIndex": "2272",
     "postedAt": "Sun Oct 04 06:08:42 +0000 2026",
     "url": "https://x.com/duck_wtd/status/2106627552882376957",
     "text": "https://t.co/vfZhygfg8o",
@@ -8057,9 +7907,9 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 23783,
+    "likes": 23775,
     "replies": 46,
-    "reposts": 2447,
+    "reposts": 2449,
     "media": [
       {
         "type": "video",
@@ -8125,7 +7975,7 @@
   },
   {
     "id": "2106556860849660323",
-    "sortIndex": "2270",
+    "sortIndex": "2271",
     "postedAt": "Sun Oct 04 01:27:48 +0000 2026",
     "url": "https://x.com/oo_kk_aa/status/2106556860849660323",
     "text": "https://t.co/7D1wSClHGv",
@@ -8134,7 +7984,7 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 6012,
+    "likes": 6010,
     "replies": 3,
     "reposts": 391,
     "media": [
@@ -8214,7 +8064,7 @@
   },
   {
     "id": "2106600214593462393",
-    "sortIndex": "2269",
+    "sortIndex": "2270",
     "postedAt": "Sun Oct 04 04:20:04 +0000 2026",
     "url": "https://x.com/azlenelza/status/2106600214593462393",
     "text": "Bounding box study https://t.co/yilD9XWwbR",
@@ -8225,7 +8075,7 @@
     ],
     "likes": 1068,
     "replies": 25,
-    "reposts": 50,
+    "reposts": 51,
     "media": [
       {
         "type": "video",
@@ -8303,7 +8153,7 @@
   },
   {
     "id": "2106081530548204031",
-    "sortIndex": "2268",
+    "sortIndex": "2269",
     "postedAt": "Fri Oct 02 17:59:00 +0000 2026",
     "url": "https://x.com/LukaPiskorec/status/2106081530548204031",
     "text": "a team of six agents lead by the gpt-6 astra orchestrator designed this structure https://t.co/4qqMhtqoOM",
@@ -8559,7 +8409,7 @@
   },
   {
     "id": "2106157622986748377",
-    "sortIndex": "2267",
+    "sortIndex": "2268",
     "postedAt": "Fri Oct 02 23:01:22 +0000 2026",
     "url": "https://x.com/anabology/status/2106157622986748377",
     "text": "I gave Claude another 18 hours.. and I think this one is the best one yet\n\nMacrohard: Windows XP\n\nI'm blown away https://t.co/euF7NRsWqA",
@@ -8569,7 +8419,7 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 17048,
+    "likes": 17052,
     "replies": 763,
     "reposts": 1746,
     "media": [
@@ -8645,7 +8495,7 @@
   },
   {
     "id": "2106382287638307268",
-    "sortIndex": "2266",
+    "sortIndex": "2267",
     "postedAt": "Sat Oct 03 13:54:06 +0000 2026",
     "url": "https://x.com/Budrip1007/status/2106382287638307268",
     "text": "the angel is in the details https://t.co/xCPYBI9Bpm",
@@ -8655,7 +8505,7 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 46,
+    "likes": 47,
     "replies": 0,
     "reposts": 5,
     "media": [
@@ -8724,7 +8574,7 @@
   },
   {
     "id": "2105700296760688790",
-    "sortIndex": "2265",
+    "sortIndex": "2266",
     "postedAt": "Thu Oct 01 16:44:07 +0000 2026",
     "url": "https://x.com/rybinfx/status/2105700296760688790",
     "text": "Web crawlers /[•]\\ #js x #css https://t.co/Gn7GArYUyS",
@@ -8733,8 +8583,8 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 69524,
-    "replies": 1065,
+    "likes": 69542,
+    "replies": 1067,
     "reposts": 8594,
     "media": [
       {
@@ -8813,7 +8663,7 @@
   },
   {
     "id": "2105534743416844356",
-    "sortIndex": "2264",
+    "sortIndex": "2265",
     "postedAt": "Thu Oct 01 05:46:16 +0000 2026",
     "url": "https://x.com/AkiyoshiKitaoka/status/2105534743416844356",
     "text": "紙片の色が変わって見える錯視。動画なのでイカサマ感が漂って何とも言えないが、リアルにやってもこのように見える。 https://t.co/XrraZDGhqm",
@@ -8822,9 +8672,9 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 6171,
+    "likes": 6167,
     "replies": 23,
-    "reposts": 590,
+    "reposts": 589,
     "media": [
       {
         "type": "video",
@@ -8898,7 +8748,7 @@
   },
   {
     "id": "2105540576200581601",
-    "sortIndex": "2263",
+    "sortIndex": "2264",
     "postedAt": "Thu Oct 01 06:09:27 +0000 2026",
     "url": "https://x.com/azlenelza/status/2105540576200581601",
     "text": "A call for new aesthetics (of maps) https://t.co/uMF9CdyHLM",
@@ -8908,7 +8758,7 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 2611,
+    "likes": 2623,
     "replies": 26,
     "reposts": 91,
     "media": [
@@ -8988,7 +8838,7 @@
   },
   {
     "id": "2105538797970809133",
-    "sortIndex": "2262",
+    "sortIndex": "2263",
     "postedAt": "Thu Oct 01 06:02:23 +0000 2026",
     "url": "https://x.com/alvish/status/2105538797970809133",
     "text": "🧲 Just shipped:\n\nTables that split, stretch, and snap into place. https://t.co/tQ8S2uMarv",
@@ -8997,7 +8847,7 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 4124,
+    "likes": 4125,
     "replies": 138,
     "reposts": 132,
     "media": [
@@ -9081,7 +8931,7 @@
   },
   {
     "id": "2105003856916808002",
-    "sortIndex": "2261",
+    "sortIndex": "2262",
     "postedAt": "Tue Sep 29 18:36:43 +0000 2026",
     "url": "https://x.com/youwillmakemaps/status/2105003856916808002",
     "text": "Geography education starts, ends with Ellen Kuzdro’s contrived color pencil landscape https://t.co/WSMIxAe0zH",
@@ -9337,7 +9187,7 @@
   },
   {
     "id": "2104723581225591253",
-    "sortIndex": "2260",
+    "sortIndex": "2261",
     "postedAt": "Tue Sep 29 00:03:00 +0000 2026",
     "url": "https://x.com/ordimaxi5/status/2104723581225591253",
     "text": "Taschen's 1000 Favorite Websites (2003) - Julius Wiedemann.\ni think we are living in the ruins of an advanced and creative civilization. jk, but nowadays all UIs seem the same\nhttps://t.co/YoTF0wFgf5 https://t.co/K6lSAmCTyt",
@@ -9346,7 +9196,7 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 3163,
+    "likes": 3161,
     "replies": 17,
     "reposts": 317,
     "media": [
@@ -9568,7 +9418,7 @@
   },
   {
     "id": "2104654998034690329",
-    "sortIndex": "2259",
+    "sortIndex": "2260",
     "postedAt": "Mon Sep 28 19:30:28 +0000 2026",
     "url": "https://x.com/SpaceX/status/2104654998034690329",
     "text": "Liftoff of Starship's first orbital flight https://t.co/vG6QWlpwnY",
@@ -9577,9 +9427,9 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 55526,
-    "replies": 1327,
-    "reposts": 7626,
+    "likes": 55515,
+    "replies": 1326,
+    "reposts": 7608,
     "media": [
       {
         "type": "photo",
@@ -9823,7 +9673,7 @@
   },
   {
     "id": "2104235867334402128",
-    "sortIndex": "2258",
+    "sortIndex": "2259",
     "postedAt": "Sun Sep 27 15:45:00 +0000 2026",
     "url": "https://x.com/MeditateColor/status/2104235867334402128",
     "text": "Johannes Itten, Color Theory. ca. 1944. https://t.co/sUKl1urWuD",
@@ -9832,7 +9682,7 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 2755,
+    "likes": 2756,
     "replies": 3,
     "reposts": 230,
     "media": [
@@ -9944,7 +9794,7 @@
   },
   {
     "id": "2104351372829425671",
-    "sortIndex": "2257",
+    "sortIndex": "2258",
     "postedAt": "Sun Sep 27 23:23:58 +0000 2026",
     "url": "https://x.com/azlenelza/status/2104351372829425671",
     "text": "https://t.co/abQnm5sSbw",
@@ -10034,7 +9884,7 @@
   },
   {
     "id": "2100195551685832880",
-    "sortIndex": "2256",
+    "sortIndex": "2257",
     "postedAt": "Wed Sep 16 12:10:13 +0000 2026",
     "url": "https://x.com/jacob__titus/status/2100195551685832880",
     "text": "This 1983 Toyota brochure is the most beautiful information you’ll see today. https://t.co/liCgROysQf",
@@ -10044,7 +9894,7 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 692,
+    "likes": 693,
     "replies": 14,
     "reposts": 55,
     "media": [
@@ -10290,7 +10140,7 @@
   },
   {
     "id": "2103203061694976420",
-    "sortIndex": "2255",
+    "sortIndex": "2256",
     "postedAt": "Thu Sep 24 19:21:00 +0000 2026",
     "url": "https://x.com/interiorsuckerr/status/2103203061694976420",
     "text": "70s Seiko Transistor Wall Clock https://t.co/3XpYecD1Nq",
@@ -10299,9 +10149,9 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 15961,
+    "likes": 15945,
     "replies": 39,
-    "reposts": 1006,
+    "reposts": 1005,
     "media": [
       {
         "type": "photo",
@@ -10427,7 +10277,7 @@
   },
   {
     "id": "2103070614747852993",
-    "sortIndex": "2254",
+    "sortIndex": "2255",
     "postedAt": "Thu Sep 24 10:34:42 +0000 2026",
     "url": "https://x.com/BeamManP/status/2103070614747852993",
     "text": "ちなみにこれはAIちゃんに伝える際の話なんだけど\n「パーティクルをカールノイズ（curl noise）の流れ場で動かして、流体っぽいうねりを出して」とか言うとこういう感じになって良い　カールノイズすき https://t.co/HV9OuIq9TB",
@@ -10437,7 +10287,7 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 8128,
+    "likes": 8125,
     "replies": 19,
     "reposts": 522,
     "media": [
@@ -10517,7 +10367,7 @@
   },
   {
     "id": "2102231520156979560",
-    "sortIndex": "2253",
+    "sortIndex": "2254",
     "postedAt": "Tue Sep 22 03:00:26 +0000 2026",
     "url": "https://x.com/pmamtraveller/status/2102231520156979560",
     "text": "“Stepping On Fresh Snow” is a punch-needle and hand-embroidery artwork featuring textured white snow and footprints by artist Narumi Takada. https://t.co/iTWzNFkTJs",
@@ -10526,9 +10376,9 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 46735,
+    "likes": 46730,
     "replies": 32,
-    "reposts": 3445,
+    "reposts": 3446,
     "media": [
       {
         "type": "photo",
@@ -10646,7 +10496,7 @@
   },
   {
     "id": "2101679582734872751",
-    "sortIndex": "2252",
+    "sortIndex": "2253",
     "postedAt": "Sun Sep 20 14:27:14 +0000 2026",
     "url": "https://x.com/colderoshay/status/2101679582734872751",
     "text": "The life of a button... 🔊 https://t.co/o3noStCn1A",
@@ -10655,9 +10505,9 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 13107,
+    "likes": 13108,
     "replies": 119,
-    "reposts": 1427,
+    "reposts": 1424,
     "media": [
       {
         "type": "video",
@@ -10735,7 +10585,7 @@
   },
   {
     "id": "2101369117496521042",
-    "sortIndex": "2251",
+    "sortIndex": "2252",
     "postedAt": "Sat Sep 19 17:53:33 +0000 2026",
     "url": "https://x.com/heystefan_/status/2101369117496521042",
     "text": "when a designer gets access to Jev https://t.co/FlJMeMNTJd",
@@ -10744,7 +10594,7 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 10279,
+    "likes": 10278,
     "replies": 218,
     "reposts": 519,
     "media": [
@@ -10828,7 +10678,7 @@
   },
   {
     "id": "2101455692490309633",
-    "sortIndex": "2250",
+    "sortIndex": "2251",
     "postedAt": "Sat Sep 19 23:37:34 +0000 2026",
     "url": "https://x.com/covacut/status/2101455692490309633",
     "text": "i dug up 200 map animations dating back to 1927, free to weave into your work \n\nhttps://t.co/tubjFugFVe https://t.co/wX6lkrf9aO",
@@ -10837,9 +10687,9 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 7838,
+    "likes": 7836,
     "replies": 56,
-    "reposts": 612,
+    "reposts": 611,
     "media": [
       {
         "type": "video",
@@ -10913,7 +10763,7 @@
   },
   {
     "id": "2101288795027214438",
-    "sortIndex": "2249",
+    "sortIndex": "2250",
     "postedAt": "Sat Sep 19 12:34:23 +0000 2026",
     "url": "https://x.com/miya_pastel1/status/2101288795027214438",
     "text": "過ぎ去る日々をパステルで彩る https://t.co/5obi4EaDLr",
@@ -10923,7 +10773,7 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 12114,
+    "likes": 12112,
     "replies": 59,
     "reposts": 1086,
     "media": [
@@ -11169,7 +11019,7 @@
   },
   {
     "id": "2100337898423796021",
-    "sortIndex": "2248",
+    "sortIndex": "2249",
     "postedAt": "Wed Sep 16 21:35:52 +0000 2026",
     "url": "https://x.com/prtygal777/status/2100337898423796021",
     "text": "handmade ceramic sink https://t.co/OZd9bh9g9b",
@@ -11178,9 +11028,9 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 54531,
+    "likes": 54501,
     "replies": 74,
-    "reposts": 4195,
+    "reposts": 4194,
     "media": [
       {
         "type": "photo",
@@ -11290,7 +11140,7 @@
   },
   {
     "id": "2100569458398073187",
-    "sortIndex": "2247",
+    "sortIndex": "2248",
     "postedAt": "Thu Sep 17 12:56:00 +0000 2026",
     "url": "https://x.com/futureofads/status/2100569458398073187",
     "text": "Levi's, 1973. https://t.co/AvoS8t9yvL",
@@ -11299,9 +11149,9 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 50922,
+    "likes": 50896,
     "replies": 385,
-    "reposts": 2859,
+    "reposts": 2856,
     "media": [
       {
         "type": "photo",
@@ -11368,7 +11218,7 @@
   },
   {
     "id": "2100335903352762526",
-    "sortIndex": "2246",
+    "sortIndex": "2247",
     "postedAt": "Wed Sep 16 21:27:56 +0000 2026",
     "url": "https://x.com/mannay/status/2100335903352762526",
     "text": "cowtropy\n\n// naive vanilla javascript https://t.co/Ebnt3j1ZL1",
@@ -11377,7 +11227,7 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 1840,
+    "likes": 1842,
     "replies": 18,
     "reposts": 112,
     "media": [
@@ -11505,7 +11355,7 @@
   },
   {
     "id": "2100083726159917458",
-    "sortIndex": "2245",
+    "sortIndex": "2246",
     "postedAt": "Wed Sep 16 04:45:52 +0000 2026",
     "url": "https://x.com/hollycurates/status/2100083726159917458",
     "text": "if you ever happen to need some intricate ornamental details for design purposes and don’t want to spend hours looking for a good ref (definitely not me today)… here you go \n\n1/https://t.co/fInqxh0LBF\n2/https://t.co/ZB8M7yRyIh\n3/https://t.co/J5oEEonRXU https://t.co/w6BybJu3yH",
@@ -11514,7 +11364,7 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 9332,
+    "likes": 9330,
     "replies": 25,
     "reposts": 1869,
     "media": [
@@ -11744,7 +11594,7 @@
   },
   {
     "id": "2100224265299624426",
-    "sortIndex": "2244",
+    "sortIndex": "2245",
     "postedAt": "Wed Sep 16 14:04:19 +0000 2026",
     "url": "https://x.com/Davidimel/status/2100224265299624426",
     "text": "Here’s some iPhone 18 Pro sample photos I shot over the last week. Thoughts in a thread:\n\nThe new imaging pipeline is really great. I used to never use ProRaw because it still left the same artifacting that SooC HEIFs have traditionally done, but the new pipeline does less sharpening out of the gate which improves color and texture. Often times I didn’t have to touch the image in post at all, which was wild to me. Texture and color have really improved year over year",
@@ -11753,7 +11603,7 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 3968,
+    "likes": 3969,
     "replies": 66,
     "reposts": 105,
     "media": [
@@ -11999,7 +11849,7 @@
   },
   {
     "id": "2099477219877978289",
-    "sortIndex": "2243",
+    "sortIndex": "2244",
     "postedAt": "Mon Sep 14 12:35:50 +0000 2026",
     "url": "https://x.com/kevin_t_ngo/status/2099477219877978289",
     "text": "Claude Opus 5 drew every frame of this animation using JavaScript. https://t.co/7xizwrzYji",
@@ -12008,7 +11858,7 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 4842,
+    "likes": 4847,
     "replies": 166,
     "reposts": 272,
     "media": [
@@ -12088,7 +11938,7 @@
   },
   {
     "id": "2099486459858448876",
-    "sortIndex": "2242",
+    "sortIndex": "2243",
     "postedAt": "Mon Sep 14 13:12:33 +0000 2026",
     "url": "https://x.com/AlexDufetel/status/2099486459858448876",
     "text": "I built a physical console for my smart lights with motorized faders. Change a light from anywhere and the fader moves to match. https://t.co/MYfodmdGk3",
@@ -12173,7 +12023,7 @@
   },
   {
     "id": "2099294264706445551",
-    "sortIndex": "2241",
+    "sortIndex": "2242",
     "postedAt": "Mon Sep 14 00:28:50 +0000 2026",
     "url": "https://x.com/ama_plaka/status/2099294264706445551",
     "text": "⁘⏇⎅◈⎅⏈⁘ https://t.co/CgwSEZPTSi",
@@ -12184,7 +12034,7 @@
     ],
     "likes": 2562,
     "replies": 13,
-    "reposts": 280,
+    "reposts": 281,
     "media": [
       {
         "type": "animated_gif",
@@ -12250,7 +12100,7 @@
   },
   {
     "id": "2099497518627184949",
-    "sortIndex": "2240",
+    "sortIndex": "2241",
     "postedAt": "Mon Sep 14 13:56:29 +0000 2026",
     "url": "https://x.com/ggsimm/status/2099497518627184949",
     "text": "angry sliders https://t.co/VverpX3NiR",
@@ -12339,7 +12189,7 @@
   },
   {
     "id": "2099480299830681826",
-    "sortIndex": "2239",
+    "sortIndex": "2240",
     "postedAt": "Mon Sep 14 12:48:04 +0000 2026",
     "url": "https://x.com/WeirdMedieval/status/2099480299830681826",
     "text": "your star sign? no, i want to know your favourite medieval writing style https://t.co/Toon1xwD7r",
@@ -12348,9 +12198,9 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 17785,
+    "likes": 17780,
     "replies": 410,
-    "reposts": 2142,
+    "reposts": 2141,
     "media": [
       {
         "type": "photo",
@@ -12417,7 +12267,7 @@
   },
   {
     "id": "2099103292697755663",
-    "sortIndex": "2238",
+    "sortIndex": "2239",
     "postedAt": "Sun Sep 13 11:49:59 +0000 2026",
     "url": "https://x.com/SustainableTall/status/2099103292697755663",
     "text": "Really one of the most remarkable structural columns - the cast iron base reminds me of a ballerina’s foot\n\nThe refurbishment of Koldinghus, in Denmark, by Inger &amp; Johannes Exner https://t.co/UJBkhtnfzo",
@@ -12426,7 +12276,7 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 1911,
+    "likes": 1913,
     "replies": 21,
     "reposts": 179,
     "media": [
@@ -12487,7 +12337,7 @@
   },
   {
     "id": "2098916110787916219",
-    "sortIndex": "2237",
+    "sortIndex": "2238",
     "postedAt": "Sat Sep 12 23:26:11 +0000 2026",
     "url": "https://x.com/saragordic/status/2098916110787916219",
     "text": "Felt chilly today so knitted little sweaters for my windows 🧶\n\nA little macOS app that wraps windows in knitted borders, with colours inspired by each app. https://t.co/umZ8LGd54d",
@@ -12580,7 +12430,7 @@
   },
   {
     "id": "2098503300303716411",
-    "sortIndex": "2236",
+    "sortIndex": "2237",
     "postedAt": "Fri Sep 11 20:05:49 +0000 2026",
     "url": "https://x.com/s3ththompson/status/2098503300303716411",
     "text": "Windows on the World, Ezra Stoller, 1976\n\nOne of my favorite photographs. Ezra Stoller likely used bright, raking strobes in order to raise the light levels of the interior to avoid over-exposing the view out the window. https://t.co/0JWQqEYi7a",
@@ -12658,7 +12508,7 @@
   },
   {
     "id": "2098568499891524034",
-    "sortIndex": "2235",
+    "sortIndex": "2236",
     "postedAt": "Sat Sep 12 00:24:54 +0000 2026",
     "url": "https://x.com/PabloAntonio/status/2098568499891524034",
     "text": "She's super talented. I NEED to buy one of these.\nHere's a comparison of the Pentium weaving  with a Pentium die photo. https://t.co/lmnDW5h0Qm",
@@ -12668,7 +12518,7 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 2672,
+    "likes": 2673,
     "replies": 19,
     "reposts": 179,
     "media": [
@@ -12839,7 +12689,7 @@
   },
   {
     "id": "2097839792373555285",
-    "sortIndex": "2234",
+    "sortIndex": "2235",
     "postedAt": "Thu Sep 10 00:09:17 +0000 2026",
     "url": "https://x.com/blind_via/status/2097839792373555285",
     "text": "PCB and Component Assembly Plushy Set\n\nThis plush has trace artwork of a real 555 timer circuit plush parts included. \n\nEasy Assembly and Rework. https://t.co/kMTdJnzOFb",
@@ -12924,7 +12774,7 @@
   },
   {
     "id": "2098060174028132390",
-    "sortIndex": "2233",
+    "sortIndex": "2234",
     "postedAt": "Thu Sep 10 14:45:00 +0000 2026",
     "url": "https://x.com/house_of_errors/status/2098060174028132390",
     "text": "Our Embroidered Paint collection releases tomorrow https://t.co/8r3SqK55Ta",
@@ -12933,7 +12783,7 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 2498,
+    "likes": 2497,
     "replies": 16,
     "reposts": 176,
     "media": [
@@ -13061,7 +12911,7 @@
   },
   {
     "id": "2097724810956505390",
-    "sortIndex": "2232",
+    "sortIndex": "2233",
     "postedAt": "Wed Sep 09 16:32:23 +0000 2026",
     "url": "https://x.com/house_of_errors/status/2097724810956505390",
     "text": "Painting with yarn.\n\nReleasing friday. https://t.co/Lam1sa4dsV",
@@ -13070,7 +12920,7 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 51185,
+    "likes": 51186,
     "replies": 90,
     "reposts": 2349,
     "media": [
@@ -13198,7 +13048,7 @@
   },
   {
     "id": "2097674859148984730",
-    "sortIndex": "2231",
+    "sortIndex": "2232",
     "postedAt": "Wed Sep 09 13:13:53 +0000 2026",
     "url": "https://x.com/house_of_errors/status/2097674859148984730",
     "text": "Releases Friday https://t.co/OOKMdpyPnl",
@@ -13280,7 +13130,7 @@
   },
   {
     "id": "2097348947488747882",
-    "sortIndex": "2230",
+    "sortIndex": "2231",
     "postedAt": "Tue Sep 08 15:38:50 +0000 2026",
     "url": "https://x.com/randal_olson/status/2097348947488747882",
     "text": "Every lighthouse on the New England coast blinks on its own timing.\n\nThat's how sailors tell them apart in the dark. This map runs all of them on their real cycles. https://t.co/pRO1QcqBLC",
@@ -13289,9 +13139,9 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 12332,
+    "likes": 12334,
     "replies": 115,
-    "reposts": 1110,
+    "reposts": 1109,
     "media": [
       {
         "type": "animated_gif",
@@ -13357,7 +13207,7 @@
   },
   {
     "id": "2096979553889476717",
-    "sortIndex": "2229",
+    "sortIndex": "2230",
     "postedAt": "Mon Sep 07 15:11:00 +0000 2026",
     "url": "https://x.com/ericagregor/status/2096979553889476717",
     "text": "physics of light // optics https://t.co/LHpv7j7RAA",
@@ -13366,9 +13216,9 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 16548,
+    "likes": 16550,
     "replies": 17,
-    "reposts": 2173,
+    "reposts": 2172,
     "media": [
       {
         "type": "photo",
@@ -13580,7 +13430,7 @@
   },
   {
     "id": "2097336041799655536",
-    "sortIndex": "2228",
+    "sortIndex": "2229",
     "postedAt": "Tue Sep 08 14:47:33 +0000 2026",
     "url": "https://x.com/hturan/status/2097336041799655536",
     "text": "and here’s @mxsage’s lovely “36 points” running on this 60hz eink panel with the @Modostech glider driver board https://t.co/WkZDgSgn6D",
@@ -13590,7 +13440,7 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 5942,
+    "likes": 5940,
     "replies": 79,
     "reposts": 452,
     "media": [
@@ -13666,7 +13516,7 @@
   },
   {
     "id": "2097187186596569094",
-    "sortIndex": "2227",
+    "sortIndex": "2228",
     "postedAt": "Tue Sep 08 04:56:03 +0000 2026",
     "url": "https://x.com/mbateman/status/2097187186596569094",
     "text": "I put Astra on making an animated/interactive version of the 1868 book 507 Mechanical Motions and it’s doing a *pretty* good job. https://t.co/8uPgDB1doq",
@@ -13895,7 +13745,7 @@
   },
   {
     "id": "2096999414573203822",
-    "sortIndex": "2226",
+    "sortIndex": "2227",
     "postedAt": "Mon Sep 07 16:29:55 +0000 2026",
     "url": "https://x.com/house_of_errors/status/2096999414573203822",
     "text": "There is no paint, just 1.7 million stitches https://t.co/QbSUlEHGQf",
@@ -13904,9 +13754,9 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 92266,
+    "likes": 92247,
     "replies": 409,
-    "reposts": 7889,
+    "reposts": 7886,
     "media": [
       {
         "type": "photo",
@@ -14032,7 +13882,7 @@
   },
   {
     "id": "2096575675096330278",
-    "sortIndex": "2225",
+    "sortIndex": "2226",
     "postedAt": "Sun Sep 06 12:26:08 +0000 2026",
     "url": "https://x.com/Watchman_motto/status/2096575675096330278",
     "text": "Stained glass, tile, herringbone wood. All real things that feel human in a room. https://t.co/QEFmg5gYbK",
@@ -14102,7 +13952,7 @@
   },
   {
     "id": "2096226598462664866",
-    "sortIndex": "2224",
+    "sortIndex": "2225",
     "postedAt": "Sat Sep 05 13:19:01 +0000 2026",
     "url": "https://x.com/linear_magazine/status/2096226598462664866",
     "text": "Forest House\nBohlin Cywinski Jackson\n\nCornwall, Connecticut\nPhotos by Michael Thomas https://t.co/m4aYAoGLs6",
@@ -14325,7 +14175,7 @@
   },
   {
     "id": "2095895140158038239",
-    "sortIndex": "2223",
+    "sortIndex": "2224",
     "postedAt": "Fri Sep 04 15:21:55 +0000 2026",
     "url": "https://x.com/tol__is/status/2095895140158038239",
     "text": "https://t.co/3BGARhSFi4\n\nMake some noise https://t.co/Nq6Ay5hKr4",
@@ -14418,7 +14268,7 @@
   },
   {
     "id": "2095659801795559852",
-    "sortIndex": "2222",
+    "sortIndex": "2223",
     "postedAt": "Thu Sep 03 23:46:46 +0000 2026",
     "url": "https://x.com/formsarchive/status/2095659801795559852",
     "text": "Braun's use of orange deserves its own case study. https://t.co/wq8bRiKX40",
@@ -14428,7 +14278,7 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 3640,
+    "likes": 3635,
     "replies": 25,
     "reposts": 238,
     "media": [
@@ -14626,7 +14476,7 @@
   },
   {
     "id": "2067278059275788495",
-    "sortIndex": "2221",
+    "sortIndex": "2222",
     "postedAt": "Wed Jun 17 16:07:52 +0000 2026",
     "url": "https://x.com/formsarchive/status/2067278059275788495",
     "text": "Braun and the art of functional color. https://t.co/agCKALccMC",
@@ -14637,7 +14487,7 @@
     ],
     "likes": 3277,
     "replies": 9,
-    "reposts": 301,
+    "reposts": 302,
     "media": [
       {
         "type": "photo",
@@ -14849,7 +14699,7 @@
   },
   {
     "id": "2095799066932523478",
-    "sortIndex": "2220",
+    "sortIndex": "2221",
     "postedAt": "Fri Sep 04 09:00:10 +0000 2026",
     "url": "https://x.com/rajanndube/status/2095799066932523478",
     "text": "I can make 70% of humans yawn on command.\n\nIt started with a design mistake.\n\nBack in 2023, I was designing Alora, a sleep music app, and accidentally deleted the eyes off its mascot. I was about to undo it, but for some reason I kept staring at it.\n\nNow the entire expression had to come from just the mouth.\n\nSo we turned it into a slow yawn and made that the app’s opening animation.\n\nAnd this is where it got interesting: yawning seems to be weirdly contagious.\n\nAround 70% of people who watched the mascot yawn ended up yawning themselves.\n\nWe weren’t just showing someone sleepy anymore. We were making the person watching feel it too.\n\nStill one of my favourite design accidents.",
@@ -14938,7 +14788,7 @@
   },
   {
     "id": "2095660530543309098",
-    "sortIndex": "2219",
+    "sortIndex": "2220",
     "postedAt": "Thu Sep 03 23:49:40 +0000 2026",
     "url": "https://x.com/BartekK349090/status/2095660530543309098",
     "text": "A quick breakdown/tutorial of how I do sprite stacking for my game.\n\n#gamedev #pixelart #indiedev #godotengine https://t.co/M3zyieINH4",
@@ -14947,9 +14797,9 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 8173,
+    "likes": 8182,
     "replies": 148,
-    "reposts": 598,
+    "reposts": 599,
     "media": [
       {
         "type": "video",
@@ -15023,7 +14873,7 @@
   },
   {
     "id": "2095635590419001580",
-    "sortIndex": "2218",
+    "sortIndex": "2219",
     "postedAt": "Thu Sep 03 22:10:34 +0000 2026",
     "url": "https://x.com/online_bestiee/status/2095635590419001580",
     "text": "The people who need my Art will find me. https://t.co/HE0LB9oexI",
@@ -15246,7 +15096,7 @@
   },
   {
     "id": "2095532008663298388",
-    "sortIndex": "2217",
+    "sortIndex": "2218",
     "postedAt": "Thu Sep 03 15:18:58 +0000 2026",
     "url": "https://x.com/AHomelyHouse/status/2095532008663298388",
     "text": "It's been a few years since I've done a carved wooden book cover. Maybe I should do a new one this winter once I'm all caught up on everything else. https://t.co/w6ubBQrG81",
@@ -15367,7 +15217,7 @@
   },
   {
     "id": "2095592282665648144",
-    "sortIndex": "2216",
+    "sortIndex": "2217",
     "postedAt": "Thu Sep 03 19:18:29 +0000 2026",
     "url": "https://x.com/blak3shao/status/2095592282665648144",
     "text": "made a brush that draws schematic diagrams too, this is too fun https://t.co/CPnvidFQkK",
@@ -15377,9 +15227,9 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 33606,
+    "likes": 33603,
     "replies": 90,
-    "reposts": 3996,
+    "reposts": 3994,
     "media": [
       {
         "type": "video",
@@ -15461,7 +15311,7 @@
   },
   {
     "id": "2095553882696917379",
-    "sortIndex": "2215",
+    "sortIndex": "2216",
     "postedAt": "Thu Sep 03 16:45:53 +0000 2026",
     "url": "https://x.com/blak3shao/status/2095553882696917379",
     "text": "having the time of my life making p5js brushes rn https://t.co/Hl5JOUh3yM",
@@ -15472,7 +15322,7 @@
     ],
     "likes": 3188,
     "replies": 17,
-    "reposts": 187,
+    "reposts": 186,
     "media": [
       {
         "type": "video",
@@ -15554,7 +15404,7 @@
   },
   {
     "id": "2095038548495696282",
-    "sortIndex": "2214",
+    "sortIndex": "2215",
     "postedAt": "Wed Sep 02 06:38:08 +0000 2026",
     "url": "https://x.com/recentdesign/status/2095038548495696282",
     "text": "Spiral by @beesandbombs https://t.co/aWEZhwqiTv",
@@ -15563,7 +15413,7 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 951,
+    "likes": 948,
     "replies": 4,
     "reposts": 69,
     "media": [
@@ -15639,7 +15489,7 @@
   },
   {
     "id": "2095187132956500452",
-    "sortIndex": "2213",
+    "sortIndex": "2214",
     "postedAt": "Wed Sep 02 16:28:33 +0000 2026",
     "url": "https://x.com/OlixOliver/status/2095187132956500452",
     "text": "A nice feature of my #DeckardRender for @Unity is that it can 'reason' in spectral domain of a light. Here is a simple example of a sphere entering a volumetric light of a spotlight projector and casting spectral shadows.\n\nThis is something that can be used for simulating almost physically correct behaviour of scattered light in penumbra regions of a shadow (think of a sun eclipse red corona effect). Also, it renders extremely fast.\n\n#CG #3D #Rendering #CGI",
@@ -15648,7 +15498,7 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 145,
+    "likes": 144,
     "replies": 3,
     "reposts": 9,
     "media": [
@@ -15728,7 +15578,7 @@
   },
   {
     "id": "2095226164466049341",
-    "sortIndex": "2212",
+    "sortIndex": "2213",
     "postedAt": "Wed Sep 02 19:03:39 +0000 2026",
     "url": "https://x.com/kiiradesign/status/2095226164466049341",
     "text": "I'm super excited to host an anthotype printing workshop https://t.co/4d8rstJLjm",
@@ -15807,7 +15657,7 @@
   },
   {
     "id": "2095268229597765666",
-    "sortIndex": "2211",
+    "sortIndex": "2212",
     "postedAt": "Wed Sep 02 21:50:48 +0000 2026",
     "url": "https://x.com/Gallo_Woodworks/status/2095268229597765666",
     "text": "Hammerbeam trusses make a gorgeous interior. https://t.co/wxuShum7FR",
@@ -15817,7 +15667,7 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 738,
+    "likes": 737,
     "replies": 26,
     "reposts": 24,
     "media": [
@@ -15886,7 +15736,7 @@
   },
   {
     "id": "2095451927991742792",
-    "sortIndex": "2210",
+    "sortIndex": "2211",
     "postedAt": "Thu Sep 03 10:00:45 +0000 2026",
     "url": "https://x.com/miya_pastel1/status/2095451927991742792",
     "text": "こちらは5色で描いた空 https://t.co/kIHABzP7tc",
@@ -15896,7 +15746,7 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 6997,
+    "likes": 6996,
     "replies": 13,
     "reposts": 825,
     "media": [
@@ -16142,7 +15992,7 @@
   },
   {
     "id": "2095457395795231134",
-    "sortIndex": "2209",
+    "sortIndex": "2210",
     "postedAt": "Thu Sep 03 10:22:29 +0000 2026",
     "url": "https://x.com/paperjulia/status/2095457395795231134",
     "text": "the jim teacher in question https://t.co/aAn8suDR0S",
@@ -16151,7 +16001,7 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 2504,
+    "likes": 2506,
     "replies": 6,
     "reposts": 237,
     "media": [
@@ -16278,7 +16128,7 @@
   },
   {
     "id": "2095002558238769156",
-    "sortIndex": "2208",
+    "sortIndex": "2209",
     "postedAt": "Wed Sep 02 04:15:07 +0000 2026",
     "url": "https://x.com/Licia_He/status/2095002558238769156",
     "text": "Victoria and Albert Museum is my most-visited London museum. It is my absolute honor to share that two of my paintings have entered V&amp;A's permanent collection and will be exhibited at Degrees of Disruption in Oct alongside works by Vera Molnar and many artists I admire. https://t.co/gqgHr2s9hk",
@@ -16363,7 +16213,7 @@
   },
   {
     "id": "2095463012417114465",
-    "sortIndex": "2207",
+    "sortIndex": "2208",
     "postedAt": "Thu Sep 03 10:44:48 +0000 2026",
     "url": "https://x.com/newsonstone/status/2095463012417114465",
     "text": "Final pics of the drystone bridge. Wasn’t really happy with the finished product. Client wanted gravel I wanted cobblestones.  oh well, still looks cool. \n\nYou can drive a car over it, and it survived being underwater during hurricane Helene. \n\nThe Roman arch is undefeated. https://t.co/85nwmACK3t",
@@ -16372,7 +16222,7 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 1739,
+    "likes": 1740,
     "replies": 56,
     "reposts": 56,
     "media": [
@@ -16500,7 +16350,7 @@
   },
   {
     "id": "2095316474697027918",
-    "sortIndex": "2206",
+    "sortIndex": "2207",
     "postedAt": "Thu Sep 03 01:02:31 +0000 2026",
     "url": "https://x.com/GRRLmusic/status/2095316474697027918",
     "text": "discovering a new type of graphic to become obsessed with \n\nhttps://t.co/QDiKPF1g1z https://t.co/4IhgVGn2Wu",
@@ -16509,9 +16359,9 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 3743,
+    "likes": 3740,
     "replies": 17,
-    "reposts": 379,
+    "reposts": 378,
     "media": [
       {
         "type": "photo",
@@ -16755,7 +16605,7 @@
   },
   {
     "id": "2095011696180171077",
-    "sortIndex": "2205",
+    "sortIndex": "2206",
     "postedAt": "Wed Sep 02 04:51:26 +0000 2026",
     "url": "https://x.com/kellymilligannz/status/2095011696180171077",
     "text": "https://t.co/WFBHSGC9Gu",
@@ -16840,7 +16690,7 @@
   },
   {
     "id": "2094691113433006380",
-    "sortIndex": "2204",
+    "sortIndex": "2205",
     "postedAt": "Tue Sep 01 07:37:33 +0000 2026",
     "url": "https://x.com/KononenkoElena/status/2094691113433006380",
     "text": "Autumn vibes 🍂🍁🥧 https://t.co/u9tVuYPiHC",
@@ -16849,7 +16699,7 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 5400,
+    "likes": 5399,
     "replies": 11,
     "reposts": 522,
     "media": [
@@ -17087,7 +16937,7 @@
   },
   {
     "id": "2094489871242965009",
-    "sortIndex": "2203",
+    "sortIndex": "2204",
     "postedAt": "Mon Aug 31 18:17:53 +0000 2026",
     "url": "https://x.com/daniielezeh/status/2094489871242965009",
     "text": "sweet baby jesus https://t.co/nxnxiSkxJe",
@@ -17096,7 +16946,7 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 7048,
+    "likes": 7045,
     "replies": 32,
     "reposts": 499,
     "media": [
@@ -17342,7 +17192,7 @@
   },
   {
     "id": "2094488915868807198",
-    "sortIndex": "2202",
+    "sortIndex": "2203",
     "postedAt": "Mon Aug 31 18:14:05 +0000 2026",
     "url": "https://x.com/longnow/status/2094488915868807198",
     "text": "“The Speed of the Earth” has returned to Black Rock City. Originally created in 02024, this art piece by Long Now Board members Kevin Kelly and David Rumsey uses a mile-long line of solar-powered LED strobes to create a streak of light that moves at the speed of the Earth's rotation.\n\nMore about the installation from @DavidRumseyMaps: https://t.co/R3tHaHfDQ1\n\nMore about Burning Man art from Kelly in this 1999 issue of Whole Earth magazine: https://t.co/a8gOzHrRK3",
@@ -17352,7 +17202,7 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 2960,
+    "likes": 2961,
     "replies": 32,
     "reposts": 275,
     "media": [
@@ -17428,7 +17278,7 @@
   },
   {
     "id": "2094435045016584527",
-    "sortIndex": "2201",
+    "sortIndex": "2202",
     "postedAt": "Mon Aug 31 14:40:02 +0000 2026",
     "url": "https://x.com/daniela0spector/status/2094435045016584527",
     "text": "“Man” is a collection of found images where a man is flanked by women on either side. But they’re strategically composed so the men are lost within the binding. Genius work by Erik Kessels and Karen De Mulder. https://t.co/pwrkWU0vgq",
@@ -17690,7 +17540,7 @@
   },
   {
     "id": "2094476795118825961",
-    "sortIndex": "2200",
+    "sortIndex": "2201",
     "postedAt": "Mon Aug 31 17:25:56 +0000 2026",
     "url": "https://x.com/CalderMoore_/status/2094476795118825961",
     "text": "Let me teach you how to make some sick Fantasy artwork https://t.co/oY4GmMJQad",
@@ -17700,7 +17550,7 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 5078,
+    "likes": 5075,
     "replies": 12,
     "reposts": 225,
     "media": [
@@ -17769,7 +17619,7 @@
   },
   {
     "id": "2090125824167231623",
-    "sortIndex": "2199",
+    "sortIndex": "2200",
     "postedAt": "Wed Aug 19 17:16:43 +0000 2026",
     "url": "https://x.com/CalderMoore_/status/2090125824167231623",
     "text": "Want to Learn how to make some cool shit? \n\nJoin the waitlist to stay tuned on a new course I'm developing!\nhttps://t.co/xIVP5rnYxu https://t.co/ItzdqULwWJ",
@@ -17778,7 +17628,7 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 1009,
+    "likes": 1013,
     "replies": 1,
     "reposts": 41,
     "media": [
@@ -18016,7 +17866,7 @@
   },
   {
     "id": "2094393600071405584",
-    "sortIndex": "2198",
+    "sortIndex": "2199",
     "postedAt": "Mon Aug 31 11:55:20 +0000 2026",
     "url": "https://x.com/jiholimm/status/2094393600071405584",
     "text": "lol ok the bear got a lil fatter now https://t.co/VthLR4x9lK",
@@ -18106,7 +17956,7 @@
   },
   {
     "id": "1837890311953306044",
-    "sortIndex": "2197",
+    "sortIndex": "2198",
     "postedAt": "Sun Sep 22 16:22:51 +0000 2024",
     "url": "https://x.com/jiholimm/status/1837890311953306044",
     "text": "The new bear logo animation on Jony Ive's https://t.co/Ky1SE0Vbhz is just 🤌 https://t.co/kn5U9ss2JM",
@@ -18191,7 +18041,7 @@
   },
   {
     "id": "2094157908980228585",
-    "sortIndex": "2196",
+    "sortIndex": "2197",
     "postedAt": "Sun Aug 30 20:18:47 +0000 2026",
     "url": "https://x.com/thespite/status/2094157908980228585",
     "text": "https://t.co/HzhY9cy2Ui",
@@ -18446,7 +18296,7 @@
   },
   {
     "id": "2093912409694163032",
-    "sortIndex": "2195",
+    "sortIndex": "2196",
     "postedAt": "Sun Aug 30 04:03:16 +0000 2026",
     "url": "https://x.com/samhenrigold/status/2093912409694163032",
     "text": "ever think about how a fruit cup would send someone from the 18th century into a nervous breakdown\n\n“You mean to tell me that for your breakfast, you have assembled the harvest of SEVEN KINGDOMS currently experiencing DIFFERENT SEASONS, placed them in a perfectly transparent disposable vessel, and chilled the whole thing using artificial winter?”\n\n“Yeah it was $8, total ripoff”",
@@ -18525,7 +18375,7 @@
   },
   {
     "id": "2093513596596789701",
-    "sortIndex": "2194",
+    "sortIndex": "2195",
     "postedAt": "Sat Aug 29 01:38:31 +0000 2026",
     "url": "https://x.com/youwillmakemaps/status/2093513596596789701",
     "text": "Evan don’t map the earth onto the inside of an icosahedron and punch a window in the south atlantic facet. Don't do it. They'll kill u https://t.co/VpkRO9mNkr",
@@ -18619,7 +18469,7 @@
   },
   {
     "id": "2093752689272230215",
-    "sortIndex": "2193",
+    "sortIndex": "2194",
     "postedAt": "Sat Aug 29 17:28:35 +0000 2026",
     "url": "https://x.com/simonsarris/status/2093752689272230215",
     "text": "All they have to do to be actually fun and cool instead is get all the employees Venetian velvet slippers for the office. \n\nPeople should feel like they're being somewhere, especially in an office. A little bit of artistry is not that far away. https://t.co/Cg8mm2MdDf",
@@ -18629,7 +18479,7 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 383,
+    "likes": 384,
     "replies": 10,
     "reposts": 2,
     "media": [
@@ -18741,7 +18591,7 @@
   },
   {
     "id": "2093702941664248031",
-    "sortIndex": "2192",
+    "sortIndex": "2193",
     "postedAt": "Sat Aug 29 14:10:55 +0000 2026",
     "url": "https://x.com/MaximeHeckel/status/2093702941664248031",
     "text": "been looking for the right scene to demo my lcd display shader\n\nthis one felt just right\n\nhttps://t.co/XGv4FbUexr https://t.co/Jwc00VuiL0",
@@ -18830,7 +18680,7 @@
   },
   {
     "id": "2093341582137385462",
-    "sortIndex": "2191",
+    "sortIndex": "2192",
     "postedAt": "Fri Aug 28 14:15:00 +0000 2026",
     "url": "https://x.com/PhilosophyOfPhy/status/2093341582137385462",
     "text": "Genius is the ability to independently arrive at and understand concepts that would normally have to be taught by another person.\n\n- Immanuel Kant https://t.co/3DcgbpUDYO",
@@ -18839,9 +18689,9 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 12784,
+    "likes": 12783,
     "replies": 161,
-    "reposts": 1797,
+    "reposts": 1796,
     "media": [
       {
         "type": "animated_gif",
@@ -18899,7 +18749,7 @@
   },
   {
     "id": "2093647593410826526",
-    "sortIndex": "2190",
+    "sortIndex": "2191",
     "postedAt": "Sat Aug 29 10:30:59 +0000 2026",
     "url": "https://x.com/miya_pastel1/status/2093647593410826526",
     "text": "パステルは粉ですが、水の表現が得意な画材です https://t.co/yaLAWiqogM",
@@ -18909,9 +18759,9 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 52078,
+    "likes": 52069,
     "replies": 20,
-    "reposts": 3843,
+    "reposts": 3841,
     "media": [
       {
         "type": "photo",
@@ -19155,7 +19005,7 @@
   },
   {
     "id": "2093352915809231101",
-    "sortIndex": "2189",
+    "sortIndex": "2190",
     "postedAt": "Fri Aug 28 15:00:02 +0000 2026",
     "url": "https://x.com/ApexDistrictX/status/2093352915809231101",
     "text": "Ferrari F40 https://t.co/8tjAiCdlVA",
@@ -19164,7 +19014,7 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 16184,
+    "likes": 16174,
     "replies": 65,
     "reposts": 1307,
     "media": [
@@ -19410,7 +19260,7 @@
   },
   {
     "id": "2092209878949581139",
-    "sortIndex": "2188",
+    "sortIndex": "2189",
     "postedAt": "Tue Aug 25 11:18:01 +0000 2026",
     "url": "https://x.com/BEH0LDINGEYE/status/2092209878949581139",
     "text": "3 miles above NYC 🚁📸🫪 https://t.co/5878j4A6sX",
@@ -19419,7 +19269,7 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 12541,
+    "likes": 12538,
     "replies": 68,
     "reposts": 644,
     "media": [
@@ -19665,7 +19515,7 @@
   },
   {
     "id": "2092732617028472987",
-    "sortIndex": "2187",
+    "sortIndex": "2188",
     "postedAt": "Wed Aug 26 21:55:11 +0000 2026",
     "url": "https://x.com/david_perell/status/2092732617028472987",
     "text": "The decline of beauty in everyday life shows up in even the smallest things, like tickets, where we’ve let our obsession with efficiency win out over personality and artistic expression.\n\nLike the ticket from the Guggenheim Museum in New York, which I've shared in the first photo. It's an iconic building that could have so easily inspired a beautiful ticket design, but they opted for the most economical option instead. \n\nEach example of this decline isn't a big deal, but the world becomes less charming and enchanted when people stop caring about craftsmanship. \n\nFor some alternatives, scroll through the photos. The second one shows old Japanese train tickets, the third one shows an old circus ticket, and the fourth one is a World Series ticket from 2002, which felt magical when I got to hold one as an eight-year-old. \n\nSo yes, there’s definitely been a decline. And maybe we’re okay with it! But it’s worth remembering that this decline isn’t inevitable. There is another way.",
@@ -19674,9 +19524,9 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 10065,
+    "likes": 10059,
     "replies": 151,
-    "reposts": 1089,
+    "reposts": 1088,
     "media": [
       {
         "type": "photo",
@@ -19888,7 +19738,7 @@
   },
   {
     "id": "2092266770883297288",
-    "sortIndex": "2186",
+    "sortIndex": "2187",
     "postedAt": "Tue Aug 25 15:04:05 +0000 2026",
     "url": "https://x.com/DlSPUTED/status/2092266770883297288",
     "text": "getting close to sharing an updated version of Schematics n' Scores with the complete audiovisual code.\n\nlooking for people interested in testing and playing around with it! https://t.co/JpOLryRFBR",
@@ -19897,7 +19747,7 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 313,
+    "likes": 311,
     "replies": 22,
     "reposts": 29,
     "media": [
@@ -19973,7 +19823,7 @@
   },
   {
     "id": "2092305772755529955",
-    "sortIndex": "2185",
+    "sortIndex": "2186",
     "postedAt": "Tue Aug 25 17:39:04 +0000 2026",
     "url": "https://x.com/Aurelien_Gz/status/2092305772755529955",
     "text": "most beautiful icons you'll see today..\n\npure dieter rams style\n\nwizards » https://t.co/AcCYVUBz7T https://t.co/TH6ARYrLs7",
@@ -19982,7 +19832,7 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 1771,
+    "likes": 1770,
     "replies": 10,
     "reposts": 133,
     "media": [
@@ -20094,7 +19944,7 @@
   },
   {
     "id": "2092381261901779132",
-    "sortIndex": "2184",
+    "sortIndex": "2185",
     "postedAt": "Tue Aug 25 22:39:02 +0000 2026",
     "url": "https://x.com/papaleone5/status/2092381261901779132",
     "text": "@ClarksonsFarm1 Nothing ever can beat this beauty!!! Perfection! From head to toe! https://t.co/y09HkskrTE",
@@ -20172,7 +20022,7 @@
   },
   {
     "id": "2092303506782732490",
-    "sortIndex": "2183",
+    "sortIndex": "2184",
     "postedAt": "Tue Aug 25 17:30:03 +0000 2026",
     "url": "https://x.com/Mike_M_Klotz/status/2092303506782732490",
     "text": "And it’s not even remotely close. https://t.co/8SxtMUI5rz",
@@ -20183,7 +20033,7 @@
       "🖼️ Inspo"
     ],
     "likes": 1268,
-    "replies": 108,
+    "replies": 106,
     "reposts": 103,
     "media": [
       {
@@ -20412,7 +20262,7 @@
   },
   {
     "id": "2092158857032433869",
-    "sortIndex": "2182",
+    "sortIndex": "2183",
     "postedAt": "Tue Aug 25 07:55:16 +0000 2026",
     "url": "https://x.com/Manixh02/status/2092158857032433869",
     "text": "Found a fun way to generate QR codes that don’t look like QR codes.\n\n- Enter a URL and it grows a 3D tree from the code itself\n- The ground grid is the actual scannable QR\n- Switch between Spring, Summer, and Autumn looks\n- Runs fully in the browser, nothing uploaded\n- Tap the tree to flatten it and scan\n\nhttps://t.co/133ukElFea",
@@ -20421,7 +20271,7 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 17379,
+    "likes": 17381,
     "replies": 223,
     "reposts": 1824,
     "media": [
@@ -20497,7 +20347,7 @@
   },
   {
     "id": "2092148034633363576",
-    "sortIndex": "2181",
+    "sortIndex": "2182",
     "postedAt": "Tue Aug 25 07:12:16 +0000 2026",
     "url": "https://x.com/usgraphics/status/2092148034633363576",
     "text": "There is also the opposite in type design, that is extreme analytical approaches. Here is our custom Nelder-Mead solver that proposes Houston Mono chamfer nodes in ~2000 iterations. The goal is to smoothly transition from one direction to another using exactly 6 nodes with a 'smooth chamfer', i.e. two rounded 45 deg chamfer corners. \n\nBasically, I care about 3 components for Houston Mono chamfers:\n\n1) How the stroke width smoothly changes from one thickness to another. Here the vertical stroke is 84. It transitions to horizontal at 80. But the midpoint of the chamfer is like ~85.63 (see the table)! It's not linear, but the solver makes this as even as possible.\n\n2) How each of the 45 deg turns curve, i.e. curve tension. Held at 91% by the solver. That means the handles span 91% to the Tunni point (where two handles intersect).\n\n3) How deep the chamfer is...O has deeper chamfers than 2 for example.\n\nThere are a few other things like I can bias/skew the stroke change as I see fit visually.",
@@ -20507,7 +20357,7 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 402,
+    "likes": 401,
     "replies": 11,
     "reposts": 15,
     "media": [
@@ -20576,7 +20426,7 @@
   },
   {
     "id": "2091992338402877622",
-    "sortIndex": "2180",
+    "sortIndex": "2181",
     "postedAt": "Mon Aug 24 20:53:35 +0000 2026",
     "url": "https://x.com/sudara/status/2091992338402877622",
     "text": "the really nice thing about additive is you can take ideas like a resonant filter sweep and turn them upside down and inside out. any other ideas to try with sweepy filtery stuff? https://t.co/fI3kKoVXCu",
@@ -20585,7 +20435,7 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 231,
+    "likes": 232,
     "replies": 7,
     "reposts": 10,
     "media": [
@@ -20669,7 +20519,7 @@
   },
   {
     "id": "2091716101402951809",
-    "sortIndex": "2179",
+    "sortIndex": "2180",
     "postedAt": "Mon Aug 24 02:35:55 +0000 2026",
     "url": "https://x.com/hollycurates/status/2091716101402951809",
     "text": "another gem on my pattern exploration journey\n\nKunstgewerbliche Schmuckformen für die Fläche, 1910  https://t.co/Zg1zXsK808 https://t.co/Z4bpMX2lgY",
@@ -20924,7 +20774,7 @@
   },
   {
     "id": "2091323109609463872",
-    "sortIndex": "2178",
+    "sortIndex": "2179",
     "postedAt": "Sun Aug 23 00:34:18 +0000 2026",
     "url": "https://x.com/hollycurates/status/2091323109609463872",
     "text": "mixed-media works by Cy Twombly from the series Natural History Part I: Mushrooms, 1974\n\n1/ No. X\n2/ No. VII\n3/ No. VIII\n4/ No. VI https://t.co/yBkzM0ULOT",
@@ -20933,9 +20783,9 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 2134,
+    "likes": 2135,
     "replies": 2,
-    "reposts": 296,
+    "reposts": 295,
     "media": [
       {
         "type": "photo",
@@ -21147,7 +20997,7 @@
   },
   {
     "id": "2091694372844667237",
-    "sortIndex": "2177",
+    "sortIndex": "2178",
     "postedAt": "Mon Aug 24 01:09:34 +0000 2026",
     "url": "https://x.com/hollycurates/status/2091694372844667237",
     "text": "scientific photography is a fascinating genre in itself, but Anna Atkins’ cyanotype botanicals are just another level of woaahh. she’s considered the first woman photographer, and these are from her Photographs of British Algae, first published in 1843 (and considered the first book illustrated with photographs). the whole book is available on the Rijksmuseum website https://t.co/ctjiWc3L25",
@@ -21378,7 +21228,7 @@
   },
   {
     "id": "2091545928687825406",
-    "sortIndex": "2176",
+    "sortIndex": "2177",
     "postedAt": "Sun Aug 23 15:19:43 +0000 2026",
     "url": "https://x.com/inertiaaaaaa/status/2091545928687825406",
     "text": "Guitar pick made out of rosewood with geometric shell inlay. https://t.co/2gza64enKG",
@@ -21387,7 +21237,7 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 19919,
+    "likes": 19921,
     "replies": 109,
     "reposts": 1051,
     "media": [
@@ -21463,7 +21313,7 @@
   },
   {
     "id": "2090683415104557406",
-    "sortIndex": "2175",
+    "sortIndex": "2176",
     "postedAt": "Fri Aug 21 06:12:23 +0000 2026",
     "url": "https://x.com/Hamburgerai/status/2090683415104557406",
     "text": "很喜欢这种把旅行照片收进田野笔记里的方式。\n照片留住现场，旁边那枚略微缺墨的彩色橡皮章，只刻下最值得记住的轮廓。\n树、穹顶、海岸都没有被讲满，反而像旅途中随手盖下的一页，安静，又很有地方感。\n\nprompt：\n请将我上传的每一张照片分别制作成一张独立的「橡皮章旅行田野笔记海报」，每张照片单独输出，不要多图拼贴。\n\n整体采用4:3横版构图，将画面划分为左右两个区域，但不要绘制明显的分隔线。\n\n左侧约占画面58%，忠实保留原始照片。准确保持主体身份、地形、建筑、植物、人物、空间关系、自然光影、真实质感和原有色彩氛围，仅进行克制的艺术出版物级摄影调色，并加入极轻微的细腻胶片颗粒。为适配版式可以自然裁切，但不得拉伸、扭曲、移动、替换或重新绘制主体。\n\n右侧约占画面42%，使用温暖的米白色旧纸作为背景。纸张具有细微纤维、天然颗粒、轻微使用痕迹和哑光触感，同时保留大面积未经印刷的纸张留白，让空白成为版式的重要组成部分。\n\n分析原始照片，从中提取最具地点辨识度的主体轮廓、建筑结构、地形走势、植物姿态、道路、水岸线或其他关键视觉关系，将其压缩成一枚小型多色橡皮章图像。\n\n不要逐项复制照片中的全部内容。只保留能够让人一眼认出原始地点、主体和场景关系所必需的最少信息。删除人群、车辆、密集窗户、重复建筑、细碎植被、装饰构件和无关背景。\n\n章印位于右侧纸张区域的中下部，整体只占右侧区域高度的约30%—38%，周围必须保留充足留白。章印不能放大成普通插画、完整风景画或品牌Logo。\n\n根据原图构图决定章印的组织方式：\n\n- 标志性建筑：保留最有辨识度的外轮廓、屋顶、穹顶、拱门、塔楼或主要结构。\n- 山地聚落：将建筑压缩成沿地形排列的少量阶梯状色块。\n- 海岸风景：保留山体走势、聚落层级、岸线和少量断续水纹。\n- 城市远景：保留主要天际线、一个标志性建筑及一两层远山。\n- 自然景观：保留主要山体、树木、水岸或道路的方向关系。\n- 近景遮挡物：如果其对原图叙事重要，可作为前景章印轮廓保留。\n\n从原始照片中提取2—4种专色油墨。优先使用炭黑、深绿、砖红、赭黄、灰蓝、灰褐等经过降低饱和度的颜色，但不得强行套用固定色盘。保留原照片最有辨识度的色彩性格，仅允许一个小面积颜色作为视觉强调。\n\n每一种颜色都要呈现为分别手工盖印的效果：\n\n真实橡皮章雕刻纹理、手工刻痕、粗细不均的排线、轮廓缺口、断裂边缘、干燥缺墨、纸张透底、颗粒状油墨、压力不均、局部重影，以及约1—2毫米的轻微套色偏移。\n\n不同色层之间允许出现自然错位，边缘不能数字化平滑。印迹应像真正刻制后压在旧纸上的橡皮章，而不是套用滤镜的照片、平滑矢量插画或线稿Logo。\n\n根据照片中的地点、主题和视觉意象生成文字：\n\n地点英文名称\nNo. 编号\n三个简短英文关键词\n西元年份\n\n文字放在章印下方或邻近留白处，使用小型、克制、略带机械误差的打字机字体。排版应像旅行者的田野记录，而不是广告标题。确保所有文字拼写准确，不添加无关标语、品牌或装饰性文案。\n\n整体气质像建筑师、旅行作家或自然观察者保存的田野笔记：安静、克制、触感真实、地域明确、带有手工误差和收藏感。照片负责记录现场，章印负责留下记忆中最值得辨认的部分。\n\nAvoid：明显的中央分隔线、圆形印章、中文红色印章、邮票齿孔、蜡封、贴纸拼贴、旅游纪念品模板、平滑矢量Logo、通用城市图标、完整复制所有建筑、密集刻画、儿童手工感、卡通风格、3D渲染、塑料质感、光滑数字渐变、过度饱和、过多文字、装饰堆积，以及重绘或改变左侧原始照片。",
@@ -21472,7 +21322,7 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 11057,
+    "likes": 11056,
     "replies": 301,
     "reposts": 892,
     "media": [
@@ -21718,7 +21568,7 @@
   },
   {
     "id": "1604946331411292166",
-    "sortIndex": "2174",
+    "sortIndex": "2175",
     "postedAt": "Mon Dec 19 21:06:38 +0000 2022",
     "url": "https://x.com/etiennejcb/status/1604946331411292166",
     "text": "inspired by @KangarooPhysics and @matthen2 https://t.co/uJ9gWmhIpd",
@@ -21727,7 +21577,7 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 3195,
+    "likes": 3198,
     "replies": 27,
     "reposts": 405,
     "media": [
@@ -21787,7 +21637,7 @@
   },
   {
     "id": "2091570990048276897",
-    "sortIndex": "2173",
+    "sortIndex": "2174",
     "postedAt": "Sun Aug 23 16:59:18 +0000 2026",
     "url": "https://x.com/kickingkeys/status/2091570990048276897",
     "text": "You can just RL a coding model to paint with javascript btw https://t.co/4x5B81kjUh",
@@ -21796,7 +21646,7 @@
     "folderNames": [
       "🖼️ Inspo"
     ],
-    "likes": 8502,
+    "likes": 8505,
     "replies": 249,
     "reposts": 781,
     "media": [
@@ -21869,6 +21719,245 @@
           }
         ],
         "originUrl": "https://video.twimg.com/amplify_video/2091570785529757696/vid/avc1/1080x1080/_jeY5RCaH4qB0hLf.mp4?tag=29"
+      }
+    ],
+    "representativeMediaIndex": 0,
+    "representativeMotionMediaIndex": 0
+  },
+  {
+    "id": "2111514069618614579",
+    "sortIndex": "2173",
+    "postedAt": "Sat Oct 17 17:45:58 +0000 2026",
+    "url": "https://x.com/fiii___online/status/2111514069618614579",
+    "text": "current hyperfixation is the letraset typeface competition of 1970 in dublin, ireland that birthed tuam unical. \n\nwhich, to me, is one of the best irish language display fonts out there, nothing has come close to it since. \n\nsin é... slán xx https://t.co/nLwE8MuPsA",
+    "authorName": "fiii",
+    "authorHandle": "fiii___online",
+    "folderNames": [
+      "🖼️ Inspo"
+    ],
+    "likes": 1784,
+    "replies": 19,
+    "reposts": 137,
+    "media": [
+      {
+        "type": "photo",
+        "thumbUrl": "https://tbmedia.corychainsman.com/pbs/media/HU2ZYByasAAr-i6/objects/8b2b5e846616d81fb9ffbcbe0659206ed1d9e011b9eead84c94e63bf92342e76.jpg?v=8b2b5e846616d81fb9ffbcbe0659206ed1d9e011b9eead84c94e63bf92342e76",
+        "fullUrl": "https://tbmedia.corychainsman.com/pbs/media/HU2ZYByasAAr-i6/objects/8b2b5e846616d81fb9ffbcbe0659206ed1d9e011b9eead84c94e63bf92342e76.jpg?v=8b2b5e846616d81fb9ffbcbe0659206ed1d9e011b9eead84c94e63bf92342e76",
+        "width": 1024,
+        "height": 682,
+        "aspectRatio": 1.501466275659824,
+        "imageRenditions": [
+          {
+            "url": "https://tbmedia.corychainsman.com/pbs/media/HU2ZYByasAAr-i6/objects/8b2b5e846616d81fb9ffbcbe0659206ed1d9e011b9eead84c94e63bf92342e76/renditions/v2/w240-42feed62cd6ff695c5628f008f6c4b6654ee7329fa58ef62166295181580e18a.avif?v=42feed62cd6ff695c5628f008f6c4b6654ee7329fa58ef62166295181580e18a",
+            "width": 240,
+            "height": 160,
+            "bytes": 3198,
+            "digest": "42feed62cd6ff695c5628f008f6c4b6654ee7329fa58ef62166295181580e18a",
+            "contentType": "image/avif"
+          },
+          {
+            "url": "https://tbmedia.corychainsman.com/pbs/media/HU2ZYByasAAr-i6/objects/8b2b5e846616d81fb9ffbcbe0659206ed1d9e011b9eead84c94e63bf92342e76/renditions/v2/w320-98028d007890e70a738601060c6b76a36ccdbabe8cae5207b3eef482a1d42fe7.avif?v=98028d007890e70a738601060c6b76a36ccdbabe8cae5207b3eef482a1d42fe7",
+            "width": 320,
+            "height": 213,
+            "bytes": 4384,
+            "digest": "98028d007890e70a738601060c6b76a36ccdbabe8cae5207b3eef482a1d42fe7",
+            "contentType": "image/avif"
+          },
+          {
+            "url": "https://tbmedia.corychainsman.com/pbs/media/HU2ZYByasAAr-i6/objects/8b2b5e846616d81fb9ffbcbe0659206ed1d9e011b9eead84c94e63bf92342e76/renditions/v2/w480-5753a337e9ac91c4c83c4038a5b7f7333838c7c8e4205472420602eb2d0d5f89.avif?v=5753a337e9ac91c4c83c4038a5b7f7333838c7c8e4205472420602eb2d0d5f89",
+            "width": 480,
+            "height": 320,
+            "bytes": 6726,
+            "digest": "5753a337e9ac91c4c83c4038a5b7f7333838c7c8e4205472420602eb2d0d5f89",
+            "contentType": "image/avif"
+          },
+          {
+            "url": "https://tbmedia.corychainsman.com/pbs/media/HU2ZYByasAAr-i6/objects/8b2b5e846616d81fb9ffbcbe0659206ed1d9e011b9eead84c94e63bf92342e76/renditions/v2/w680-226848003e196c989580b2d2e6a3ec9d7a4db82d3b6b4c09e56b3944b7248d5c.avif?v=226848003e196c989580b2d2e6a3ec9d7a4db82d3b6b4c09e56b3944b7248d5c",
+            "width": 680,
+            "height": 453,
+            "bytes": 10209,
+            "digest": "226848003e196c989580b2d2e6a3ec9d7a4db82d3b6b4c09e56b3944b7248d5c",
+            "contentType": "image/avif"
+          },
+          {
+            "url": "https://tbmedia.corychainsman.com/pbs/media/HU2ZYByasAAr-i6/objects/8b2b5e846616d81fb9ffbcbe0659206ed1d9e011b9eead84c94e63bf92342e76/renditions/v2/w1024-b691ffe783e699caa8cf68a85c239299bb9d6f7d38e10992043c5b285db8ae4f.avif?v=b691ffe783e699caa8cf68a85c239299bb9d6f7d38e10992043c5b285db8ae4f",
+            "width": 1024,
+            "height": 682,
+            "bytes": 16911,
+            "digest": "b691ffe783e699caa8cf68a85c239299bb9d6f7d38e10992043c5b285db8ae4f",
+            "contentType": "image/avif"
+          }
+        ],
+        "originUrl": "https://pbs.twimg.com/media/HU2ZYByasAAr-i6.jpg"
+      },
+      {
+        "type": "photo",
+        "thumbUrl": "https://tbmedia.corychainsman.com/pbs/media/HU2Ziu5bEAA7YNk/objects/84ef750ef598bdc483e0881751981a41820b9351eecaeee51381009da1ad4e45.jpg?v=84ef750ef598bdc483e0881751981a41820b9351eecaeee51381009da1ad4e45",
+        "fullUrl": "https://tbmedia.corychainsman.com/pbs/media/HU2Ziu5bEAA7YNk/objects/84ef750ef598bdc483e0881751981a41820b9351eecaeee51381009da1ad4e45.jpg?v=84ef750ef598bdc483e0881751981a41820b9351eecaeee51381009da1ad4e45",
+        "width": 803,
+        "height": 1125,
+        "aspectRatio": 0.7137777777777777,
+        "imageRenditions": [
+          {
+            "url": "https://tbmedia.corychainsman.com/pbs/media/HU2Ziu5bEAA7YNk/objects/84ef750ef598bdc483e0881751981a41820b9351eecaeee51381009da1ad4e45/renditions/v2/w240-3b0ba1c9de859ab01425b88c572769ec57b87472748ddb004ab689ee5f237c2e.avif?v=3b0ba1c9de859ab01425b88c572769ec57b87472748ddb004ab689ee5f237c2e",
+            "width": 240,
+            "height": 336,
+            "bytes": 13499,
+            "digest": "3b0ba1c9de859ab01425b88c572769ec57b87472748ddb004ab689ee5f237c2e",
+            "contentType": "image/avif"
+          },
+          {
+            "url": "https://tbmedia.corychainsman.com/pbs/media/HU2Ziu5bEAA7YNk/objects/84ef750ef598bdc483e0881751981a41820b9351eecaeee51381009da1ad4e45/renditions/v2/w320-4a96d878fcf97f1b7ee591684c13ef42aa3959c631d51cf7aa6b7c996a50525b.avif?v=4a96d878fcf97f1b7ee591684c13ef42aa3959c631d51cf7aa6b7c996a50525b",
+            "width": 320,
+            "height": 448,
+            "bytes": 21721,
+            "digest": "4a96d878fcf97f1b7ee591684c13ef42aa3959c631d51cf7aa6b7c996a50525b",
+            "contentType": "image/avif"
+          },
+          {
+            "url": "https://tbmedia.corychainsman.com/pbs/media/HU2Ziu5bEAA7YNk/objects/84ef750ef598bdc483e0881751981a41820b9351eecaeee51381009da1ad4e45/renditions/v2/w480-ece398f28e772ce098654fcfd8a02e857737ee97ea14a4b9a01506593ceb3399.avif?v=ece398f28e772ce098654fcfd8a02e857737ee97ea14a4b9a01506593ceb3399",
+            "width": 480,
+            "height": 672,
+            "bytes": 39809,
+            "digest": "ece398f28e772ce098654fcfd8a02e857737ee97ea14a4b9a01506593ceb3399",
+            "contentType": "image/avif"
+          },
+          {
+            "url": "https://tbmedia.corychainsman.com/pbs/media/HU2Ziu5bEAA7YNk/objects/84ef750ef598bdc483e0881751981a41820b9351eecaeee51381009da1ad4e45/renditions/v2/w680-f3a0f121289d41bf492855256bd0c6a27bb8b97675d844de14707725fbd556b3.avif?v=f3a0f121289d41bf492855256bd0c6a27bb8b97675d844de14707725fbd556b3",
+            "width": 680,
+            "height": 953,
+            "bytes": 64217,
+            "digest": "f3a0f121289d41bf492855256bd0c6a27bb8b97675d844de14707725fbd556b3",
+            "contentType": "image/avif"
+          },
+          {
+            "url": "https://tbmedia.corychainsman.com/pbs/media/HU2Ziu5bEAA7YNk/objects/84ef750ef598bdc483e0881751981a41820b9351eecaeee51381009da1ad4e45/renditions/v2/w803-d09cd53a886d4937af62935203de671ef6d2a2d778d7140fe6e04763d0a91b92.avif?v=d09cd53a886d4937af62935203de671ef6d2a2d778d7140fe6e04763d0a91b92",
+            "width": 803,
+            "height": 1125,
+            "bytes": 87448,
+            "digest": "d09cd53a886d4937af62935203de671ef6d2a2d778d7140fe6e04763d0a91b92",
+            "contentType": "image/avif"
+          }
+        ],
+        "originUrl": "https://pbs.twimg.com/media/HU2Ziu5bEAA7YNk.jpg"
+      },
+      {
+        "type": "photo",
+        "thumbUrl": "https://tbmedia.corychainsman.com/pbs/media/HU2Zy0jasAA7lmq/objects/f8c01ac0f0de469f773086cd26cb112a6e86cc00765732932afa18a99db58e2c.png?v=f8c01ac0f0de469f773086cd26cb112a6e86cc00765732932afa18a99db58e2c",
+        "fullUrl": "https://tbmedia.corychainsman.com/pbs/media/HU2Zy0jasAA7lmq/objects/f8c01ac0f0de469f773086cd26cb112a6e86cc00765732932afa18a99db58e2c.png?v=f8c01ac0f0de469f773086cd26cb112a6e86cc00765732932afa18a99db58e2c",
+        "width": 2074,
+        "height": 1294,
+        "aspectRatio": 1.6027820710973726,
+        "imageRenditions": [
+          {
+            "url": "https://tbmedia.corychainsman.com/pbs/media/HU2Zy0jasAA7lmq/objects/f8c01ac0f0de469f773086cd26cb112a6e86cc00765732932afa18a99db58e2c/renditions/v2/w240-114e5c35e0afa050b176737f62eaa805c9863fdfc1250df336c5076c65b5a764.avif?v=114e5c35e0afa050b176737f62eaa805c9863fdfc1250df336c5076c65b5a764",
+            "width": 240,
+            "height": 150,
+            "bytes": 7293,
+            "digest": "114e5c35e0afa050b176737f62eaa805c9863fdfc1250df336c5076c65b5a764",
+            "contentType": "image/avif"
+          },
+          {
+            "url": "https://tbmedia.corychainsman.com/pbs/media/HU2Zy0jasAA7lmq/objects/f8c01ac0f0de469f773086cd26cb112a6e86cc00765732932afa18a99db58e2c/renditions/v2/w320-21e019a035bd609e634b1e2c3cacf3073f9a8651d14fe9ef4d0767b761ed77fd.avif?v=21e019a035bd609e634b1e2c3cacf3073f9a8651d14fe9ef4d0767b761ed77fd",
+            "width": 320,
+            "height": 200,
+            "bytes": 9772,
+            "digest": "21e019a035bd609e634b1e2c3cacf3073f9a8651d14fe9ef4d0767b761ed77fd",
+            "contentType": "image/avif"
+          },
+          {
+            "url": "https://tbmedia.corychainsman.com/pbs/media/HU2Zy0jasAA7lmq/objects/f8c01ac0f0de469f773086cd26cb112a6e86cc00765732932afa18a99db58e2c/renditions/v2/w480-4da657eae81094158e6c0cddf8219c55e7ad8bd557aa2a738682205aa0e3599e.avif?v=4da657eae81094158e6c0cddf8219c55e7ad8bd557aa2a738682205aa0e3599e",
+            "width": 480,
+            "height": 299,
+            "bytes": 13648,
+            "digest": "4da657eae81094158e6c0cddf8219c55e7ad8bd557aa2a738682205aa0e3599e",
+            "contentType": "image/avif"
+          },
+          {
+            "url": "https://tbmedia.corychainsman.com/pbs/media/HU2Zy0jasAA7lmq/objects/f8c01ac0f0de469f773086cd26cb112a6e86cc00765732932afa18a99db58e2c/renditions/v2/w680-41224fb31f8dd8680c9d8cfd0eafd92385366687cb355f8885368c6d3246eafd.avif?v=41224fb31f8dd8680c9d8cfd0eafd92385366687cb355f8885368c6d3246eafd",
+            "width": 680,
+            "height": 424,
+            "bytes": 19126,
+            "digest": "41224fb31f8dd8680c9d8cfd0eafd92385366687cb355f8885368c6d3246eafd",
+            "contentType": "image/avif"
+          },
+          {
+            "url": "https://tbmedia.corychainsman.com/pbs/media/HU2Zy0jasAA7lmq/objects/f8c01ac0f0de469f773086cd26cb112a6e86cc00765732932afa18a99db58e2c/renditions/v2/w1280-89a6cd91d915901113c6b1633f032d4a3b3c19d2036f5be64b5b171e22a4874f.avif?v=89a6cd91d915901113c6b1633f032d4a3b3c19d2036f5be64b5b171e22a4874f",
+            "width": 1280,
+            "height": 799,
+            "bytes": 32051,
+            "digest": "89a6cd91d915901113c6b1633f032d4a3b3c19d2036f5be64b5b171e22a4874f",
+            "contentType": "image/avif"
+          },
+          {
+            "url": "https://tbmedia.corychainsman.com/pbs/media/HU2Zy0jasAA7lmq/objects/f8c01ac0f0de469f773086cd26cb112a6e86cc00765732932afa18a99db58e2c/renditions/v2/w2048-a878ad9d9e27454d384c4aac05dc23b5a8ed7dc449c5a9df72eb8d77a8a13949.avif?v=a878ad9d9e27454d384c4aac05dc23b5a8ed7dc449c5a9df72eb8d77a8a13949",
+            "width": 2048,
+            "height": 1278,
+            "bytes": 45383,
+            "digest": "a878ad9d9e27454d384c4aac05dc23b5a8ed7dc449c5a9df72eb8d77a8a13949",
+            "contentType": "image/avif"
+          }
+        ],
+        "originUrl": "https://pbs.twimg.com/media/HU2Zy0jasAA7lmq.png"
+      },
+      {
+        "type": "photo",
+        "thumbUrl": "https://tbmedia.corychainsman.com/pbs/media/HU2aA4YbkAAGy4S/objects/7c33d68b29f8b5abc418a92e8715da818a789302748ed4bbb97dbcb1ed836a43.jpg?v=7c33d68b29f8b5abc418a92e8715da818a789302748ed4bbb97dbcb1ed836a43",
+        "fullUrl": "https://tbmedia.corychainsman.com/pbs/media/HU2aA4YbkAAGy4S/objects/7c33d68b29f8b5abc418a92e8715da818a789302748ed4bbb97dbcb1ed836a43.jpg?v=7c33d68b29f8b5abc418a92e8715da818a789302748ed4bbb97dbcb1ed836a43",
+        "width": 1618,
+        "height": 1514,
+        "aspectRatio": 1.0686922060766182,
+        "imageRenditions": [
+          {
+            "url": "https://tbmedia.corychainsman.com/pbs/media/HU2aA4YbkAAGy4S/objects/7c33d68b29f8b5abc418a92e8715da818a789302748ed4bbb97dbcb1ed836a43/renditions/v2/w240-7c50a76de11dc1ab71c21f1781d8f481d919c2a8ee9797c51e6f174b7a615c9c.avif?v=7c50a76de11dc1ab71c21f1781d8f481d919c2a8ee9797c51e6f174b7a615c9c",
+            "width": 240,
+            "height": 225,
+            "bytes": 8979,
+            "digest": "7c50a76de11dc1ab71c21f1781d8f481d919c2a8ee9797c51e6f174b7a615c9c",
+            "contentType": "image/avif"
+          },
+          {
+            "url": "https://tbmedia.corychainsman.com/pbs/media/HU2aA4YbkAAGy4S/objects/7c33d68b29f8b5abc418a92e8715da818a789302748ed4bbb97dbcb1ed836a43/renditions/v2/w320-7026edf6d625ddc6d72dae83dd2457d29475dc3c463afd1d4636fd1ff61f832a.avif?v=7026edf6d625ddc6d72dae83dd2457d29475dc3c463afd1d4636fd1ff61f832a",
+            "width": 320,
+            "height": 299,
+            "bytes": 16841,
+            "digest": "7026edf6d625ddc6d72dae83dd2457d29475dc3c463afd1d4636fd1ff61f832a",
+            "contentType": "image/avif"
+          },
+          {
+            "url": "https://tbmedia.corychainsman.com/pbs/media/HU2aA4YbkAAGy4S/objects/7c33d68b29f8b5abc418a92e8715da818a789302748ed4bbb97dbcb1ed836a43/renditions/v2/w480-bc3f7919aebbe7a1ffe85698c897deb7dc5c5725148d1321ba9e4db86c7491a0.avif?v=bc3f7919aebbe7a1ffe85698c897deb7dc5c5725148d1321ba9e4db86c7491a0",
+            "width": 480,
+            "height": 449,
+            "bytes": 31408,
+            "digest": "bc3f7919aebbe7a1ffe85698c897deb7dc5c5725148d1321ba9e4db86c7491a0",
+            "contentType": "image/avif"
+          },
+          {
+            "url": "https://tbmedia.corychainsman.com/pbs/media/HU2aA4YbkAAGy4S/objects/7c33d68b29f8b5abc418a92e8715da818a789302748ed4bbb97dbcb1ed836a43/renditions/v2/w680-1a62d841a148e960e97af01185ae44b2ac75e76823a3309ca0698997c9959db5.avif?v=1a62d841a148e960e97af01185ae44b2ac75e76823a3309ca0698997c9959db5",
+            "width": 680,
+            "height": 636,
+            "bytes": 53371,
+            "digest": "1a62d841a148e960e97af01185ae44b2ac75e76823a3309ca0698997c9959db5",
+            "contentType": "image/avif"
+          },
+          {
+            "url": "https://tbmedia.corychainsman.com/pbs/media/HU2aA4YbkAAGy4S/objects/7c33d68b29f8b5abc418a92e8715da818a789302748ed4bbb97dbcb1ed836a43/renditions/v2/w1280-8a5028dde291f83c5fec72f7cf7e453491e78ac69473a936a91f8c31f43f2c6e.avif?v=8a5028dde291f83c5fec72f7cf7e453491e78ac69473a936a91f8c31f43f2c6e",
+            "width": 1280,
+            "height": 1198,
+            "bytes": 121332,
+            "digest": "8a5028dde291f83c5fec72f7cf7e453491e78ac69473a936a91f8c31f43f2c6e",
+            "contentType": "image/avif"
+          },
+          {
+            "url": "https://tbmedia.corychainsman.com/pbs/media/HU2aA4YbkAAGy4S/objects/7c33d68b29f8b5abc418a92e8715da818a789302748ed4bbb97dbcb1ed836a43/renditions/v2/w1618-0637963c8a22917bf0dbf18e1c4c71fe4081bddd73922bce0d074b609a572e6e.avif?v=0637963c8a22917bf0dbf18e1c4c71fe4081bddd73922bce0d074b609a572e6e",
+            "width": 1618,
+            "height": 1514,
+            "bytes": 163446,
+            "digest": "0637963c8a22917bf0dbf18e1c4c71fe4081bddd73922bce0d074b609a572e6e",
+            "contentType": "image/avif"
+          }
+        ],
+        "originUrl": "https://pbs.twimg.com/media/HU2aA4YbkAAGy4S.jpg"
       }
     ],
     "representativeMediaIndex": 0,
@@ -68133,96 +68222,6 @@
           }
         ],
         "originUrl": "https://pbs.twimg.com/media/HOAY8mDbAAAi54l.jpg"
-      }
-    ],
-    "representativeMediaIndex": 0,
-    "representativeMotionMediaIndex": 0
-  },
-  {
-    "id": "2080751875255566392",
-    "sortIndex": "1830",
-    "postedAt": "Fri Jul 24 20:28:00 +0000 2026",
-    "url": "https://x.com/__el__toro__/status/2080751875255566392",
-    "text": "For anyone curious how flat face couplings work (and how air entering the system is kept to an absolute minimum), this animation from Stauff provides a great overview of the operating principle: https://t.co/WeN0XuYijB",
-    "quotedText": "We haven't even discussed modular hydraulic connectors yet.\n\nJust look at this beautiful setup.\n\nYou'd have to be crazy to not want to use this. https://t.co/lheTplKbLV",
-    "authorName": "ＤＡＮ_ＡＮＴＯＮＥＬＬＩ",
-    "authorHandle": "__el__toro__",
-    "folderNames": [
-      "🖼️ Inspo"
-    ],
-    "likes": 2559,
-    "replies": 32,
-    "reposts": 182,
-    "media": [
-      {
-        "type": "video",
-        "thumbUrl": "https://tbmedia.corychainsman.com/pbs/amplify_video_thumb/2080741100579397632/img/gGj_2AjVezUUTZ3_/objects/607f1488db267ba5c136e28bcbb8b244dcbf20a2d3cdc021bb906b33bd7abd2e.jpg?v=607f1488db267ba5c136e28bcbb8b244dcbf20a2d3cdc021bb906b33bd7abd2e",
-        "fullUrl": "https://tbmedia.corychainsman.com/vid/amplify_video/2080741100579397632/vid/avc1/1920x1080/PV89THnKtr8ZP9Fl.mp4?v=0eabaf8ae5f06c805883c56caa770611111de5b7995e268911bdf6ce3cf896b3",
-        "posterUrl": "https://tbmedia.corychainsman.com/pbs/amplify_video_thumb/2080741100579397632/img/gGj_2AjVezUUTZ3_/objects/607f1488db267ba5c136e28bcbb8b244dcbf20a2d3cdc021bb906b33bd7abd2e.jpg?v=607f1488db267ba5c136e28bcbb8b244dcbf20a2d3cdc021bb906b33bd7abd2e",
-        "width": 1920,
-        "height": 1080,
-        "aspectRatio": 1.7777777777777777,
-        "variants": [
-          {
-            "url": "https://video.twimg.com/amplify_video/2080741100579397632/vid/avc1/1920x1080/PV89THnKtr8ZP9Fl.mp4?tag=29",
-            "bitrate": 10368000
-          },
-          {
-            "url": "https://video.twimg.com/amplify_video/2080741100579397632/vid/avc1/1280x720/P-M3NLFGgkhssQOC.mp4?tag=29",
-            "bitrate": 2176000
-          },
-          {
-            "url": "https://video.twimg.com/amplify_video/2080741100579397632/vid/avc1/640x360/xTojl7C5fHlBfYQl.mp4?tag=29",
-            "bitrate": 832000
-          },
-          {
-            "url": "https://video.twimg.com/amplify_video/2080741100579397632/vid/avc1/480x270/NcLLRm9tBuFJTFSI.mp4?tag=29",
-            "bitrate": 256000
-          }
-        ],
-        "imageRenditions": [
-          {
-            "url": "https://tbmedia.corychainsman.com/pbs/amplify_video_thumb/2080741100579397632/img/gGj_2AjVezUUTZ3_/objects/607f1488db267ba5c136e28bcbb8b244dcbf20a2d3cdc021bb906b33bd7abd2e/renditions/v2/w240-15e012f0410d570f5130d0111e2a023ecbedbc2ec43693092a46a8bd7b520d32.avif?v=15e012f0410d570f5130d0111e2a023ecbedbc2ec43693092a46a8bd7b520d32",
-            "width": 240,
-            "height": 134,
-            "bytes": 3997,
-            "digest": "15e012f0410d570f5130d0111e2a023ecbedbc2ec43693092a46a8bd7b520d32",
-            "contentType": "image/avif"
-          },
-          {
-            "url": "https://tbmedia.corychainsman.com/pbs/amplify_video_thumb/2080741100579397632/img/gGj_2AjVezUUTZ3_/objects/607f1488db267ba5c136e28bcbb8b244dcbf20a2d3cdc021bb906b33bd7abd2e/renditions/v2/w320-5df581f201c027cae87ec76b4b7581dd50d2a9477975ad5c87c5ec4566ba76a0.avif?v=5df581f201c027cae87ec76b4b7581dd50d2a9477975ad5c87c5ec4566ba76a0",
-            "width": 320,
-            "height": 180,
-            "bytes": 6066,
-            "digest": "5df581f201c027cae87ec76b4b7581dd50d2a9477975ad5c87c5ec4566ba76a0",
-            "contentType": "image/avif"
-          },
-          {
-            "url": "https://tbmedia.corychainsman.com/pbs/amplify_video_thumb/2080741100579397632/img/gGj_2AjVezUUTZ3_/objects/607f1488db267ba5c136e28bcbb8b244dcbf20a2d3cdc021bb906b33bd7abd2e/renditions/v2/w480-eb3ade9f1e0a19425ddf3c7f78726f99cc96119e523ddb89398a7fd3f9ab6391.avif?v=eb3ade9f1e0a19425ddf3c7f78726f99cc96119e523ddb89398a7fd3f9ab6391",
-            "width": 480,
-            "height": 270,
-            "bytes": 10765,
-            "digest": "eb3ade9f1e0a19425ddf3c7f78726f99cc96119e523ddb89398a7fd3f9ab6391",
-            "contentType": "image/avif"
-          },
-          {
-            "url": "https://tbmedia.corychainsman.com/pbs/amplify_video_thumb/2080741100579397632/img/gGj_2AjVezUUTZ3_/objects/607f1488db267ba5c136e28bcbb8b244dcbf20a2d3cdc021bb906b33bd7abd2e/renditions/v2/w680-4c8386bfe7abc5a7433c9f5a7dfe9ab5d6200b9434a2562d779f764ededd19e0.avif?v=4c8386bfe7abc5a7433c9f5a7dfe9ab5d6200b9434a2562d779f764ededd19e0",
-            "width": 680,
-            "height": 383,
-            "bytes": 17656,
-            "digest": "4c8386bfe7abc5a7433c9f5a7dfe9ab5d6200b9434a2562d779f764ededd19e0",
-            "contentType": "image/avif"
-          },
-          {
-            "url": "https://tbmedia.corychainsman.com/pbs/amplify_video_thumb/2080741100579397632/img/gGj_2AjVezUUTZ3_/objects/607f1488db267ba5c136e28bcbb8b244dcbf20a2d3cdc021bb906b33bd7abd2e/renditions/v2/w1200-271d6c06bdbf7cc5ad16242fc88dcca4fa435f64485e5efc338b349f6882ce93.avif?v=271d6c06bdbf7cc5ad16242fc88dcca4fa435f64485e5efc338b349f6882ce93",
-            "width": 1200,
-            "height": 675,
-            "bytes": 45064,
-            "digest": "271d6c06bdbf7cc5ad16242fc88dcca4fa435f64485e5efc338b349f6882ce93",
-            "contentType": "image/avif"
-          }
-        ],
-        "originUrl": "https://video.twimg.com/amplify_video/2080741100579397632/vid/avc1/1920x1080/PV89THnKtr8ZP9Fl.mp4?tag=29"
       }
     ],
     "representativeMediaIndex": 0,
