@@ -1,5 +1,61 @@
 [
   {
+    "gridId": "2115568749764018242:0",
+    "tweetId": "2115568749764018242",
+    "mediaIndex": 0,
+    "mediaType": "video",
+    "thumbUrl": "https://tbmedia.corychainsman.com/pbs/amplify_video_thumb/2115568669510004736/img/BsFzRY2GyRoBe5mh/objects/8ea0507271aef4004f5dd95e48d2654a39a25f57ca222e59c595bd226918851c.jpg?v=8ea0507271aef4004f5dd95e48d2654a39a25f57ca222e59c595bd226918851c",
+    "fullUrl": "https://tbmedia.corychainsman.com/vid/amplify_video/2115568669510004736/vid/avc1/1162x720/u7qH_c2QVM7Lwad9.mp4?v=43204158085ac53134e88ea866f27434bb104c8502cfb6ce4f97304690df4998",
+    "posterUrl": "https://tbmedia.corychainsman.com/pbs/amplify_video_thumb/2115568669510004736/img/BsFzRY2GyRoBe5mh/objects/8ea0507271aef4004f5dd95e48d2654a39a25f57ca222e59c595bd226918851c.jpg?v=8ea0507271aef4004f5dd95e48d2654a39a25f57ca222e59c595bd226918851c",
+    "width": 2912,
+    "height": 1802,
+    "aspectRatio": 1.6159822419533851,
+    "imageRenditions": [
+      {
+        "url": "https://tbmedia.corychainsman.com/pbs/amplify_video_thumb/2115568669510004736/img/BsFzRY2GyRoBe5mh/objects/8ea0507271aef4004f5dd95e48d2654a39a25f57ca222e59c595bd226918851c/renditions/v2/w240-6dd25ad65e8cbfd2c782cfa56624b57148e55255c674406229fe0430cf081822.avif?v=6dd25ad65e8cbfd2c782cfa56624b57148e55255c674406229fe0430cf081822",
+        "width": 240,
+        "height": 149,
+        "bytes": 2391,
+        "digest": "6dd25ad65e8cbfd2c782cfa56624b57148e55255c674406229fe0430cf081822",
+        "contentType": "image/avif"
+      },
+      {
+        "url": "https://tbmedia.corychainsman.com/pbs/amplify_video_thumb/2115568669510004736/img/BsFzRY2GyRoBe5mh/objects/8ea0507271aef4004f5dd95e48d2654a39a25f57ca222e59c595bd226918851c/renditions/v2/w320-3eb90b6044f631563ed41a2ac6d497276beca32e300b9973dcf711486f779202.avif?v=3eb90b6044f631563ed41a2ac6d497276beca32e300b9973dcf711486f779202",
+        "width": 320,
+        "height": 198,
+        "bytes": 3606,
+        "digest": "3eb90b6044f631563ed41a2ac6d497276beca32e300b9973dcf711486f779202",
+        "contentType": "image/avif"
+      },
+      {
+        "url": "https://tbmedia.corychainsman.com/pbs/amplify_video_thumb/2115568669510004736/img/BsFzRY2GyRoBe5mh/objects/8ea0507271aef4004f5dd95e48d2654a39a25f57ca222e59c595bd226918851c/renditions/v2/w480-7bf8369f8142d97295a6581978d748c8c581a5d33407e16a7ea2802ad2e9b03e.avif?v=7bf8369f8142d97295a6581978d748c8c581a5d33407e16a7ea2802ad2e9b03e",
+        "width": 480,
+        "height": 297,
+        "bytes": 7395,
+        "digest": "7bf8369f8142d97295a6581978d748c8c581a5d33407e16a7ea2802ad2e9b03e",
+        "contentType": "image/avif"
+      },
+      {
+        "url": "https://tbmedia.corychainsman.com/pbs/amplify_video_thumb/2115568669510004736/img/BsFzRY2GyRoBe5mh/objects/8ea0507271aef4004f5dd95e48d2654a39a25f57ca222e59c595bd226918851c/renditions/v2/w680-fa83bdce7ec39e97b1a63ec1bdaa8c1857e8df4d00a1d3824bbf5c179a4d10a9.avif?v=fa83bdce7ec39e97b1a63ec1bdaa8c1857e8df4d00a1d3824bbf5c179a4d10a9",
+        "width": 680,
+        "height": 421,
+        "bytes": 14117,
+        "digest": "fa83bdce7ec39e97b1a63ec1bdaa8c1857e8df4d00a1d3824bbf5c179a4d10a9",
+        "contentType": "image/avif"
+      },
+      {
+        "url": "https://tbmedia.corychainsman.com/pbs/amplify_video_thumb/2115568669510004736/img/BsFzRY2GyRoBe5mh/objects/8ea0507271aef4004f5dd95e48d2654a39a25f57ca222e59c595bd226918851c/renditions/v2/w1162-263013c599c092dd3b21be710acbe4600902139b801b193ad3b319dd9a63700d.avif?v=263013c599c092dd3b21be710acbe4600902139b801b193ad3b319dd9a63700d",
+        "width": 1162,
+        "height": 720,
+        "bytes": 33039,
+        "digest": "263013c599c092dd3b21be710acbe4600902139b801b193ad3b319dd9a63700d",
+        "contentType": "image/avif"
+      }
+    ],
+    "thumbhash": "+wcCBID0CaVmdYd5Y4xokEQ19w==",
+    "previewUrl": "https://tbmedia.corychainsman.com/vid/amplify_video/2115568669510004736/vid/avc1/1162x720/u7qH_c2QVM7Lwad9/preview.mp4"
+  },
+  {
     "gridId": "2115141484957909187:0",
     "tweetId": "2115141484957909187",
     "mediaIndex": 0,
