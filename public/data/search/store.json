@@ -1,5 +1,25 @@
 [
   {
+    "id": "2119305788325781750",
+    "text": "my new addiction\n\n(vanilla js // interactive + sound on) https://t.co/1ijrMjjrxh",
+    "quotedText": "",
+    "articleTitle": "",
+    "articleText": "",
+    "authorName": "gruff",
+    "authorHandle": "gruffwashere",
+    "folderNames": "🖼️ Inspo"
+  },
+  {
+    "id": "2119392949813555224",
+    "text": "一生カチカチしていられるボタンを作ってしまった... https://t.co/qNC0dlfJoc",
+    "quotedText": "",
+    "articleTitle": "",
+    "articleText": "",
+    "authorName": "Lattice",
+    "authorHandle": "Lattice_Node",
+    "folderNames": "🖼️ Inspo"
+  },
+  {
     "id": "2119536313712230802",
     "text": "Built a physical simulation of a record player with WebGL2 and Web Audio. It's *shockingly* accurate: https://t.co/MBNaTfKoai.\n\nInstead of playing a song, it works by converting it into the physical shape of a groove. Then a simulated stylus rides those walls 384,000 times a second, and you hear the voltage that motion would induce in a cartridge.\n\nSo the crackle, the pops, the wow/flutter, the dull inner grooves are natural byproducts of the simulation. You can also \"DJ\" the record.\n\n(The converted songs are in the public domain or CC-licensed. Code is linked for you to remix and re-deploy.)",
     "quotedText": "",
